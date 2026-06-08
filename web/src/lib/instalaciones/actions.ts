@@ -1,0 +1,331 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+
+import { ROLES_GESTION } from "@/lib/auth/roles";
+import { requireRol } from "@/lib/auth/guards";
+import { createClient } from "@/lib/supabase/server";
+
+import { CerrarInstalacionInputSchema, InstalacionInputSchema } from "./schemas";
+
+/** Convención compartida con el resto de CRUDs (T-31..T-33). */
+export type ActionResult<T = void> =
+  | { ok: true; data: T }
+  | {
+      ok: false;
+      error: {
+        code: string;
+        fieldErrors?: Record<string, string[]>;
+      };
+    };
+
+const IdSchema = z.string().uuid();
+
+function fieldErrorsFromZod(err: z.ZodError): Record<string, string[]> {
+  const flat = err.flatten();
+  return Object.fromEntries(Object.entries(flat.fieldErrors).map(([k, v]) => [k, v ?? []]));
+}
+
+function parseInstalacionForm(formData: FormData): Record<string, unknown> {
+  return {
+    maquinaId: formData.get("maquinaId") ?? "",
+    licenciaId: formData.get("licenciaId") ?? "",
+    localId: formData.get("localId") ?? "",
+    fechaInicio: formData.get("fechaInicio") ?? "",
+    tasaSemanal: formData.get("tasaSemanal") ?? "",
+    porcentajeLocal: formData.get("porcentajeLocal") ?? "",
+    contadorEntradasBase: formData.get("contadorEntradasBase") ?? "",
+    contadorSalidasBase: formData.get("contadorSalidasBase") ?? "",
+    estado: formData.get("estado") ?? "activa",
+    notas: formData.get("notas") ?? "",
+  };
+}
+
+/**
+ * Mapea códigos PostgreSQL conocidos a códigos i18n.
+ *
+ * Los índices únicos parciales `uq_instalacion_maquina_activa` y
+ * `uq_instalacion_licencia_activa` reportan `23505`. Distinguimos
+ * los dos casos por el detalle del mensaje (postgrest expone el nombre
+ * de la constraint en `error.details`).
+ */
+function mapPgErrorToCode(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+}): { code: string; fieldErrors?: Record<string, string[]> } {
+  if (error.code === "23505") {
+    const haystack = `${error.message ?? ""} ${error.details ?? ""}`.toLowerCase();
+    if (haystack.includes("maquina")) {
+      return {
+        code: "maquinaConInstalacionActiva",
+        fieldErrors: { maquinaId: ["maquinaConInstalacionActiva"] },
+      };
+    }
+    if (haystack.includes("licencia")) {
+      return {
+        code: "licenciaConInstalacionActiva",
+        fieldErrors: { licenciaId: ["licenciaConInstalacionActiva"] },
+      };
+    }
+    return { code: "duplicadoDesconocido" };
+  }
+  if (error.code === "23514") {
+    // Algún CHECK violado (fecha_fin coherente, porcentaje fuera de rango...).
+    return { code: "constraintViolada" };
+  }
+  return { code: "guardarFallido" };
+}
+
+// -----------------------------------------------------------------------------
+// crearInstalacion
+// -----------------------------------------------------------------------------
+
+export async function crearInstalacion(
+  _prevState: ActionResult<{ id: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  const activa = await requireRol(ROLES_GESTION);
+
+  const parsed = InstalacionInputSchema.safeParse(parseInstalacionForm(formData));
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "validacion",
+        fieldErrors: fieldErrorsFromZod(parsed.error),
+      },
+    };
+  }
+  // Estado al crear: siempre 'activa'. La cerradura se hace por la
+  // Edge Function `cerrar-instalacion`, no por el form.
+  const input = { ...parsed.data, estado: "activa" as const };
+
+  const supabase = createClient();
+
+  // Verificación defensiva multi-tenant: las 3 FK deben pertenecer a la
+  // misma empresa que la membresía activa. RLS también lo bloquearía
+  // pero un mensaje claro es mejor UX que un 403 opaco.
+  const [licOk, maqOk, locOk] = await Promise.all([
+    supabase
+      .from("licencia")
+      .select("id", { head: true, count: "exact" })
+      .eq("id", input.licenciaId)
+      .eq("empresa_id", activa.empresa.id),
+    supabase
+      .from("maquina")
+      .select("id", { head: true, count: "exact" })
+      .eq("id", input.maquinaId)
+      .eq("empresa_id", activa.empresa.id),
+    supabase
+      .from("local")
+      .select("id", { head: true, count: "exact" })
+      .eq("id", input.localId)
+      .eq("empresa_id", activa.empresa.id),
+  ]);
+  if (!licOk.count) {
+    return {
+      ok: false,
+      error: {
+        code: "licenciaInvalida",
+        fieldErrors: { licenciaId: ["licenciaInvalida"] },
+      },
+    };
+  }
+  if (!maqOk.count) {
+    return {
+      ok: false,
+      error: {
+        code: "maquinaInvalida",
+        fieldErrors: { maquinaId: ["maquinaInvalida"] },
+      },
+    };
+  }
+  if (!locOk.count) {
+    return {
+      ok: false,
+      error: {
+        code: "localInvalido",
+        fieldErrors: { localId: ["localInvalido"] },
+      },
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("instalacion")
+    .insert({
+      empresa_id: activa.empresa.id,
+      maquina_id: input.maquinaId,
+      licencia_id: input.licenciaId,
+      local_id: input.localId,
+      fecha_inicio: input.fechaInicio,
+      tasa_semanal: input.tasaSemanal,
+      porcentaje_local: input.porcentajeLocal,
+      contador_entradas_base: input.contadorEntradasBase,
+      contador_salidas_base: input.contadorSalidasBase,
+      estado: "activa",
+      notas: input.notas,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { ok: false, error: mapPgErrorToCode(error) };
+  }
+
+  revalidatePath("/instalaciones");
+  redirect(`/instalaciones/${data.id}`);
+}
+
+// -----------------------------------------------------------------------------
+// actualizarInstalacion (no toca FKs ni `estado`; el cierre va por Edge)
+// -----------------------------------------------------------------------------
+
+export async function actualizarInstalacion(
+  instalacionId: string,
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const activa = await requireRol(ROLES_GESTION);
+
+  const idCheck = IdSchema.safeParse(instalacionId);
+  if (!idCheck.success) {
+    return { ok: false, error: { code: "idInvalido" } };
+  }
+
+  const parsed = InstalacionInputSchema.safeParse(parseInstalacionForm(formData));
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "validacion",
+        fieldErrors: fieldErrorsFromZod(parsed.error),
+      },
+    };
+  }
+  const input = parsed.data;
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("instalacion")
+    .update({
+      // Las FKs no se cambian: si el usuario quiere otra máquina/licencia/
+      // local debe cerrar y crear una nueva instalación (mantiene la
+      // historia y la baseline coherentes).
+      fecha_inicio: input.fechaInicio,
+      tasa_semanal: input.tasaSemanal,
+      porcentaje_local: input.porcentajeLocal,
+      contador_entradas_base: input.contadorEntradasBase,
+      contador_salidas_base: input.contadorSalidasBase,
+      notas: input.notas,
+    })
+    .eq("empresa_id", activa.empresa.id)
+    .eq("id", instalacionId);
+
+  if (error) {
+    return { ok: false, error: mapPgErrorToCode(error) };
+  }
+
+  revalidatePath("/instalaciones");
+  revalidatePath(`/instalaciones/${instalacionId}`);
+  return { ok: true, data: undefined };
+}
+
+// -----------------------------------------------------------------------------
+// eliminarInstalacion
+// -----------------------------------------------------------------------------
+
+export async function eliminarInstalacion(instalacionId: string): Promise<ActionResult> {
+  const activa = await requireRol(ROLES_GESTION);
+
+  const idCheck = IdSchema.safeParse(instalacionId);
+  if (!idCheck.success) {
+    return { ok: false, error: { code: "idInvalido" } };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("instalacion")
+    .delete()
+    .eq("empresa_id", activa.empresa.id)
+    .eq("id", instalacionId);
+
+  if (error) {
+    if (error.code === "23503") {
+      // Hay recaudaciones, cambios de placa o lecturas que la referencian.
+      return { ok: false, error: { code: "instalacionEnUso" } };
+    }
+    return { ok: false, error: { code: "borrarFallido" } };
+  }
+
+  revalidatePath("/instalaciones");
+  redirect("/instalaciones");
+}
+
+// -----------------------------------------------------------------------------
+// cerrarInstalacion — invoca la Edge Function `cerrar-instalacion`
+// -----------------------------------------------------------------------------
+
+export async function cerrarInstalacion(
+  instalacionId: string,
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireRol(ROLES_GESTION);
+
+  const idCheck = IdSchema.safeParse(instalacionId);
+  if (!idCheck.success) {
+    return { ok: false, error: { code: "idInvalido" } };
+  }
+
+  const parsed = CerrarInstalacionInputSchema.safeParse({
+    fechaFin: formData.get("fechaFin") ?? "",
+    notas: formData.get("notas") ?? "",
+  });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "validacion",
+        fieldErrors: fieldErrorsFromZod(parsed.error),
+      },
+    };
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase.functions.invoke<{
+    code?: string;
+    message?: string;
+  }>("cerrar-instalacion", {
+    body: {
+      instalacion_id: instalacionId,
+      fecha_fin: parsed.data.fechaFin,
+      notas: parsed.data.notas ?? undefined,
+    },
+  });
+
+  if (error) {
+    // La Edge Function devuelve { error: { code, message } } como JSON.
+    // El SDK envuelve ese body en `data` cuando el status no es 2xx.
+    const code = data?.code ?? null;
+    if (code === "validation_error") {
+      return { ok: false, error: { code: "fechaFinInvalida" } };
+    }
+    if (code === "conflict") {
+      return { ok: false, error: { code: "yaCerrada" } };
+    }
+    if (code === "not_found") {
+      return { ok: false, error: { code: "instalacionNoEncontrada" } };
+    }
+    if (code === "forbidden" || code === "unauthorized") {
+      return { ok: false, error: { code: "sinPermiso" } };
+    }
+    return { ok: false, error: { code: "cerrarFallido" } };
+  }
+
+  revalidatePath("/instalaciones");
+  revalidatePath(`/instalaciones/${instalacionId}`);
+  return { ok: true, data: undefined };
+}

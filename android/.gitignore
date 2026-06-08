@@ -1,0 +1,28 @@
+# Construido / generado
+.gradle/
+build/
+app/build/
+captures/
+.cxx/
+.kotlin/
+*.iml
+release/
+
+# IDE
+.idea/
+
+# Android Studio / SDK
+local.properties
+
+# Keystores: nunca commitear claves de firma reales
+*.keystore
+*.jks
+!debug.keystore
+
+# Output / Profilers
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+hs_err_pid*

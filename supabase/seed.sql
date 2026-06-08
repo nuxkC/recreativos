@@ -1,0 +1,7 @@
+-- Recre — datos semilla para desarrollo local
+--
+-- Este archivo se ejecuta tras aplicar las migraciones cuando se corre
+-- `supabase db reset`. Mantenlo idempotente y sin datos personales reales.
+--
+-- Las inserciones de datos reales (empresas, usuarios, máquinas, etc.) deben
+-- añadirse aquí solo a modo de ejemplo para desarrollo.

@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Recre</string>
+
+    <!-- Auth -->
+    <string name="auth_login_title">Iniciar sesión</string>
+    <string name="auth_login_description">Accede para ver tus locales y recaudar.</string>
+    <string name="auth_login_email">Correo electrónico</string>
+    <string name="auth_login_email_placeholder">tu@empresa.com</string>
+    <string name="auth_login_password">Contraseña</string>
+    <string name="auth_login_submit">Entrar</string>
+    <string name="auth_login_submitting">Entrando…</string>
+    <string name="auth_login_error_invalid">Correo o contraseña incorrectos.</string>
+    <string name="auth_login_error_generic">No se ha podido iniciar sesión. Inténtalo de nuevo.</string>
+    <string name="auth_signout">Cerrar sesión</string>
+
+    <!-- Selección de empresa -->
+    <string name="empresa_seleccion_titulo">Selecciona empresa</string>
+    <string name="empresa_seleccion_descripcion">Eres miembro de varias empresas. Elige con cuál quieres trabajar.</string>
+    <string name="empresa_seleccion_error">No se ha podido cambiar de empresa. Inténtalo de nuevo.</string>
+    <string name="empresa_cambiar">Cambiar de empresa</string>
+
+    <!-- Sin acceso -->
+    <string name="empresa_sin_acceso_titulo">Sin acceso</string>
+    <string name="empresa_sin_acceso_descripcion">Tu cuenta aún no está activa en ninguna empresa. Pide al administrador que te invite o reactive tu acceso.</string>
+
+    <!-- Roles -->
+    <string name="rol_owner">Propietario</string>
+    <string name="rol_admin">Administrador</string>
+    <string name="rol_gestor">Gestor</string>
+    <string name="rol_tecnico">Técnico</string>
+    <string name="rol_contable">Contable</string>
+
+    <!-- Locales (T-52) -->
+    <string name="locales_titulo">Locales</string>
+    <string name="locales_buscar_placeholder">Buscar por nombre o dirección</string>
+    <string name="locales_acciones">Acciones</string>
+    <string name="locales_menu_ajustes">Ajustes</string>
+    <string name="locales_menu_impresora">Vincular impresora</string>
+    <string name="locales_vacio_cargando">Sincronizando locales…</string>
+    <string name="locales_vacio_sin_locales">No hay locales para esta empresa.</string>
+    <string name="locales_vacio_descripcion">Pide al gestor que dé de alta los locales en el back-office.</string>
+    <string name="locales_vacio_busqueda">Ningún local coincide con la búsqueda.</string>
+
+    <!-- Sync stale (T-59) -->
+    <string name="locales_stale_titulo">Sincronización obligatoria</string>
+    <string name="locales_stale_descripcion">Llevas más de 48 h sin sincronizar. Conecta a internet y pulsa "Sincronizar ahora" antes de recaudar.</string>
+
+    <!-- Detalle de local (T-53) -->
+    <string name="local_detalle_titulo">Local</string>
+    <string name="local_detalle_cargando">Cargando…</string>
+    <string name="local_detalle_no_encontrado">Local no encontrado</string>
+    <string name="local_detalle_no_encontrado_descripcion">Es posible que se haya cerrado o que no pertenezca a la empresa activa.</string>
+    <string name="local_detalle_titular">Titular: %1$s</string>
+    <string name="local_detalle_telefono">Teléfono: %1$s</string>
+    <string name="local_detalle_seccion_maquinas">Máquinas activas</string>
+    <string name="local_detalle_sin_maquinas">No hay máquinas activas en este local.</string>
+    <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d máquinas)</string>
+    <string name="action_back">Volver</string>
+
+    <!-- Estados de máquina -->
+    <string name="maquina_estado_instalada">Instalada</string>
+    <string name="maquina_estado_almacen">Almacén</string>
+    <string name="maquina_estado_averiada">Averiada</string>
+    <string name="maquina_estado_baja">Baja</string>
+
+    <!-- Detalle de máquina -->
+    <string name="maquina_label_licencia">Licencia</string>
+    <string name="maquina_label_tasa_semanal">Tasa semanal</string>
+    <string name="maquina_label_porcentaje_local">% local</string>
+    <string name="maquina_baseline_titulo">Baseline</string>
+    <string name="maquina_baseline_entradas">Contador entradas</string>
+    <string name="maquina_baseline_salidas">Contador salidas</string>
+    <string name="maquina_baseline_fecha">Última recogida</string>
+    <string name="maquina_baseline_origen">Origen</string>
+    <string name="maquina_baseline_origen_instalacion">Alta de la instalación</string>
+    <string name="maquina_baseline_origen_recaudacion">Recaudación previa</string>
+    <string name="maquina_baseline_origen_cambio_placa">Cambio de placa</string>
+    <string name="maquina_accion_recaudar">Recaudar</string>
+    <string name="maquina_accion_cambio_placa">Cambio de placa</string>
+
+    <!-- Flujo de recaudación (T-54..T-56) -->
+    <string name="recaudacion_paso_contadores">Contadores</string>
+    <string name="recaudacion_paso_contadores_cadena">Contadores · máquina %1$d de %2$d</string>
+    <string name="recaudacion_paso_confirmacion">Confirmar y firmar</string>
+    <string name="recaudacion_error_cargar">No se puede iniciar la recaudación: la instalación no está disponible.</string>
+
+    <string name="recaudacion_label_contador_entradas">Contador entradas</string>
+    <string name="recaudacion_label_contador_salidas">Contador salidas</string>
+    <string name="recaudacion_contadores_baseline">Última lectura: entradas %1$s · salidas %2$s</string>
+    <string name="recaudacion_error_contador_menor">El contador no puede ser menor que la última lectura (%1$d).</string>
+
+    <string name="recaudacion_cifras_titulo">Cifras de la recaudación</string>
+    <string name="recaudacion_label_creditos">Créditos netos</string>
+    <string name="recaudacion_label_bruto">Bruto</string>
+    <string name="recaudacion_label_tasa_total">Tasa (%1$d sem.)</string>
+    <string name="recaudacion_label_neto">Neto</string>
+    <string name="recaudacion_label_parte_local">Parte local (%1$s)</string>
+    <string name="recaudacion_label_parte_empresa">Parte empresa</string>
+
+    <string name="recaudacion_no_procede_titulo">Lectura no recaudada</string>
+    <string name="recaudacion_no_procede_descripcion">El bruto no cubre la tasa semanal. La empresa cobra la siguiente vez sumando ambas semanas.</string>
+
+    <string name="recaudacion_accion_continuar">Continuar</string>
+    <string name="recaudacion_accion_lectura_no_recaudada">Saltar a la siguiente</string>
+
+    <string name="recaudacion_denominaciones_total_titulo">Desglose del total</string>
+    <string name="recaudacion_denominaciones_local_titulo">Desglose de la parte del local</string>
+    <string name="recaudacion_denominaciones_objetivo">Objetivo: %1$s</string>
+    <string name="recaudacion_label_cantidad">Cantidad</string>
+    <string name="recaudacion_denominaciones_total">Total</string>
+    <string name="recaudacion_denominaciones_diferencia">Diferencia</string>
+
+    <string name="recaudacion_firma_titulo">Firma del local</string>
+    <string name="recaudacion_firma_descripcion">Pide al titular del local que firme con el dedo en el recuadro.</string>
+    <string name="recaudacion_firma_limpiar">Limpiar firma</string>
+    <string name="recaudacion_accion_guardar">Guardar e imprimir</string>
+    <string name="recaudacion_accion_guardando">Guardando…</string>
+    <string name="recaudacion_persistencia_offline">Si no hay red, la recaudación se sube automáticamente cuando vuelva la conexión. La impresión Bluetooth llega en T-62.</string>
+
+    <!-- Post-guardado e impresión Bluetooth (T-62) -->
+    <string name="recaudacion_post_guardado_titulo">Recaudación guardada</string>
+    <string name="recaudacion_post_guardado_online">Subida correctamente al servidor.</string>
+    <string name="recaudacion_post_guardado_pendiente">Sin red ahora mismo. Se subirá automáticamente al volver la conexión.</string>
+    <string name="recaudacion_post_guardado_continuar">Continuar</string>
+    <string name="recaudacion_impresion_pendiente">Preparando impresión…</string>
+    <string name="recaudacion_impresion_en_curso">Imprimiendo ticket…</string>
+    <string name="recaudacion_impresion_ok">Ticket impreso</string>
+    <string name="recaudacion_impresion_error_titulo">No se pudo imprimir el ticket</string>
+    <string name="recaudacion_impresion_reintentar">Reintentar impresión</string>
+
+    <!-- Lock optimista (T-58) -->
+    <string name="recaudacion_lock_titulo">Otro técnico está recaudando</string>
+    <string name="recaudacion_lock_descripcion">Otro técnico ha empezado a recaudar esta máquina. Si continúas igualmente, podría haber un conflicto que el administrador tendrá que resolver desde el back-office.</string>
+    <string name="recaudacion_lock_forzar">Continuar de todos modos</string>
+    <string name="recaudacion_lock_cancelar">Volver</string>
+
+    <!-- Sync stale en flujo (T-59) -->
+    <string name="recaudacion_stale_titulo">Sincronización obligatoria</string>
+    <string name="recaudacion_stale_descripcion">Llevas más de 48 h sin sincronizar y la baseline puede estar desactualizada. Vuelve, conecta a internet y pulsa "Sincronizar ahora" antes de recaudar.</string>
+    <string name="recaudacion_stale_volver">Volver a Locales</string>
+
+    <!-- Cambio de placa (T-61) -->
+    <string name="cambio_placa_titulo">Cambio de placa</string>
+    <string name="cambio_placa_descripcion">Registra la sustitución de la placa de esta máquina. Los nuevos contadores serán la baseline de la siguiente recaudación. Esta operación requiere conexión.</string>
+    <string name="cambio_placa_label_num_serie_nueva">Nuevo número de serie</string>
+    <string name="cambio_placa_placeholder_num_serie">Opcional — déjalo vacío si la placa nueva no lo trae</string>
+    <string name="cambio_placa_label_entradas_nueva">Contador de entradas (placa nueva)</string>
+    <string name="cambio_placa_label_salidas_nueva">Contador de salidas (placa nueva)</string>
+    <string name="cambio_placa_hint_contadores">Habitualmente 0; ajusta solo si la placa nueva ya viene con contadores.</string>
+    <string name="cambio_placa_label_motivo">Motivo (opcional)</string>
+    <string name="cambio_placa_accion_guardar">Registrar cambio</string>
+    <string name="cambio_placa_accion_guardando">Registrando…</string>
+    <string name="cambio_placa_error_network">No hay conexión. El cambio de placa requiere internet — inténtalo cuando recuperes red.</string>
+    <string name="cambio_placa_error_validation">Datos inválidos. Revisa los contadores e inténtalo de nuevo.</string>
+    <string name="cambio_placa_error_forbidden">No tienes permiso para registrar cambios de placa en esta empresa.</string>
+    <string name="cambio_placa_error_not_found">La instalación no existe o ya está cerrada.</string>
+    <string name="cambio_placa_error_generic">No se ha podido registrar el cambio. Vuelve a intentarlo.</string>
+
+    <!-- Fechas relativas -->
+    <string name="relativo_ahora">justo ahora</string>
+    <string name="relativo_minutos">hace %1$d min</string>
+    <string name="relativo_horas">hace %1$d h</string>
+    <string name="relativo_dias">hace %1$d días</string>
+    <string name="relativo_meses">hace %1$d meses</string>
+
+    <!-- Sync -->
+    <string name="sync_in_progress">Sincronizando…</string>
+    <string name="sync_never">Aún sin sincronizar</string>
+    <string name="sync_just_now">Sincronizado hace un momento</string>
+    <string name="sync_minutes_ago">Sincronizado hace %1$d min</string>
+    <string name="sync_hours_ago">Sincronizado hace %1$d h</string>
+    <string name="sync_days_ago">Sincronizado hace %1$d días</string>
+    <string name="sync_force">Sincronizar ahora</string>
+
+    <!-- Validation -->
+    <string name="validation_email_required">El correo es obligatorio</string>
+    <string name="validation_email_invalid">Correo no válido</string>
+    <string name="validation_password_required">La contraseña es obligatoria</string>
+    <string name="validation_password_min">La contraseña debe tener al menos %1$d caracteres</string>
+
+    <!-- Impresora Bluetooth (T-62) -->
+    <string name="impresora_titulo">Impresora de tickets</string>
+    <string name="impresora_permiso_titulo">Permiso Bluetooth necesario</string>
+    <string name="impresora_permiso_descripcion">Recre necesita permiso para conectar con la impresora térmica vinculada por Bluetooth y enviarle el ticket de la recaudación.</string>
+    <string name="impresora_permiso_conceder">Conceder permiso</string>
+    <string name="impresora_bluetooth_apagado_titulo">Bluetooth apagado</string>
+    <string name="impresora_bluetooth_apagado_descripcion">Activa el Bluetooth desde los ajustes del sistema y vuelve a esta pantalla.</string>
+    <string name="impresora_bluetooth_abrir_ajustes">Abrir ajustes Bluetooth</string>
+    <string name="impresora_reintentar">Comprobar de nuevo</string>
+    <string name="impresora_sin_emparejados_titulo">Ninguna impresora vinculada</string>
+    <string name="impresora_sin_emparejados_descripcion">Empareja primero la impresora desde los ajustes Bluetooth del sistema (PIN habitual: 0000). Cuando aparezca aquí podrás seleccionarla.</string>
+    <string name="impresora_abrir_ajustes_sistema">Abrir ajustes Bluetooth del sistema</string>
+    <string name="impresora_actual_titulo">Impresora vinculada</string>
+    <string name="impresora_quitar">Quitar</string>
+    <string name="impresora_seleccionar">Usar como impresora</string>
+    <string name="impresora_probar">Probar impresión</string>
+    <string name="impresora_probando">Imprimiendo prueba…</string>
+    <string name="impresora_msg_prueba_ok">Prueba enviada a la impresora.</string>
+    <string name="impresora_msg_guardada">Impresora vinculada correctamente.</string>
+    <string name="impresora_error_bluetooth">Bluetooth no disponible o apagado.</string>
+    <string name="impresora_error_permiso">Falta el permiso de Bluetooth para conectar con la impresora.</string>
+    <string name="impresora_error_sin_impresora">No hay ninguna impresora vinculada. Vincula una desde el menú principal.</string>
+    <string name="impresora_error_no_emparejada">Esta impresora ya no está emparejada en el sistema. Empareja de nuevo desde los ajustes.</string>
+    <string name="impresora_error_conexion">No se pudo conectar con la impresora. Comprueba que está encendida y a la vista.</string>
+    <string name="impresora_error_impresion">Error al enviar el ticket a la impresora. Inténtalo de nuevo.</string>
+
+    <!-- Locales: nuevas entradas del menú overflow (T-63 + T-64) -->
+    <string name="locales_menu_historico">Mis recaudaciones</string>
+    <string name="locales_menu_alertas">Alertas</string>
+
+    <!-- Mis recaudaciones / Histórico personal (T-63) -->
+    <string name="historico_titulo">Mis recaudaciones</string>
+    <string name="historico_buscar_placeholder">Buscar por máquina, local o licencia</string>
+    <string name="historico_label_bruto">Bruto</string>
+    <string name="historico_label_neto">Neto</string>
+    <string name="historico_label_parte_local">Parte local</string>
+    <string name="historico_label_parte_empresa">Parte empresa</string>
+    <string name="historico_badge_firme">Firme</string>
+    <string name="historico_badge_anulada">Anulada</string>
+    <string name="historico_badge_conflicto">En conflicto</string>
+    <string name="historico_vacio_cargando">Cargando recaudaciones…</string>
+    <string name="historico_vacio_busqueda">Ninguna recaudación coincide con la búsqueda.</string>
+    <string name="historico_vacio_sin_recaudaciones">Aún no tienes recaudaciones registradas.</string>
+    <string name="historico_error_network">No hay conexión. Inténtalo de nuevo cuando vuelva la red.</string>
+    <string name="historico_error_auth">No tienes acceso al histórico. Vuelve a iniciar sesión.</string>
+    <string name="historico_error_generic">No se pudieron cargar las recaudaciones. Inténtalo de nuevo.</string>
+
+    <!-- Histórico — detalle -->
+    <string name="historico_detalle_titulo">Detalle</string>
+    <string name="historico_detalle_local">Local</string>
+    <string name="historico_detalle_maquina">Máquina</string>
+    <string name="historico_detalle_licencia">Licencia</string>
+    <string name="historico_detalle_cifras_titulo">Cifras de la recaudación</string>
+    <string name="historico_detalle_anulada_titulo">Recaudación anulada</string>
+    <string name="historico_detalle_anulada_sin_motivo">No se registró motivo.</string>
+    <string name="historico_detalle_conflicto_titulo">Conflicto sin resolver</string>
+    <string name="historico_detalle_conflicto_descripcion">Un administrador revisará las cifras desde el back-office y te llegará una alerta cuando se resuelva.</string>
+    <string name="historico_detalle_reimprimir_titulo">Reimprimir ticket</string>
+    <string name="historico_detalle_pdf">Descargar PDF</string>
+    <string name="historico_detalle_pdf_descargando">Descargando…</string>
+    <string name="historico_detalle_imprimir">Reimprimir Bluetooth</string>
+    <string name="historico_detalle_imprimiendo">Imprimiendo…</string>
+    <string name="historico_detalle_sin_pdf">El PDF de archivo no está disponible para esta recaudación.</string>
+    <string name="historico_detalle_cerrar">Cerrar</string>
+
+    <!-- Alertas (T-64) -->
+    <string name="alertas_titulo">Alertas</string>
+    <string name="alertas_marcar_todas">Marcar todas</string>
+    <string name="alertas_marcar_leida">Marcar como leída</string>
+    <string name="alertas_vacio_cargando">Cargando alertas…</string>
+    <string name="alertas_vacio_sin_alertas">No tienes alertas pendientes.</string>
+    <string name="alertas_tipo_conflicto">Recaudación en conflicto</string>
+    <string name="alertas_tipo_anulada">Recaudación anulada</string>
+    <string name="alertas_tipo_licencia">Licencia próxima a caducar</string>
+    <string name="alertas_tipo_local_sin_recaudar">Local sin recaudar</string>
+    <string name="alertas_tipo_otro">Aviso</string>
+    <string name="alertas_error_network">No hay conexión. Inténtalo de nuevo cuando vuelva la red.</string>
+    <string name="alertas_error_auth">No tienes acceso a las alertas. Vuelve a iniciar sesión.</string>
+    <string name="alertas_error_generic">No se pudieron actualizar las alertas. Inténtalo de nuevo.</string>
+
+    <!-- Ajustes (T-65) -->
+    <string name="ajustes_titulo">Ajustes</string>
+    <string name="ajustes_seccion_cuenta">Cuenta</string>
+    <string name="ajustes_cuenta_email_descripcion">Correo del usuario autenticado.</string>
+    <string name="ajustes_seccion_empresa">Empresa activa</string>
+    <string name="ajustes_cambiar_empresa">Cambiar de empresa</string>
+    <string name="ajustes_seccion_sync">Sincronización</string>
+    <string name="ajustes_sync_stale">Llevas más de 48 h sin sincronizar. Pulsa "Sincronizar ahora" antes de recaudar.</string>
+    <string name="ajustes_seccion_impresora">Impresora Bluetooth</string>
+    <string name="ajustes_impresora_ninguna">Sin impresora vinculada</string>
+    <string name="ajustes_impresora_ninguna_descripcion">Empareja la AGPTEK PT210 desde los ajustes Bluetooth del sistema y elígela aquí.</string>
+    <string name="ajustes_impresora_vincular">Vincular</string>
+    <string name="ajustes_impresora_cambiar">Cambiar</string>
+    <string name="ajustes_seccion_atajos">Otros</string>
+    <string name="ajustes_atajo_historico">Mis recaudaciones</string>
+    <string name="ajustes_atajo_historico_descripcion">Histórico personal y reimpresión.</string>
+    <string name="ajustes_atajo_alertas">Alertas</string>
+    <string name="ajustes_atajo_alertas_descripcion">Notificaciones in-app de conflictos y anulaciones.</string>
+    <string name="ajustes_seccion_sesion">Sesión</string>
+    <string name="ajustes_sesion_descripcion">Cierra la sesión en este dispositivo.</string>
+    <string name="ajustes_logout_titulo">¿Cerrar sesión?</string>
+    <string name="ajustes_logout_descripcion">Tu cola de recaudaciones offline se conservará. Tendrás que volver a iniciar sesión para sincronizarla.</string>
+    <string name="ajustes_logout_cancelar">Cancelar</string>
+
+    <!-- Gestión: hub + CRUD compartido (T-66..T-69) -->
+    <string name="gestion_titulo">Gestión</string>
+    <string name="gestion_descripcion">Da de alta, edita o cierra licencias, máquinas, locales e instalaciones de la empresa.</string>
+    <string name="gestion_entrada_licencias">Licencias</string>
+    <string name="gestion_entrada_licencias_sub">Números de licencia, caducidades y comunidades.</string>
+    <string name="gestion_entrada_maquinas">Máquinas</string>
+    <string name="gestion_entrada_maquinas_sub">Inventario de máquinas, valor de crédito y estado.</string>
+    <string name="gestion_entrada_locales">Locales</string>
+    <string name="gestion_entrada_locales_sub">Establecimientos donde están instaladas las máquinas.</string>
+    <string name="gestion_entrada_instalaciones">Instalaciones</string>
+    <string name="gestion_entrada_instalaciones_sub">Asignación máquina–local–licencia con tasa y reparto.</string>
+    <string name="gestion_sin_permiso_titulo">Sin permiso</string>
+    <string name="gestion_sin_permiso_descripcion">El CRUD de gestión está reservado a los roles propietario, administrador y gestor.</string>
+
+    <string name="gestion_alta">Nuevo</string>
+    <string name="gestion_buscar">Buscar</string>
+    <string name="gestion_busqueda_vacia">Sin coincidencias para la búsqueda.</string>
+    <string name="gestion_estado">Estado: %1$s</string>
+    <string name="gestion_eliminar_titulo">Eliminar</string>
+    <string name="gestion_eliminar_confirmar">Eliminar</string>
+    <string name="gestion_guardar">Guardar</string>
+    <string name="gestion_seleccionar">Seleccionar…</string>
+
+    <!-- Gestión: errores -->
+    <string name="gestion_error_network">No hay conexión. La gestión requiere internet.</string>
+    <string name="gestion_error_auth">Sin acceso. Vuelve a iniciar sesión.</string>
+    <string name="gestion_error_not_found">El elemento ya no existe. Refresca la lista.</string>
+    <string name="gestion_error_validacion">Hay datos no válidos. Revisa el formulario.</string>
+    <string name="gestion_error_duplicado">Ya existe un elemento con esos datos.</string>
+    <string name="gestion_error_numero_duplicado">Ya existe una licencia con ese número.</string>
+    <string name="gestion_error_numero_serie_duplicado">Ya existe una máquina con ese número de serie.</string>
+    <string name="gestion_error_nombre_duplicado">Ya existe un elemento con ese nombre.</string>
+    <string name="gestion_error_instalacion_maquina_activa">Esa máquina ya tiene una instalación activa.</string>
+    <string name="gestion_error_instalacion_licencia_activa">Esa licencia ya tiene una instalación activa.</string>
+    <string name="gestion_error_en_uso">No se puede eliminar: hay instalaciones o recaudaciones que lo referencian. Ciérralas primero.</string>
+    <string name="gestion_error_generic">No se pudo completar la operación. Inténtalo de nuevo.</string>
+
+    <!-- Gestión: validación local -->
+    <string name="gestion_validacion_requerido">Campo obligatorio.</string>
+    <string name="gestion_validacion_fecha">Formato YYYY-MM-DD.</string>
+    <string name="gestion_validacion_fecha_caducidad_orden">La caducidad debe ser igual o posterior a la expedición.</string>
+    <string name="gestion_validacion_email">Email no válido.</string>
+    <string name="gestion_validacion_valor_credito">Valor del crédito entre 0,01 € y 999,99 € con dos decimales.</string>
+    <string name="gestion_validacion_contador">Entero ≥ 0.</string>
+    <string name="gestion_validacion_tasa">Tasa entre 0 y 999999,99 con dos decimales.</string>
+    <string name="gestion_validacion_porcentaje">Porcentaje entre 0 y 100 con dos decimales.</string>
+
+    <!-- Gestión: Licencias (T-66) -->
+    <string name="gestion_licencias_titulo">Licencias</string>
+    <string name="gestion_licencias_vacio">No hay licencias registradas.</string>
+    <string name="gestion_licencia_nueva">Nueva licencia</string>
+    <string name="gestion_licencia_editar">Editar licencia</string>
+    <string name="gestion_licencia_numero">Número</string>
+    <string name="gestion_licencia_tipo">Tipo</string>
+    <string name="gestion_licencia_fecha_expedicion">Fecha de expedición</string>
+    <string name="gestion_licencia_fecha_caducidad">Fecha de caducidad</string>
+    <string name="gestion_licencia_comunidad">Comunidad autónoma</string>
+    <string name="gestion_licencia_estado">Estado</string>
+    <string name="gestion_licencia_notas">Notas</string>
+    <string name="gestion_licencia_caduca">Caduca: %1$s</string>
+    <string name="gestion_licencia_eliminar_descripcion">Se eliminará la licencia %1$s. Si tiene una instalación, esta operación fallará.</string>
+
+    <!-- Gestión: Máquinas (T-67) -->
+    <string name="gestion_maquinas_titulo">Máquinas</string>
+    <string name="gestion_maquinas_vacio">No hay máquinas registradas.</string>
+    <string name="gestion_maquina_nueva">Nueva máquina</string>
+    <string name="gestion_maquina_editar">Editar máquina</string>
+    <string name="gestion_maquina_numero_serie">Número de serie</string>
+    <string name="gestion_maquina_modelo">Modelo</string>
+    <string name="gestion_maquina_fabricante">Fabricante</string>
+    <string name="gestion_maquina_valor_credito">Valor del crédito (€)</string>
+    <string name="gestion_maquina_contador_entradas">Contador entradas inicial</string>
+    <string name="gestion_maquina_contador_salidas">Contador salidas inicial</string>
+    <string name="gestion_maquina_estado">Estado</string>
+    <string name="gestion_maquina_notas">Notas</string>
+    <string name="gestion_maquina_valor">Crédito: %1$s €</string>
+    <string name="gestion_maquina_eliminar_descripcion">Se eliminará la máquina %1$s. Si tiene una instalación, esta operación fallará.</string>
+
+    <!-- Gestión: Locales (T-68) -->
+    <string name="gestion_locales_titulo">Locales (gestión)</string>
+    <string name="gestion_locales_vacio">No hay locales registrados.</string>
+    <string name="gestion_local_nuevo">Nuevo local</string>
+    <string name="gestion_local_editar">Editar local</string>
+    <string name="gestion_local_nombre">Nombre</string>
+    <string name="gestion_local_direccion">Dirección</string>
+    <string name="gestion_local_cif">CIF / NIF</string>
+    <string name="gestion_local_titular">Titular</string>
+    <string name="gestion_local_telefono">Teléfono</string>
+    <string name="gestion_local_email">Email</string>
+    <string name="gestion_local_notas">Notas</string>
+    <string name="gestion_local_eliminar_descripcion">Se eliminará el local %1$s. Si tiene instalaciones, esta operación fallará.</string>
+
+    <!-- Gestión: Instalaciones (T-69) -->
+    <string name="gestion_instalaciones_titulo">Instalaciones</string>
+    <string name="gestion_instalaciones_solo_activas">Sólo se muestran las instalaciones activas. Cerradas y archivadas se consultan en el back-office web.</string>
+    <string name="gestion_instalaciones_vacio">No hay instalaciones activas.</string>
+    <string name="gestion_instalacion_nueva">Nueva instalación</string>
+    <string name="gestion_instalacion_editar">Editar instalación</string>
+    <string name="gestion_instalacion_fk_inmutables">Las FKs (máquina, licencia, local) no se editan después del alta. Cierra la instalación y crea una nueva si necesitas reasignar.</string>
+    <string name="gestion_instalacion_maquina">Máquina</string>
+    <string name="gestion_instalacion_licencia">Licencia</string>
+    <string name="gestion_instalacion_local">Local</string>
+    <string name="gestion_instalacion_fecha_inicio">Fecha de inicio</string>
+    <string name="gestion_instalacion_tasa_semanal">Tasa semanal (€)</string>
+    <string name="gestion_instalacion_porcentaje_local">% local</string>
+    <string name="gestion_instalacion_contador_entradas">Contador entradas base</string>
+    <string name="gestion_instalacion_contador_salidas">Contador salidas base</string>
+    <string name="gestion_instalacion_notas">Notas</string>
+    <string name="gestion_instalacion_tasa_pct">Tasa: %1$s € · Local: %2$s %%</string>
+    <string name="gestion_instalacion_sin_maquinas_disponibles">No quedan máquinas libres. Da de alta una máquina nueva o cierra una instalación existente.</string>
+    <string name="gestion_instalacion_sin_licencias_disponibles">No quedan licencias libres. Da de alta una licencia nueva o cierra una instalación existente.</string>
+    <string name="gestion_instalacion_sin_locales">No hay locales registrados. Crea uno antes de instalar una máquina.</string>
+    <string name="gestion_instalacion_cerrar">Cerrar instalación</string>
+    <string name="gestion_instalacion_cerrar_titulo">Cerrar instalación</string>
+    <string name="gestion_instalacion_cerrar_descripcion">Se marcará la instalación como cerrada y se liberarán los locks pendientes. Esta acción no se puede deshacer.</string>
+    <string name="gestion_instalacion_cerrar_fecha">Fecha de cierre</string>
+    <string name="gestion_instalacion_cerrar_notas">Notas (opcional)</string>
+    <string name="gestion_instalacion_cerrar_confirmar">Cerrar</string>
+
+    <!-- Gestión: cerrar-instalacion errores -->
+    <string name="gestion_cerrar_error_fecha_fin">La fecha de cierre debe ser igual o posterior a la fecha de inicio.</string>
+    <string name="gestion_cerrar_error_ya_cerrada">La instalación ya estaba cerrada.</string>
+    <string name="gestion_cerrar_error_no_encontrada">No se encuentra la instalación. Refresca la lista.</string>
+    <string name="gestion_cerrar_error_sin_permiso">Tu rol no permite cerrar instalaciones.</string>
+    <string name="gestion_cerrar_error_generic">No se pudo cerrar la instalación. Inténtalo de nuevo.</string>
+
+    <!-- Acciones genéricas reusadas en gestión -->
+    <string name="action_edit">Editar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <!-- Locales: entrada del menú overflow para Gestión (T-66..T-69) -->
+    <string name="locales_menu_gestion">Gestión</string>
+
+    <!-- Bloqueo offline en gestión (T-70) -->
+    <string name="gestion_offline_titulo">Sin conexión</string>
+    <string name="gestion_offline_descripcion">La gestión requiere internet. Las altas, ediciones y cierres se aplican directamente en el servidor — no se encolan offline para evitar baselines inconsistentes. Conéctate a una red para continuar.</string>
+</resources>
