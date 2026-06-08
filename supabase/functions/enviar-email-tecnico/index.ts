@@ -194,13 +194,11 @@ function construirHtml(rec: RecaudacionEmailRow): string {
   return [
     `<p>Hola,</p>`,
     `<p>Se ha resuelto el conflicto de la recaudación que registraste el ` +
-      `<strong>${escape(fecha)}</strong> en <strong>${escape(local)}</strong> ` +
-      `(máquina ${escape(maquina)}).</p>`,
+    `<strong>${escape(fecha)}</strong> en <strong>${escape(local)}</strong> ` +
+    `(máquina ${escape(maquina)}).</p>`,
     `<p><strong>Resolución:</strong> ${escape(resolucion)}</p>`,
     cifras,
-    notas
-      ? `<p><strong>Notas del administrador:</strong><br>${escape(notas)}</p>`
-      : "",
+    notas ? `<p><strong>Notas del administrador:</strong><br>${escape(notas)}</p>` : "",
     `<p>Si tienes dudas con esta resolución, contacta con tu administrador.</p>`,
     `<p>— Recre</p>`,
   ].filter(Boolean).join("\n");
@@ -215,7 +213,7 @@ function construirTexto(rec: RecaudacionEmailRow): string {
     `Hola,`,
     ``,
     `Se ha resuelto el conflicto de la recaudación que registraste el ${fecha} ` +
-      `en ${local} (máquina ${maquina}).`,
+    `en ${local} (máquina ${maquina}).`,
     ``,
     `Resolución: ${resolucion}`,
   ];
