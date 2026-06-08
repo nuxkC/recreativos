@@ -22,6 +22,7 @@ recre/
 
 - [Spec](./.kiro/specs/recre/) — requisitos, diseño técnico y plan de tareas
 - [Steering](./.kiro/steering/) — arquitectura y convenciones del proyecto
+- [Guía de despliegue](./docs/despliegue.md) — Supabase, web (Vercel) y build del APK Android
 
 ## Antes de tocar código
 

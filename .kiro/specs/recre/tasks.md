@@ -78,9 +78,9 @@ Plan dividido en fases. Cada tarea está pensada para ser un PR pequeño y verif
 ### QA y release
 
 - [ ] **T-80** Pruebas E2E web (Playwright) de flujos clave.
-- [ ] **T-81** Pruebas instrumentadas Android del flujo de recaudación.
-- [ ] **T-82** Documentación de despliegue (Supabase, hosting web, build APK).
-- [ ] **T-83** Beta privada con datos reales de la empresa piloto.
+- [ ] **T-81** Pruebas instrumentadas Android del flujo de recaudación. *(Bloqueada en el entorno actual: requiere Android SDK + emulador/dispositivo (`./gradlew connectedAndroidTest`), no disponibles aquí. Pendiente de ejecutar en una máquina con SDK o en CI con emulador.)*
+- [x] **T-82** Documentación de despliegue (Supabase, hosting web, build APK). *(this PR: `docs/despliegue.md`)*
+- [ ] **T-83** Beta privada con datos reales de la empresa piloto. *(Actividad de negocio, no de código: requiere proyecto Supabase de producción, datos reales y dispositivos de la empresa piloto. Pendiente de coordinación con el cliente.)*
 
 ## Fase 2 — Operativa avanzada
 
