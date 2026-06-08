@@ -77,7 +77,7 @@ Plan dividido en fases. Cada tarea está pensada para ser un PR pequeño y verif
 
 ### QA y release
 
-- [ ] **T-80** Pruebas E2E web (Playwright) de flujos clave.
+- [x] **T-80** Pruebas E2E web (Playwright) de flujos clave. *(this PR: guardas de auth del middleware + render/validación de login; flujos autenticados documentados en `web/e2e/README.md` a la espera de entorno Supabase de pruebas)*
 - [ ] **T-81** Pruebas instrumentadas Android del flujo de recaudación.
 - [ ] **T-82** Documentación de despliegue (Supabase, hosting web, build APK).
 - [ ] **T-83** Beta privada con datos reales de la empresa piloto.
