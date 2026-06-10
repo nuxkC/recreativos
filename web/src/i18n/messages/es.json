@@ -1,0 +1,923 @@
+{
+  "app": {
+    "name": "Recre",
+    "tagline": "Gestión de máquinas recreativas"
+  },
+  "common": {
+    "cerrar": "Cerrar",
+    "cancelar": "Cancelar",
+    "guardar": "Guardar",
+    "volver": "Volver"
+  },
+  "tema": {
+    "titulo": "Tema",
+    "toggleLabel": "Cambiar tema (claro u oscuro)",
+    "claro": "Claro",
+    "oscuro": "Oscuro",
+    "sistema": "Sistema"
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "description": "Accede con tu cuenta para gestionar locales, máquinas y recaudaciones.",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@empresa.com",
+      "password": "Contraseña",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "errorGeneric": "No se ha podido iniciar sesión. Revisa tus credenciales.",
+      "errorInvalid": "Correo o contraseña incorrectos.",
+      "noTengoCuenta": "¿No tienes cuenta?",
+      "crearCuenta": "Crea una cuenta"
+    },
+    "signOut": "Cerrar sesión"
+  },
+  "roles": {
+    "owner": "Propietario",
+    "admin": "Administrador",
+    "gestor": "Gestor",
+    "tecnico": "Técnico",
+    "contable": "Contable"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "licencias": "Licencias",
+    "maquinas": "Máquinas",
+    "locales": "Locales",
+    "instalaciones": "Instalaciones",
+    "recaudaciones": "Recaudaciones",
+    "cambiosPlaca": "Cambios de placa",
+    "conflictos": "Conflictos",
+    "equipo": "Equipo",
+    "ajustes": "Ajustes",
+    "informes": "Informes",
+    "auditoria": "Auditoría",
+    "sections": {
+      "inventario": "Inventario",
+      "operacion": "Operación",
+      "analitica": "Analítica",
+      "administracion": "Administración"
+    },
+    "descriptions": {
+      "licencias": "Alta, edición y baja de licencias.",
+      "maquinas": "Inventario de máquinas y sus contadores.",
+      "locales": "Locales donde se instalan las máquinas.",
+      "instalaciones": "Asociaciones máquina-licencia-local con su tasa y reparto.",
+      "recaudaciones": "Listado de recaudaciones, descarga de PDF y anulación.",
+      "cambiosPlaca": "Histórico de cambios de placa por máquina.",
+      "conflictos": "Recaudaciones con conflicto pendientes de resolver.",
+      "equipo": "Usuarios de la empresa, roles y estado.",
+      "ajustes": "Datos fiscales, logo, configuración del ticket y preferencias.",
+      "informes": "Gráficas históricas de recaudación por mes, local y máquina.",
+      "auditoria": "Bitácora de eventos del sistema por empresa."
+    }
+  },
+  "layout": {
+    "sidebarLabel": "Navegación principal",
+    "userMenu": "Menú de usuario",
+    "switchEmpresa": "Cambiar empresa activa",
+    "tusEmpresas": "Tus empresas",
+    "cambiarEmpresa": "Cambiar empresa",
+    "sesion": "Sesión"
+  },
+  "seleccionarEmpresa": {
+    "title": "Selecciona una empresa",
+    "description": "Perteneces a {count} empresas. Elige con cuál quieres trabajar."
+  },
+  "sinAcceso": {
+    "title": "Aún no tienes acceso",
+    "description": "Tu cuenta no pertenece a ninguna empresa activa. Pide a un administrador que te invite o reactive tu membresía.",
+    "signOut": "Cerrar sesión"
+  },
+  "sinPermiso": {
+    "title": "No tienes permiso para esta sección",
+    "description": "Tu rol en la empresa activa no permite acceder a esta página. Si crees que es un error contacta con un administrador.",
+    "backToDashboard": "Volver al panel"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Resumen de la actividad de la empresa.",
+    "kpis": {
+      "recaudacionMes": "Recaudación del mes",
+      "recaudacionMesHint": "{count, plural, =0 {Sin recaudaciones} =1 {1 recaudación firme} other {# recaudaciones firmes}}",
+      "vsMesAnterior": "vs. mes anterior",
+      "maquinasInstaladas": "Máquinas instaladas",
+      "maquinasHint": "{almacen} en almacén · {averiadas} averiadas",
+      "conflictosPendientes": "Conflictos pendientes",
+      "conflictosHintPendientes": "Hay conflictos por revisar.",
+      "conflictosHintOk": "Sin conflictos pendientes.",
+      "licenciasPorCaducar": "Licencias por caducar",
+      "licenciasHint": "Vencen en menos de {dias} días."
+    },
+    "sinRecaudar": {
+      "titulo": "Locales sin recaudar",
+      "descripcion": "Instalaciones activas sin recaudar en los últimos {dias} días.",
+      "vacio": "Todas las instalaciones se han recaudado a tiempo.",
+      "diasSinRecaudar": "{dias} d sin recaudar",
+      "nunca": "Sin recaudaciones aún"
+    },
+    "licenciasPorCaducar": {
+      "titulo": "Licencias por caducar",
+      "descripcion": "Licencias activas que vencen en los próximos {dias} días.",
+      "vacio": "Sin licencias próximas a caducar.",
+      "diasRestantes": "{dias} d ({fecha})",
+      "caducada": "Caducada el {fecha}"
+    },
+    "alertas": {
+      "titulo": "Alertas",
+      "descripcion": "Eventos pendientes de revisión por el equipo.",
+      "vacio": "No hay alertas sin leer.",
+      "marcarLeida": "Marcar como leída"
+    },
+    "errores": {
+      "actualizarFallido": "No se ha podido actualizar la alerta."
+    }
+  },
+  "informes": {
+    "vacio": "No hay datos de recaudación para el periodo y los filtros seleccionados.",
+    "filtros": {
+      "local": "Local",
+      "todosLocales": "Todos los locales",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "limpiar": "Limpiar filtros"
+    },
+    "resumen": {
+      "brutoTotal": "Recaudación bruta",
+      "netoTotal": "Recaudación neta",
+      "parteEmpresaTotal": "Parte de la empresa",
+      "numRecaudaciones": "Recaudaciones",
+      "periodoHint": "Total del periodo seleccionado."
+    },
+    "evolucion": {
+      "titulo": "Evolución mensual",
+      "descripcion": "Recaudación bruta y parte de la empresa por mes (semana ISO agregada a mes en la zona horaria de la empresa).",
+      "aria": "Gráfica de líneas con la evolución mensual de la recaudación bruta y la parte de la empresa. Los mismos datos están disponibles en la tabla inferior.",
+      "bruto": "Bruto",
+      "parteEmpresa": "Parte empresa"
+    },
+    "porLocal": {
+      "titulo": "Recaudación por local",
+      "descripcion": "Suma del periodo por local (12 con mayor recaudación).",
+      "aria": "Gráfica de barras con la recaudación por local en el periodo seleccionado. Los mismos datos están disponibles en la tabla inferior.",
+      "bruto": "Bruto",
+      "parteEmpresa": "Parte empresa"
+    },
+    "porMaquina": {
+      "titulo": "Recaudación por máquina",
+      "descripcion": "Suma del periodo por máquina (12 con mayor recaudación).",
+      "aria": "Gráfica de barras con la recaudación por máquina en el periodo seleccionado. Los mismos datos están disponibles en la tabla inferior.",
+      "bruto": "Bruto",
+      "parteEmpresa": "Parte empresa"
+    },
+    "tabla": {
+      "ver": "Ver datos en tabla",
+      "mes": "Mes",
+      "local": "Local",
+      "maquina": "Máquina",
+      "bruto": "Bruto",
+      "parteEmpresa": "Parte empresa",
+      "neto": "Neto",
+      "recaudaciones": "Recaudaciones"
+    }
+  },
+  "licencias": {
+    "vacio": "No hay licencias que coincidan con la búsqueda.",
+    "guardadoOk": "Licencia guardada.",
+    "campos": {
+      "numero": "Número",
+      "tipo": "Tipo",
+      "fechaExpedicion": "Fecha de expedición",
+      "fechaCaducidad": "Fecha de caducidad",
+      "comunidadAutonoma": "Comunidad autónoma",
+      "estado": "Estado",
+      "notas": "Notas"
+    },
+    "estado": {
+      "activa": "Activa",
+      "suspendida": "Suspendida",
+      "caducada": "Caducada",
+      "baja": "Baja"
+    },
+    "filtros": {
+      "buscar": "Buscar por número",
+      "buscarPlaceholder": "Buscar por número...",
+      "estado": "Filtrar por estado",
+      "todos": "Todos los estados"
+    },
+    "accion": {
+      "nueva": "Nueva licencia",
+      "crear": "Crear licencia",
+      "guardar": "Guardar cambios",
+      "guardando": "Guardando...",
+      "cancelar": "Cancelar",
+      "volver": "Volver al listado",
+      "abrir": "Abrir licencia",
+      "eliminar": "Eliminar"
+    },
+    "nueva": {
+      "titulo": "Nueva licencia"
+    },
+    "detalle": {
+      "actualizado": "Última actualización: {fecha}"
+    },
+    "formulario": {
+      "titulo": "Datos de la licencia",
+      "descripcion": "Las fechas y el estado controlan los avisos automáticos de caducidad."
+    },
+    "eliminar": {
+      "titulo": "¿Eliminar la licencia?",
+      "descripcion": "La licencia {numero} se borrará permanentemente. Si tiene instalaciones asociadas, primero deberás cerrarlas."
+    },
+    "validacion": {
+      "numeroRequerido": "El número es obligatorio.",
+      "numeroMuyLargo": "El número no puede tener más de 80 caracteres.",
+      "numeroDuplicado": "Ya existe una licencia con ese número en la empresa.",
+      "fechaInvalida": "La fecha no tiene un formato válido.",
+      "fechaCaducidadAntesDeExpedicion": "La caducidad no puede ser anterior a la expedición."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "guardarFallido": "No se ha podido guardar la licencia. Inténtalo de nuevo.",
+      "borrarFallido": "No se ha podido eliminar la licencia.",
+      "licenciaEnUso": "La licencia tiene instalaciones asociadas. Ciérralas antes de borrar.",
+      "numeroDuplicado": "Ya existe una licencia con ese número.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "maquinas": {
+    "vacio": "No hay máquinas que coincidan con la búsqueda.",
+    "guardadoOk": "Máquina guardada.",
+    "campos": {
+      "numeroSerie": "Número de serie",
+      "modelo": "Modelo",
+      "fabricante": "Fabricante",
+      "valorCredito": "Valor del crédito (€)",
+      "contadorEntradasInicial": "Contador de entradas inicial",
+      "contadorSalidasInicial": "Contador de salidas inicial",
+      "estado": "Estado",
+      "notas": "Notas"
+    },
+    "estado": {
+      "almacen": "Almacén",
+      "instalada": "Instalada",
+      "averiada": "Averiada",
+      "baja": "Baja"
+    },
+    "filtros": {
+      "buscar": "Buscar por número de serie",
+      "buscarPlaceholder": "Buscar por número de serie...",
+      "estado": "Filtrar por estado",
+      "todos": "Todos los estados"
+    },
+    "accion": {
+      "nueva": "Nueva máquina",
+      "crear": "Crear máquina",
+      "guardar": "Guardar cambios",
+      "guardando": "Guardando...",
+      "cancelar": "Cancelar",
+      "volver": "Volver al listado",
+      "abrir": "Abrir máquina",
+      "eliminar": "Eliminar"
+    },
+    "nueva": {
+      "titulo": "Nueva máquina"
+    },
+    "detalle": {
+      "actualizado": "Última actualización: {fecha}"
+    },
+    "formulario": {
+      "titulo": "Datos de la máquina",
+      "descripcion": "El estado se sincroniza con sus instalaciones; los contadores iniciales son la lectura del día del alta y se usan como base para calcular el primer baseline.",
+      "descripcionValorCredito": "Importe de cada crédito en euros, p. ej. 0,20."
+    },
+    "eliminar": {
+      "titulo": "¿Eliminar la máquina?",
+      "descripcion": "La máquina {numeroSerie} se borrará permanentemente. Si tiene instalaciones asociadas, primero deberás cerrarlas."
+    },
+    "validacion": {
+      "numeroSerieRequerido": "El número de serie es obligatorio.",
+      "numeroSerieMuyLargo": "El número de serie no puede tener más de 80 caracteres.",
+      "numeroSerieDuplicado": "Ya existe una máquina con ese número de serie en la empresa.",
+      "valorCreditoRequerido": "El valor del crédito es obligatorio.",
+      "valorCreditoInvalido": "El valor del crédito no es un número válido.",
+      "valorCreditoMinimo": "El valor del crédito debe ser al menos 0,01 €.",
+      "valorCreditoMaximo": "El valor del crédito no puede ser mayor que 999,99 €.",
+      "valorCreditoDecimales": "El valor del crédito admite como máximo dos decimales.",
+      "contadorEntero": "El contador debe ser un número entero.",
+      "contadorNegativo": "El contador no puede ser negativo."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "guardarFallido": "No se ha podido guardar la máquina. Inténtalo de nuevo.",
+      "borrarFallido": "No se ha podido eliminar la máquina.",
+      "maquinaEnUso": "La máquina tiene instalaciones asociadas. Ciérralas antes de borrar.",
+      "numeroSerieDuplicado": "Ya existe una máquina con ese número de serie.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "locales": {
+    "vacio": "No hay locales que coincidan con la búsqueda.",
+    "guardadoOk": "Local guardado.",
+    "campos": {
+      "nombre": "Nombre",
+      "direccion": "Dirección",
+      "cifONif": "CIF / NIF",
+      "titularNombre": "Titular",
+      "telefono": "Teléfono",
+      "email": "Correo electrónico",
+      "notas": "Notas"
+    },
+    "filtros": {
+      "buscar": "Buscar por nombre",
+      "buscarPlaceholder": "Buscar por nombre..."
+    },
+    "accion": {
+      "nuevo": "Nuevo local",
+      "crear": "Crear local",
+      "guardar": "Guardar cambios",
+      "guardando": "Guardando...",
+      "cancelar": "Cancelar",
+      "volver": "Volver al listado",
+      "abrir": "Abrir local",
+      "eliminar": "Eliminar"
+    },
+    "nuevo": {
+      "titulo": "Nuevo local"
+    },
+    "detalle": {
+      "actualizado": "Última actualización: {fecha}"
+    },
+    "formulario": {
+      "titulo": "Datos del local",
+      "descripcion": "Datos de contacto y titularidad del establecimiento donde se instalan las máquinas."
+    },
+    "eliminar": {
+      "titulo": "¿Eliminar el local?",
+      "descripcion": "El local {nombre} se borrará permanentemente. Si tiene instalaciones asociadas, primero deberás cerrarlas."
+    },
+    "validacion": {
+      "nombreRequerido": "El nombre es obligatorio.",
+      "nombreMuyLargo": "El nombre no puede tener más de 200 caracteres.",
+      "direccionMuyLarga": "La dirección no puede tener más de 300 caracteres.",
+      "cifONifMuyLargo": "El CIF/NIF no puede tener más de 20 caracteres.",
+      "titularNombreMuyLargo": "El nombre del titular no puede tener más de 150 caracteres.",
+      "telefonoMuyLargo": "El teléfono no puede tener más de 30 caracteres.",
+      "emailInvalido": "El correo electrónico no tiene un formato válido.",
+      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "guardarFallido": "No se ha podido guardar el local. Inténtalo de nuevo.",
+      "borrarFallido": "No se ha podido eliminar el local.",
+      "localEnUso": "El local tiene instalaciones asociadas. Ciérralas antes de borrar.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "instalaciones": {
+    "vacio": "No hay instalaciones que coincidan con los filtros.",
+    "guardadoOk": "Instalación guardada.",
+    "cerrarOk": "Instalación cerrada.",
+    "campos": {
+      "maquina": "Máquina",
+      "licencia": "Licencia",
+      "local": "Local",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFin": "Fecha de fin",
+      "tasaSemanal": "Tasa semanal (€)",
+      "tasaSemanalAyuda": "Tasa fiscal aplicable cada semana ISO. Acepta coma o punto decimal.",
+      "porcentajeLocal": "Porcentaje del local (%)",
+      "porcentajeLocalAyuda": "Porcentaje del importe NETO que se queda el titular del local (0–100).",
+      "contadorEntradasBase": "Contador de entradas base",
+      "contadorSalidasBase": "Contador de salidas base",
+      "contadorBaseAyuda": "Lectura del contador en la fecha de inicio. Es el punto de partida para calcular la primera recaudación.",
+      "estado": "Estado",
+      "notas": "Notas",
+      "notasCierre": "Notas del cierre"
+    },
+    "estado": {
+      "activa": "Activa",
+      "cerrada": "Cerrada"
+    },
+    "placeholders": {
+      "maquina": "Selecciona una máquina",
+      "licencia": "Selecciona una licencia",
+      "local": "Selecciona un local",
+      "notasCierre": "Motivo del cierre, observaciones..."
+    },
+    "filtros": {
+      "estado": "Filtrar por estado",
+      "local": "Filtrar por local",
+      "todosEstados": "Todos los estados",
+      "todosLocales": "Todos los locales"
+    },
+    "accion": {
+      "nueva": "Nueva instalación",
+      "crear": "Crear instalación",
+      "guardar": "Guardar cambios",
+      "guardando": "Guardando...",
+      "cancelar": "Cancelar",
+      "volver": "Volver al listado",
+      "abrir": "Abrir instalación",
+      "eliminar": "Eliminar",
+      "cerrar": "Cerrar instalación",
+      "cerrarConfirmar": "Cerrar",
+      "boletin": "Boletín de instalación"
+    },
+    "nueva": {
+      "titulo": "Nueva instalación",
+      "sinLicenciasDisponibles": "No hay licencias disponibles. Cierra alguna instalación activa o registra una nueva licencia primero.",
+      "sinMaquinasDisponibles": "No hay máquinas disponibles. Cierra alguna instalación activa, da de baja la máquina o registra una nueva primero."
+    },
+    "detalle": {
+      "actualizado": "Última actualización: {fecha}"
+    },
+    "formulario": {
+      "titulo": "Datos de la instalación",
+      "descripcion": "La máquina y la licencia quedarán bloqueadas mientras la instalación esté activa.",
+      "descripcionEdicion": "La máquina, la licencia y el local no se pueden cambiar; cierra esta instalación y crea una nueva si necesitas reasignarlas.",
+      "descripcionCerrada": "Esta instalación está cerrada y se conserva como histórico. Los datos no son editables."
+    },
+    "cerrar": {
+      "titulo": "Cerrar instalación",
+      "descripcion": "Al cerrarla la máquina y la licencia quedarán libres para nuevas instalaciones. Las recaudaciones y cambios de placa históricos se conservan."
+    },
+    "eliminar": {
+      "titulo": "¿Eliminar la instalación?",
+      "descripcion": "La instalación {etiqueta} se borrará permanentemente. Si tiene recaudaciones o cambios de placa asociados no podrás borrarla; en ese caso, ciérrala."
+    },
+    "validacion": {
+      "uuidInvalido": "Selección inválida.",
+      "fechaInvalida": "La fecha no tiene un formato válido.",
+      "fechaFinAntesDeInicio": "La fecha de fin no puede ser anterior a la de inicio.",
+      "tasaRequerida": "La tasa semanal es obligatoria.",
+      "tasaInvalida": "La tasa semanal no es un número válido.",
+      "tasaFueraDeRango": "La tasa semanal está fuera del rango permitido.",
+      "porcentajeRequerido": "El porcentaje del local es obligatorio.",
+      "porcentajeInvalido": "El porcentaje no es un número válido.",
+      "porcentajeFueraDeRango": "El porcentaje debe estar entre 0 y 100.",
+      "contadorInvalido": "El contador debe ser un entero ≥ 0.",
+      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres.",
+      "licenciaConInstalacionActiva": "Esta licencia ya tiene una instalación activa.",
+      "maquinaConInstalacionActiva": "Esta máquina ya tiene una instalación activa.",
+      "licenciaInvalida": "Selecciona una licencia válida de la empresa.",
+      "maquinaInvalida": "Selecciona una máquina válida de la empresa.",
+      "localInvalido": "Selecciona un local válido de la empresa."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "guardarFallido": "No se ha podido guardar la instalación. Inténtalo de nuevo.",
+      "borrarFallido": "No se ha podido eliminar la instalación.",
+      "cerrarFallido": "No se ha podido cerrar la instalación. Inténtalo de nuevo.",
+      "constraintViolada": "Algún dato infringe las restricciones del sistema. Revisa fechas y porcentajes.",
+      "duplicadoDesconocido": "Ya existe un registro que entra en conflicto con éste.",
+      "licenciaConInstalacionActiva": "Esta licencia ya tiene una instalación activa.",
+      "maquinaConInstalacionActiva": "Esta máquina ya tiene una instalación activa.",
+      "licenciaInvalida": "Selecciona una licencia válida de la empresa.",
+      "maquinaInvalida": "Selecciona una máquina válida de la empresa.",
+      "localInvalido": "Selecciona un local válido de la empresa.",
+      "instalacionEnUso": "La instalación tiene recaudaciones o cambios de placa asociados. Ciérrala en lugar de borrarla.",
+      "instalacionNoEncontrada": "La instalación ya no existe o no tienes acceso.",
+      "yaCerrada": "La instalación ya estaba cerrada.",
+      "fechaFinInvalida": "La fecha de fin no es válida.",
+      "sinPermiso": "No tienes permisos para cerrar esta instalación.",
+      "boletinFallido": "No se ha podido generar el boletín de instalación. Inténtalo de nuevo.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "recaudaciones": {
+    "vacio": "No hay recaudaciones que coincidan con los filtros.",
+    "anularOk": "Recaudación anulada.",
+    "estado": {
+      "firme": "Firme",
+      "anulada": "Anulada",
+      "conflicto": "En conflicto"
+    },
+    "baselineOrigen": {
+      "recaudacion_anterior": "Recaudación anterior",
+      "cambio_placa": "Cambio de placa",
+      "instalacion_base": "Alta de la instalación"
+    },
+    "campos": {
+      "fecha": "Fecha",
+      "fechaRegistro": "Fecha de registro",
+      "maquina": "Máquina",
+      "modelo": "Modelo",
+      "local": "Local",
+      "licencia": "Licencia",
+      "tecnico": "Técnico",
+      "bruto": "Bruto",
+      "tasaSemanal": "Tasa semanal",
+      "tasaTotal": "Tasa total",
+      "neto": "Neto",
+      "parteLocal": "Parte local",
+      "parteEmpresa": "Parte empresa",
+      "valorCredito": "Valor del crédito",
+      "estado": "Estado",
+      "entradasAnterior": "Entradas anterior",
+      "entradasActual": "Entradas actual",
+      "entradasDelta": "Δ Entradas",
+      "salidasAnterior": "Salidas anterior",
+      "salidasActual": "Salidas actual",
+      "salidasDelta": "Δ Salidas",
+      "baselineOrigen": "Origen de la baseline",
+      "firma": "Firma del titular",
+      "fotoEntradas": "Foto contador entradas",
+      "fotoSalidas": "Foto contador salidas",
+      "observaciones": "Observaciones del técnico",
+      "creada": "Creada",
+      "actualizada": "Actualizada",
+      "idempotencyKey": "Clave de idempotencia",
+      "dispositivo": "Dispositivo",
+      "motivoAnulacion": "Motivo de la anulación"
+    },
+    "placeholders": {
+      "motivoAnulacion": "Explica por qué anulas la recaudación (mín. 3 caracteres)..."
+    },
+    "filtros": {
+      "estado": "Estado",
+      "local": "Local",
+      "todos": "Todos",
+      "todosLocales": "Todos los locales",
+      "desde": "Desde",
+      "hasta": "Hasta"
+    },
+    "accion": {
+      "abrir": "Abrir recaudación",
+      "descargarPdf": "Descargar PDF",
+      "anular": "Anular",
+      "anularConfirmar": "Anular recaudación",
+      "cancelar": "Cancelar",
+      "volver": "Volver al listado"
+    },
+    "detalle": {
+      "tecnico": "Realizada por {tecnico}",
+      "semanasHint": "× {semanas} semanas"
+    },
+    "seccion": {
+      "cifras": "Cifras",
+      "cifrasDescripcion": "Resultados calculados por el servidor para {semanas, plural, =0 {esta visita} =1 {1 semana ISO} other {# semanas ISO}}.",
+      "contadores": "Contadores",
+      "contadoresDescripcion": "Lecturas físicas y diferencia respecto a la baseline.",
+      "desgloseTotal": "Desglose total",
+      "desgloseTotalDescripcion": "Recuento físico verificado en máquina.",
+      "desgloseLocal": "Desglose para el local",
+      "desgloseLocalDescripcion": "Lo entregado al titular del local.",
+      "evidencia": "Evidencia",
+      "evidenciaDescripcion": "Firma y, si las hay, fotos de los contadores.",
+      "sinFirma": "Sin firma archivada.",
+      "sinFoto": "Sin foto archivada.",
+      "auditoria": "Auditoría"
+    },
+    "desglose": {
+      "denominacion": "Denominación",
+      "cantidad": "Cantidad",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "vacio": "Sin denominaciones registradas."
+    },
+    "conflicto": {
+      "titulo": "Conflicto pendiente de revisar",
+      "descripcion": "El servidor recalculó las cifras al persistir y no coinciden con las que envió el cliente. Resuélvelo desde la pantalla de conflictos.",
+      "brutoCliente": "Bruto cliente",
+      "brutoServidor": "Bruto servidor",
+      "netoCliente": "Neto cliente",
+      "netoServidor": "Neto servidor",
+      "parteLocalCliente": "Parte local cliente",
+      "parteLocalServidor": "Parte local servidor",
+      "resolver": "Ir al panel de conflictos"
+    },
+    "anular": {
+      "titulo": "Anular recaudación",
+      "descripcion": "La recaudación se conserva como histórico pero deja de contarse. La siguiente recaudación de la instalación recalculará la baseline ignorando esta."
+    },
+    "anulacion": {
+      "titulo": "Recaudación anulada",
+      "fecha": "Anulada el {fecha}.",
+      "motivo": "Motivo"
+    },
+    "validacion": {
+      "motivoMuyCorto": "El motivo debe tener al menos 3 caracteres.",
+      "motivoMuyLargo": "El motivo no puede tener más de 500 caracteres.",
+      "motivoInvalido": "El motivo no es válido."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "anularFallido": "No se ha podido anular la recaudación. Inténtalo de nuevo.",
+      "yaAnulada": "La recaudación ya estaba anulada.",
+      "noEncontrada": "La recaudación ya no existe o no tienes acceso.",
+      "sinPermiso": "Solo un administrador puede anular recaudaciones.",
+      "pdfNoEncontrado": "Esta recaudación no tiene PDF archivado.",
+      "pdfFallido": "No se ha podido generar la descarga del PDF.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "auditoria": {
+    "vacio": "No hay eventos de auditoría que coincidan con los filtros.",
+    "sistema": "Sistema",
+    "campos": {
+      "fecha": "Fecha",
+      "accion": "Acción",
+      "entidad": "Entidad",
+      "actor": "Autor",
+      "datos": "Detalle"
+    },
+    "filtros": {
+      "accion": "Acción",
+      "todasAcciones": "Todas las acciones",
+      "entidad": "Entidad",
+      "todasEntidades": "Todas las entidades",
+      "desde": "Desde",
+      "hasta": "Hasta"
+    },
+    "acciones": {
+      "recaudacion_creada": "Recaudación creada",
+      "recaudacion_anulada": "Recaudación anulada",
+      "conflicto_detectado": "Conflicto detectado",
+      "conflicto_resuelto": "Conflicto resuelto",
+      "cambio_placa_creado": "Cambio de placa",
+      "instalacion_creada": "Instalación creada",
+      "instalacion_cerrada": "Instalación cerrada",
+      "usuario_invitado": "Usuario invitado",
+      "rol_cambiado": "Rol cambiado"
+    },
+    "entidades": {
+      "recaudacion": "Recaudación",
+      "cambio_placa": "Cambio de placa",
+      "instalacion": "Instalación",
+      "empresa_usuario": "Equipo"
+    }
+  },
+  "cambiosPlaca": {
+    "vacio": "No hay cambios de placa que coincidan con los filtros.",
+    "campos": {
+      "fecha": "Fecha",
+      "maquina": "Máquina",
+      "local": "Local",
+      "licencia": "Licencia",
+      "usuario": "Registrado por",
+      "placas": "Placa anterior → nueva",
+      "contadorEntradasNuevo": "Contador de entradas tras el cambio",
+      "contadorSalidasNuevo": "Contador de salidas tras el cambio",
+      "placaAnterior": "Número de placa anterior",
+      "placaNueva": "Número de placa nueva",
+      "motivo": "Motivo",
+      "notas": "Notas",
+      "foto": "Foto del cambio",
+      "creada": "Creada",
+      "actualizada": "Actualizada"
+    },
+    "filtros": {
+      "local": "Local",
+      "todosLocales": "Todos los locales",
+      "desde": "Desde",
+      "hasta": "Hasta"
+    },
+    "accion": {
+      "abrir": "Abrir cambio de placa",
+      "volver": "Volver al listado"
+    },
+    "detalle": {
+      "usuario": "Registrado por {usuario}"
+    },
+    "seccion": {
+      "contadoresNuevos": "Contadores tras el cambio",
+      "contadoresNuevosDescripcion": "Lecturas reportadas por el técnico al instalar la placa nueva. Sirven de baseline para la siguiente recaudación.",
+      "motivo": "Motivo y observaciones",
+      "motivoDescripcion": "Razón del cambio de placa y comentarios del técnico.",
+      "evidencia": "Evidencia",
+      "evidenciaDescripcion": "Foto de la placa o de la operación, si se registró.",
+      "sinFoto": "Sin foto archivada.",
+      "auditoria": "Auditoría"
+    }
+  },
+  "conflictos": {
+    "vacio": "No hay conflictos pendientes. ¡Bien hecho!",
+    "resolucionOk": "Conflicto resuelto.",
+    "contadorPendientes": "{count, plural, =1 {1 pendiente} other {# pendientes}}",
+    "campos": {
+      "brutoCliente": "Bruto cliente",
+      "brutoServidor": "Bruto servidor",
+      "diferencia": "Diferencia",
+      "notas": "Notas de la resolución"
+    },
+    "placeholders": {
+      "notas": "Comentarios para el equipo (opcional)..."
+    },
+    "accion": {
+      "aplicar": "Aplicar resolución",
+      "limpiar": "Limpiar selección"
+    },
+    "resolver": {
+      "titulo": "Resolver conflicto",
+      "descripcion": "Compara las cifras del cliente con las recalculadas por el servidor y elige cómo registrar la recaudación.",
+      "opciones": "Opciones de resolución"
+    },
+    "resolucion": {
+      "aceptada": {
+        "label": "Aceptar las del cliente",
+        "descripcion": "Las cifras enviadas por el técnico se quedan como oficiales."
+      },
+      "sustituida": {
+        "label": "Aplicar las del servidor",
+        "descripcion": "Las cifras recalculadas por el servidor sustituyen a las del cliente."
+      },
+      "anulada": {
+        "label": "Anular la recaudación",
+        "descripcion": "La recaudación se conserva como histórico pero no cuenta. Recalcularemos la baseline ignorándola."
+      }
+    },
+    "validacion": {
+      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "resolverFallido": "No se ha podido resolver el conflicto. Inténtalo de nuevo.",
+      "yaResuelto": "Este conflicto ya estaba resuelto.",
+      "noEncontrada": "La recaudación ya no existe o no tienes acceso.",
+      "sinPermiso": "Solo un administrador puede resolver conflictos.",
+      "resolucionRequerida": "Selecciona una de las tres resoluciones antes de aplicar.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "equipo": {
+    "vacio": "No hay miembros en la empresa.",
+    "yo": "(tú)",
+    "rolCambiadoOk": "Rol actualizado.",
+    "desactivadoOk": "Miembro desactivado.",
+    "reactivadoOk": "Miembro reactivado.",
+    "estado": {
+      "activo": "Activo",
+      "desactivado": "Desactivado"
+    },
+    "campos": {
+      "nombre": "Nombre",
+      "email": "Correo electrónico",
+      "telefono": "Teléfono",
+      "rol": "Rol",
+      "estado": "Estado",
+      "nombreCompleto": "Nombre completo"
+    },
+    "placeholders": {
+      "nombreCompleto": "Nombre y apellidos del nuevo miembro"
+    },
+    "accion": {
+      "invitar": "Invitar",
+      "invitarConfirmar": "Enviar invitación",
+      "cancelar": "Cancelar",
+      "menu": "Acciones",
+      "desactivar": "Desactivar",
+      "reactivar": "Reactivar",
+      "desactivarConfirmar": "Desactivar miembro",
+      "cambiarRolHint": "Cambia el rol desde la columna Rol"
+    },
+    "invitar": {
+      "titulo": "Invitar a un miembro",
+      "descripcion": "Si el correo no existe en la plataforma le enviaremos un magic link. Si ya existe, simplemente le añadiremos esta empresa con el rol indicado.",
+      "ok": "Invitación procesada."
+    },
+    "desactivar": {
+      "titulo": "¿Desactivar al miembro?",
+      "descripcion": "{nombre} dejará de tener acceso a la empresa. Puedes reactivarlo más tarde sin perder el histórico."
+    },
+    "nota": {
+      "invitaciones": "Las invitaciones se envían por correo. Si el destinatario ya tenía cuenta en la plataforma, basta con que vuelva a iniciar sesión para ver la nueva empresa."
+    },
+    "validacion": {
+      "emailRequerido": "El correo es obligatorio.",
+      "emailInvalido": "El correo electrónico no tiene un formato válido.",
+      "rolInvalido": "Selecciona un rol válido.",
+      "nombreMuyLargo": "El nombre no puede tener más de 150 caracteres.",
+      "soloOwnerPuedeInvitarOwner": "Solo el propietario puede invitar a otro propietario."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "invitarFallido": "No se ha podido procesar la invitación. Inténtalo de nuevo.",
+      "sinPermiso": "No tienes permisos para esta acción.",
+      "idInvalido": "Solicitud inválida.",
+      "lecturaFallida": "No se han podido leer los datos del miembro.",
+      "actualizarFallido": "No se ha podido actualizar el miembro.",
+      "noPuedesCambiarTuRol": "No puedes cambiar tu propio rol.",
+      "noPuedesDesactivarteSolo": "No puedes desactivar tu propio acceso.",
+      "soloOwnerAsignaOwner": "Solo el propietario puede asignar el rol de propietario.",
+      "soloOwnerEditaOwner": "Solo el propietario puede editar a otro propietario.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "ajustes": {
+    "guardadoOk": "Ajustes guardados.",
+    "formulario": {
+      "titulo": "Datos de la empresa",
+      "descripcion": "Estos datos se usan en los tickets y en los informes."
+    },
+    "seccion": {
+      "ticket": "Ticket de recaudación",
+      "ticketDescripcion": "Líneas opcionales que se imprimen al principio y al final del ticket."
+    },
+    "nota": {
+      "logo": "El logo del ticket se sube por separado en una iteración futura: requiere una Edge Function dedicada porque el bucket logos/ está restringido a service_role."
+    },
+    "campos": {
+      "nombre": "Nombre comercial",
+      "cif": "CIF",
+      "direccion": "Dirección fiscal",
+      "telefono": "Teléfono",
+      "email": "Correo de contacto",
+      "zonaHoraria": "Zona horaria",
+      "zonaHorariaAyuda": "Se usa para calcular semanas ISO en las recaudaciones.",
+      "ticketCabecera": "Cabecera del ticket",
+      "ticketCabeceraAyuda": "Se imprime arriba del ticket. Suele incluir nombre comercial y CIF.",
+      "ticketPie": "Pie del ticket",
+      "ticketPieAyuda": "Se imprime al final del ticket. Útil para datos de contacto o avisos."
+    },
+    "accion": {
+      "guardar": "Guardar cambios",
+      "guardando": "Guardando..."
+    },
+    "validacion": {
+      "nombreRequerido": "El nombre es obligatorio.",
+      "nombreMuyLargo": "El nombre no puede tener más de 150 caracteres.",
+      "cifMuyLargo": "El CIF no puede tener más de 20 caracteres.",
+      "direccionMuyLarga": "La dirección no puede tener más de 300 caracteres.",
+      "telefonoMuyLargo": "El teléfono no puede tener más de 30 caracteres.",
+      "emailInvalido": "El correo electrónico no tiene un formato válido.",
+      "zonaHorariaInvalida": "Selecciona una zona horaria válida.",
+      "ticketMuyLargo": "Este texto no puede tener más de 500 caracteres."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "guardarFallido": "No se han podido guardar los cambios. Inténtalo de nuevo.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "validation": {
+    "emailRequired": "El correo es obligatorio",
+    "emailInvalid": "Correo no válido",
+    "passwordRequired": "La contraseña es obligatoria",
+    "passwordMin": "La contraseña debe tener al menos {min} caracteres"
+  },
+  "export": {
+    "recaudaciones": {
+      "boton": "Exportar CSV",
+      "ariaLabel": "Exportar recaudaciones a CSV para gestoría"
+    }
+  },
+  "registro": {
+    "title": "Crea tu cuenta",
+    "description": "Registra tu empresa y empieza una prueba gratuita de 14 días. Tú serás el propietario de la cuenta.",
+    "tengoCuenta": "¿Ya tienes cuenta?",
+    "campos": {
+      "nombreEmpresa": "Nombre de la empresa",
+      "nombreCompleto": "Tu nombre",
+      "email": "Correo electrónico",
+      "password": "Contraseña"
+    },
+    "placeholders": {
+      "nombreEmpresa": "Recreativos Pepe S.L.",
+      "nombreCompleto": "Nombre y apellidos",
+      "email": "tu@empresa.com"
+    },
+    "ayuda": {
+      "trial": "Tu empresa empezará con 14 días de prueba gratuita."
+    },
+    "accion": {
+      "crear": "Crear cuenta",
+      "enviando": "Creando cuenta...",
+      "iniciarSesion": "Inicia sesión"
+    },
+    "validacion": {
+      "nombreEmpresaRequerido": "El nombre de la empresa es obligatorio.",
+      "nombreEmpresaMuyLargo": "El nombre de la empresa no puede tener más de 150 caracteres.",
+      "nombreCompletoRequerido": "Tu nombre es obligatorio.",
+      "nombreCompletoMuyLargo": "El nombre no puede tener más de 150 caracteres.",
+      "emailRequerido": "El correo es obligatorio.",
+      "emailInvalido": "El correo electrónico no tiene un formato válido.",
+      "emailExiste": "Ya existe una cuenta con ese correo. Inicia sesión.",
+      "passwordRequerida": "La contraseña es obligatoria.",
+      "passwordMin": "La contraseña debe tener al menos {min} caracteres."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "emailExiste": "Ya existe una cuenta con ese correo. Inicia sesión.",
+      "registroFallido": "No se ha podido completar el registro. Inténtalo de nuevo.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
+  "onboarding": {
+    "bienvenida": {
+      "titulo": "¡Bienvenido a Recre!",
+      "descripcion": "Tu empresa ya está creada y estás en periodo de prueba. Empieza dando de alta tus licencias, máquinas y locales."
+    }
+  },
+  "trial": {
+    "etiqueta": "Prueba gratuita:",
+    "diasRestantes": "{dias, plural, =1 {te queda 1 día} other {te quedan # días}} de prueba.",
+    "expirado": "tu periodo de prueba ha expirado. Contacta con nosotros para activar tu cuenta."
+  }
+}

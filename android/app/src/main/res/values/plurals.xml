@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="locales_maquinas_count">
+        <item quantity="zero">Sin máquinas activas</item>
+        <item quantity="one">%d máquina activa</item>
+        <item quantity="other">%d máquinas activas</item>
+    </plurals>
+
+    <plurals name="locales_pendientes_count">
+        <item quantity="one">%d recaudación pendiente</item>
+        <item quantity="other">%d recaudaciones pendientes</item>
+    </plurals>
+</resources>

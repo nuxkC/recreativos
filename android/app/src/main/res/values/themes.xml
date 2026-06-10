@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema base usado por el splash y por compatibilidad. El tema real
+         (Material 3) se aplica desde Compose en `RecreTheme`. -->
+    <style name="Theme.Recre" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

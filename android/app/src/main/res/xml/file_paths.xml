@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Carpeta temporal para las fotos del contador capturadas para OCR (T-100).
+         Vive en cacheDir; las imágenes se borran tras procesarlas. -->
+    <cache-path
+        name="ocr_contadores"
+        path="ocr/" />
+</paths>

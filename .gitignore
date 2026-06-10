@@ -1,0 +1,103 @@
+# =============================================================================
+# Recre — .gitignore (monorepo)
+# Cubre Node/Next.js (web/), Android/Gradle (android/), Deno/Supabase
+# (supabase/), entornos, IDEs y archivos de SO.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Sistema operativo
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------------------------------------------------------
+# IDEs / Editores
+# -----------------------------------------------------------------------------
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# Variables de entorno y secretos
+# Plantillas (.env.example) sí se versionan; el resto NO.
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# -----------------------------------------------------------------------------
+# Logs y temporales
+# -----------------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tmp
+.cache/
+
+# -----------------------------------------------------------------------------
+# web/ — Node, Next.js, gestores de paquetes
+# -----------------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+.yarn/install-state.gz
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build outputs
+build/
+dist/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Testing / cobertura
+coverage/
+*.lcov
+.nyc_output/
+
+# Playwright
+playwright-report/
+test-results/
+
+# -----------------------------------------------------------------------------
+# android/ — Gradle / Android Studio
+# -----------------------------------------------------------------------------
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/local.properties
+android/.kotlin/
+android/.cxx/
+android/release/
+
+# Keystores: nunca commitear claves de firma reales
+*.keystore
+*.jks
+!debug.keystore
+
+# -----------------------------------------------------------------------------
+# supabase/ — Deno, CLI de Supabase
+# -----------------------------------------------------------------------------
+supabase/.branches/
+supabase/.temp/
+.supabase/
+.deno/
+
+# -----------------------------------------------------------------------------
+# Archivos locales del entorno de desarrollo
+# -----------------------------------------------------------------------------
+headroom_memory.db

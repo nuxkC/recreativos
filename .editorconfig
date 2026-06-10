@@ -1,0 +1,30 @@
+# https://editorconfig.org
+# Convenciones de formato comunes a los tres subproyectos.
+# Ver .kiro/steering/conventions.md para el resto de reglas.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 120
+
+# Kotlin / Java usan 4 espacios por convención
+[*.{kt,kts,java}]
+indent_size = 4
+
+# Markdown: los espacios al final pueden ser <br> intencionales
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+
+# Makefiles requieren tabs
+[Makefile]
+indent_style = tab
+
+# Gradle wrapper / scripts mantienen su formato original
+[gradlew*]
+indent_style = tab

@@ -1,0 +1,33 @@
+# Construido / generado
+.gradle/
+build/
+app/build/
+captures/
+.cxx/
+.kotlin/
+*.iml
+release/
+
+# IDE
+.idea/
+
+# Android Studio / SDK
+local.properties
+
+# Firebase: el google-services.json es específico de cada proyecto Firebase
+# y NO se versiona. Ver README §Notificaciones push (T-101).
+google-services.json
+app/google-services.json
+
+# Keystores: nunca commitear claves de firma reales
+*.keystore
+*.jks
+!debug.keystore
+
+# Output / Profilers
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+hs_err_pid*
