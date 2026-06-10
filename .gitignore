@@ -79,7 +79,6 @@ android/.gradle/
 android/build/
 android/app/build/
 android/captures/
-android/local.properties
 android/.kotlin/
 android/.cxx/
 android/release/

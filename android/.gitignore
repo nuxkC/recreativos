@@ -12,7 +12,7 @@ release/
 .idea/
 
 # Android Studio / SDK
-local.properties
+# local.properties se versiona: contiene SUPABASE_URL/ANON_KEY de dev local y sdk.dir
 
 # Firebase: el google-services.json es específico de cada proyecto Firebase
 # y NO se versiona. Ver README §Notificaciones push (T-101).
