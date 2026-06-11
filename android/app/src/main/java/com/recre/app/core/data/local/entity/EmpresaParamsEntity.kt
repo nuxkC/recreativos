@@ -35,6 +35,9 @@ data class EmpresaParamsEntity(
     val ticketCabecera: String?,
     @ColumnInfo(name = "ticket_pie")
     val ticketPie: String?,
+    /** Unidad de redondeo del bruto (0 = sin redondeo). Espejo de empresa.redondeo_recaudacion. */
+    @ColumnInfo(name = "redondeo_recaudacion")
+    val redondeoRecaudacion: Int,
     @ColumnInfo(name = "updated_at")
     val updatedAt: Instant,
 )

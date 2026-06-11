@@ -30,4 +30,11 @@ data class Cifras(
     val deltaEntradas: Long,
     val deltaSalidas: Long,
     val creditos: Long,
+    /**
+     * Unidad de redondeo aplicada al bruto (0 = no se redondeó). Cuando es > 0,
+     * [bruto] es el bruto redondeado (el desglose debe cuadrar con él) y
+     * [brutoReal] conserva el valor antes de redondear.
+     */
+    val redondeoAplicado: Int = 0,
+    val brutoReal: BigDecimal = bruto,
 )

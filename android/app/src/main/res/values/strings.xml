@@ -103,6 +103,7 @@
     <string name="recaudacion_cifras_titulo">Cifras de la recaudación</string>
     <string name="recaudacion_label_creditos">Créditos netos</string>
     <string name="recaudacion_label_bruto">Bruto</string>
+    <string name="recaudacion_label_redondeado">(redondeado)</string>
     <string name="recaudacion_label_tasa_total">Tasa (%1$d sem.)</string>
     <string name="recaudacion_label_neto">Neto</string>
     <string name="recaudacion_label_parte_local">Parte local (%1$s)</string>

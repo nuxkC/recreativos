@@ -164,6 +164,7 @@ class SyncRepositoryImpl @Inject constructor(
         zonaHoraria = zonaHoraria,
         ticketCabecera = ticketCabecera,
         ticketPie = ticketPie,
+        redondeoRecaudacion = redondeoRecaudacion,
         updatedAt = parseTimestamp(updatedAt),
     )
 

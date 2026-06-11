@@ -74,8 +74,14 @@ fun CifrasResumenCard(
                 value = cifras.creditos.toString(),
                 muted = false,
             )
+            val brutoLabel = if (cifras.redondeoAplicado > 0) {
+                stringResource(R.string.recaudacion_label_bruto) + " " +
+                    stringResource(R.string.recaudacion_label_redondeado)
+            } else {
+                stringResource(R.string.recaudacion_label_bruto)
+            }
             FilaCifra(
-                label = stringResource(R.string.recaudacion_label_bruto),
+                label = brutoLabel,
                 value = formatEur(cifras.bruto.toPlainString()),
                 muted = false,
             )

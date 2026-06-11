@@ -257,6 +257,7 @@ class RecaudacionFlowViewModel @Inject constructor(
                 tasaSemanal = BigDecimal(maquina.tasaSemanal),
                 porcentajeLocal = BigDecimal(maquina.porcentajeLocal),
                 semanas = semanas,
+                redondeoUnidad = empresa.redondeoRecaudacion,
             ),
         )
     }

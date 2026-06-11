@@ -34,6 +34,8 @@ data class EmpresaFullDto(
     val ticketCabecera: String? = null,
     @SerialName("ticket_pie")
     val ticketPie: String? = null,
+    @SerialName("redondeo_recaudacion")
+    val redondeoRecaudacion: Int = 0,
     @SerialName("updated_at")
     val updatedAt: String,
 )

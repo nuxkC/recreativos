@@ -31,7 +31,7 @@ object DatabaseModule {
         )
             // Migraciones reales: la cola de recaudaciones contiene trabajo
             // del técnico que NO se puede perder al subir versión.
-            .addMigrations(RecreDatabase.MIGRATION_2_3)
+            .addMigrations(RecreDatabase.MIGRATION_2_3, RecreDatabase.MIGRATION_3_4)
             // Solo como red de seguridad para builds antiguos (alpha) que
             // hubiera v=1; los técnicos en producción nunca pasarán por ahí.
             .fallbackToDestructiveMigrationFrom(1)
