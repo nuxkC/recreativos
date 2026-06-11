@@ -597,6 +597,33 @@ PDF en A4 con misma información más detalles de auditoría (idempotency_key, d
 - Storage privado con signed URLs.
 - Almacenamiento local Android cifrado (Room + EncryptedSharedPreferences para claves).
 
+### 12.1 Invariante de escritura: solo vía función
+
+Los clientes (`authenticated`/`anon`) **solo pueden LEER**. Toda escritura en la
+BBDD pasa por una función; la BBDD rechaza el INSERT/UPDATE/DELETE directo. Esto
+se impone con dos capas a la vez:
+
+1. **REVOKE** de `INSERT, UPDATE, DELETE` a `authenticated`/`anon` sobre **todas**
+   las tablas de dominio (no basta con RLS: Supabase concede esos privilegios por
+   defecto y RLS solo los acota). Las policies `*_select` siguen permitiendo lectura.
+2. **Capa de escritura** que sí puede escribir porque puentea esos privilegios:
+   - **RPC `SECURITY DEFINER`** (dueño `postgres`) para el CRUD de los clientes.
+     Validan rol + tenant internamente con los helpers `usuario_es_*`. Ej.:
+     `crear/actualizar/eliminar_{licencia,maquina,local,instalacion}`,
+     `actualizar_ajustes_empresa`, `cambiar_rol_miembro`, `cambiar_estado_miembro`,
+     `marcar_alerta_leida`, `marcar_alertas_leidas_empresa`. Se conceden
+     (`GRANT EXECUTE`) solo a `authenticated`.
+   - **Edge Functions con `service_role`** para flujos operativos y efectos
+     externos (cálculo SSOT, locks, PDFs, emails): `crear-recaudacion`,
+     `crear-cambio-placa`, `adquirir-lock`/`liberar-lock`, `anular-recaudacion`,
+     `resolver-conflicto`, `cerrar-instalacion`, `invitar-usuario`,
+     `registrar-device-token`, `registrar-empresa`, `resumen-mensual`. Validan
+     rol + tenant en TS antes de escribir.
+
+Toda tabla nueva nace con RLS, sin grant de escritura a clientes, y con su RPC o
+Edge Function de escritura. El guardarraíl `tests/sql/07_lockdown_escritura_global.sql`
+falla si alguna tabla de dominio concede escritura directa a `authenticated`/`anon`.
+
 ## 13. Decisiones cerradas
 
 | Tema | Decisión |

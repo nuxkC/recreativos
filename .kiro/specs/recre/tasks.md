@@ -99,6 +99,7 @@ Plan dividido en fases. Cada tarea está pensada para ser un PR pequeño y verif
 - [x] **T-202** Auditoría completa con tabla de eventos (`audit_log`).
 - [x] **T-203** Boletines digitales de instalación (si interesa).
 - [ ] **T-204** API pública para integraciones futuras.
+- [x] **T-210** Lockdown de escritura: toda escritura vía función (RPC `SECURITY DEFINER` / Edge `service_role`); REVOKE de INSERT/UPDATE/DELETE a `authenticated`/`anon` en todas las tablas de dominio; guardarraíl pgTAP global. Ver design.md §12.1.
 
 ## Convenciones
 
