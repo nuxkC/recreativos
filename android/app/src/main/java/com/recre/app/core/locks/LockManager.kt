@@ -5,6 +5,10 @@ import com.recre.app.core.data.remote.RecaudacionRemoteDataSource
 import com.recre.app.core.data.remote.RecaudacionRemoteError
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -27,6 +31,12 @@ import timber.log.Timber
 class LockManager @Inject constructor(
     private val remote: RecaudacionRemoteDataSource,
 ) {
+
+    // Scope propio del Singleton: la liberación debe completarse aunque el
+    // ViewModel que la pidió ya esté destruido. Al pulsar "atrás" se cancela
+    // el viewModelScope antes de que la petición HTTP a `liberar-lock` salga,
+    // dejando el lock colgado hasta su TTL. Lanzándola aquí sobrevive.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Adquiere el lock. Nunca lanza: empaqueta cualquier error en [LockState]. */
     suspend fun adquirir(
@@ -57,8 +67,15 @@ class LockManager @Inject constructor(
         )
     }
 
-    /** Libera el lock al salir del flujo. Best-effort, ignora errores. */
-    suspend fun liberar(instalacionId: String) {
-        remote.liberarLock(instalacionId)
+    /**
+     * Libera el lock al salir del flujo. Best-effort y *fire-and-forget* en un
+     * scope que sobrevive al ViewModel, para que la petición no se cancele a
+     * medio vuelo durante la navegación atrás. Si falla, el TTL la expira sola.
+     */
+    fun liberar(instalacionId: String) {
+        scope.launch {
+            runCatching { remote.liberarLock(instalacionId) }
+                .onFailure { Timber.w(it, "Lock no liberado; expirará por TTL") }
+        }
     }
 }

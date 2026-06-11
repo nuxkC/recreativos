@@ -184,11 +184,29 @@ class RecaudacionFlowViewModel @Inject constructor(
      * Libera el lock al cancelar el flujo (botón atrás en cualquier
      * pantalla). Best-effort: no bloqueamos la navegación si falla. El
      * TTL de 30 min del backend (T-24) cubre cualquier despiste.
+     *
+     * La liberación corre en el scope del [LockManager], no en
+     * `viewModelScope`: este último se cancela al destruir el ViewModel
+     * durante la navegación atrás, lo que abortaba la petición HTTP.
      */
     fun liberarLockAlSalir() {
         if (_uiState.value.lockState !is LockState.Adquirido) return
-        viewModelScope.launch {
-            runCatching { lockManager.liberar(instalacionId) }
+        lockManager.liberar(instalacionId)
+    }
+
+    /**
+     * Red de seguridad: el ViewModel está scoped al sub-graph y muere justo
+     * cuando se sale del flujo (back del sistema, gesto, cierre de la app),
+     * rutas que NO pasan por [liberarLockAlSalir]. Si se abandona sin guardar
+     * con el lock en mano, lo soltamos aquí. La liberación es fire-and-forget
+     * en el scope del [LockManager], imprescindible porque `viewModelScope`
+     * ya está cancelado cuando `onCleared` se ejecuta.
+     */
+    override fun onCleared() {
+        super.onCleared()
+        val estado = _uiState.value
+        if (!estado.guardado && estado.lockState is LockState.Adquirido) {
+            lockManager.liberar(instalacionId)
         }
     }
 
@@ -453,8 +471,8 @@ class RecaudacionFlowViewModel @Inject constructor(
             val finalState = uploadManager.esperarFinalizacion(empresaId)
             val subidoOnline = finalState == WorkInfo.State.SUCCEEDED
 
-            // Liberamos el lock siempre — best-effort.
-            runCatching { lockManager.liberar(instalacionId) }
+            // Liberamos el lock siempre — best-effort (fire-and-forget).
+            lockManager.liberar(instalacionId)
 
             // Recaudación persistida; ya se puede declarar guardado=true.
             // La impresión es informativa y NO retiene la persistencia
