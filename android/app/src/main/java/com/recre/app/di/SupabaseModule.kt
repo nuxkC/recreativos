@@ -10,6 +10,7 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 import javax.inject.Singleton
 
@@ -34,5 +35,9 @@ object SupabaseModule {
         install(Postgrest)
         install(Storage)
         install(Functions)
+        // Realtime reutiliza la sesión de Auth automáticamente; postgres_changes
+        // aplica RLS con ese JWT, así que cada técnico solo recibe filas de su
+        // empresa. Ver RealtimeManager y la migración 20260611140000.
+        install(Realtime)
     }
 }

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.recre.app.core.push.PushTokenManager
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.sync.RecaudacionUploadManager
 import com.recre.app.core.sync.SyncManager
 import dagger.hilt.android.HiltAndroidApp
@@ -33,6 +34,9 @@ class RecreApp : Application(), Configuration.Provider {
     lateinit var uploadManager: RecaudacionUploadManager
 
     @Inject
+    lateinit var realtimeManager: RealtimeManager
+
+    @Inject
     lateinit var pushTokenManager: PushTokenManager
 
     override fun onCreate() {
@@ -46,6 +50,10 @@ class RecreApp : Application(), Configuration.Provider {
         // un intento de subir las recaudaciones pendientes.
         syncManager.start()
         uploadManager.start()
+        // Realtime: ante cambios en las tablas que afectan al baseline
+        // (recaudacion, cambio_placa, instalacion, maquina) dispara un re-sync
+        // para que los contadores no queden viejos mientras la app está abierta.
+        realtimeManager.start()
         // T-101: registra el token FCM cuando haya empresa activa. No-op si
         // Firebase no está inicializado (sin google-services.json).
         pushTokenManager.start()
