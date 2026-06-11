@@ -29,6 +29,14 @@ object ContadorOcrParser {
     private const val MAX_DIGITOS = 12
 
     /**
+     * Ratio mínimo de retorno de la máquina: las salidas (lo que paga) son al
+     * menos el 70 % de las entradas (lo que recauda). Es uno de los filtros que
+     * usa [parseAmbos] para decidir, entre los números detectados, cuál es el
+     * contador de salidas. Es un primer filtro heurístico; se añadirán más.
+     */
+    private const val RATIO_RETORNO_MIN = 0.70
+
+    /**
      * Caracteres que actúan como separadores de millar dentro de un número.
      *
      * Solo puntuación de millar (`.` `,` apóstrofo): los espacios y saltos de
@@ -66,6 +74,66 @@ object ContadorOcrParser {
             mejor = ordenados.first(),
             confianza = estimarConfianza(ordenados),
         )
+    }
+
+    /**
+     * Identifica **ambos** contadores (entradas y salidas) en una sola foto del
+     * display (HU-14 fase 2). El técnico ya no escanea cada campo por separado:
+     * una única captura contiene los dos números y aquí decidimos cuál es cuál
+     * aplicando filtros de dominio sobre los candidatos detectados.
+     *
+     * Filtros (en orden):
+     *  1. **Entradas ≥ última lectura** ([baselineEntradas]): el contador físico
+     *     es monótono creciente, nunca baja respecto a la recaudación anterior.
+     *     De los candidatos válidos, entradas es el **mayor** (la máquina recauda
+     *     más de lo que paga).
+     *  2. **Salidas ≥ última lectura** ([baselineSalidas]) y **≤ entradas**.
+     *  3. **Salidas ≥ 70 % de entradas** ([RATIO_RETORNO_MIN]): la máquina
+     *     devuelve el 70 % o más, así que un número muy por debajo de ese umbral
+     *     no es el contador de salidas (será ruido del display).
+     *
+     * El OCR sigue siendo una ayuda: si algún filtro no encuentra candidato,
+     * devolvemos lo que sí se pudo identificar (entradas) con confianza baja para
+     * que la UI invite a revisar, y el técnico siempre corrige a mano.
+     *
+     * @return entradas/salidas detectadas (`null` cada una si no se identificó)
+     *   y la [Confianza] heurística del conjunto.
+     */
+    fun parseAmbos(
+        textoCrudo: String,
+        baselineEntradas: Long,
+        baselineSalidas: Long,
+    ): ContadorOcrAmbosResult {
+        val candidatos = extraerCandidatos(textoCrudo)
+            .filter { it.length in MIN_DIGITOS..MAX_DIGITOS }
+            .mapNotNull { it.toLongOrNull() }
+            .distinct()
+            .sortedDescending()
+
+        // Entradas: el mayor candidato no inferior a su última lectura.
+        val entradasElegibles = candidatos.filter { it >= baselineEntradas }
+        val entradas = entradasElegibles.firstOrNull()
+            ?: return ContadorOcrAmbosResult(null, null, Confianza.NINGUNA)
+
+        // Salidas: candidato distinto que respeta los filtros respecto a entradas.
+        val salidasMinimo = entradas.toDouble() * RATIO_RETORNO_MIN
+        val salidasElegibles = candidatos.filter { c ->
+            c != entradas &&
+                c <= entradas &&
+                c >= baselineSalidas &&
+                c.toDouble() >= salidasMinimo
+        }
+        val salidas = salidasElegibles.firstOrNull()
+
+        // Alta solo si salidas queda determinada de forma única; si hay varios
+        // candidatos plausibles o no se pudo aislar, pedimos revisión.
+        val confianza = when {
+            salidas == null -> Confianza.BAJA
+            salidasElegibles.size == 1 -> Confianza.ALTA
+            else -> Confianza.BAJA
+        }
+
+        return ContadorOcrAmbosResult(entradas, salidas, confianza)
     }
 
     /**
@@ -135,6 +203,19 @@ object ContadorOcrParser {
 data class ContadorOcrParseResult(
     val candidatos: List<Long>,
     val mejor: Long?,
+    val confianza: Confianza,
+)
+
+/**
+ * Resultado de identificar ambos contadores en una sola foto ([ContadorOcrParser.parseAmbos]).
+ *
+ * @property entradas valor del contador de entradas o `null` si no se identificó.
+ * @property salidas valor del contador de salidas o `null` si no se identificó.
+ * @property confianza confianza heurística del conjunto detectado.
+ */
+data class ContadorOcrAmbosResult(
+    val entradas: Long?,
+    val salidas: Long?,
     val confianza: Confianza,
 )
 

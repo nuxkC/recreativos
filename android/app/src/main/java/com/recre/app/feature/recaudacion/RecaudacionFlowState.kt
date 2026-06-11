@@ -5,7 +5,6 @@ import com.recre.app.core.calculo.Cifras
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.ContadorCampo
 import com.recre.app.core.ocr.OcrError
 import com.recre.app.core.printer.PrintResult
 
@@ -39,18 +38,19 @@ data class RecaudacionFlowState(
 
     /**
      * OCR de la foto del contador (T-100, HU-14 fase 2). El OCR es una
-     * ayuda: pre-rellena el input pero el técnico siempre puede corregirlo.
+     * ayuda: una sola foto detecta **ambos** contadores y pre-rellena los dos
+     * inputs, pero el técnico siempre puede corregirlos.
      *
-     * - [ocrProcesando]: campo cuya foto se está reconociendo ahora mismo
-     *   (`null` si no hay ninguna en curso); la UI muestra un indicador.
+     * - [ocrProcesando]: `true` mientras se reconoce la foto; la UI muestra un
+     *   indicador en el botón de escaneo.
      * - [ocrError]: último fallo del OCR (sin permiso de cámara, sin texto
      *   detectable, fallo del motor). La UI lo muestra y deja edición manual.
-     * - [ocrAvisoBajaConfianza]: campo cuya última lectura tuvo confianza
-     *   baja; la UI invita a revisar el valor pre-rellenado.
+     * - [ocrAvisoBajaConfianza]: `true` si la última lectura fue ambigua; la UI
+     *   invita a revisar los valores pre-rellenados.
      */
-    val ocrProcesando: ContadorCampo? = null,
+    val ocrProcesando: Boolean = false,
     val ocrError: OcrError? = null,
-    val ocrAvisoBajaConfianza: ContadorCampo? = null,
+    val ocrAvisoBajaConfianza: Boolean = false,
 
     /** `true` si el técnico denegó el permiso de cámara al intentar escanear. */
     val ocrPermisoCamaraDenegado: Boolean = false,

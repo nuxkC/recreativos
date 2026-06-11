@@ -19,9 +19,8 @@ object RecaudacionTestTags {
     const val CONTADORES_CONTINUAR = "recaudacion_contadores_continuar"
     const val CONTADORES_LECTURA_NO_RECAUDADA = "recaudacion_contadores_lectura_no_recaudada"
 
-    // Paso 1 — OCR foto de contadores (T-100)
-    const val OCR_FOTO_ENTRADAS = "recaudacion_ocr_foto_entradas"
-    const val OCR_FOTO_SALIDAS = "recaudacion_ocr_foto_salidas"
+    // Paso 1 — OCR foto de contadores (T-100). Una sola foto detecta ambos.
+    const val OCR_FOTO_CONTADORES = "recaudacion_ocr_foto_contadores"
     const val OCR_AVISO = "recaudacion_ocr_aviso"
 
     // Paso 2 — denominaciones
