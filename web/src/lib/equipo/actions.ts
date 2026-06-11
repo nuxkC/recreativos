@@ -167,11 +167,11 @@ export async function cambiarRol(
     return { ok: false, error: { code: "soloOwnerEditaOwner" } };
   }
 
-  const { error } = await supabase
-    .from("empresa_usuario")
-    .update({ rol: nuevoRol })
-    .eq("empresa_id", activa.empresa.id)
-    .eq("usuario_id", usuarioId);
+  const { error } = await supabase.rpc("cambiar_rol_miembro", {
+    p_empresa_id: activa.empresa.id,
+    p_usuario_id: usuarioId,
+    p_rol: nuevoRol,
+  });
 
   if (error) {
     return { ok: false, error: { code: "actualizarFallido" } };
@@ -215,11 +215,11 @@ export async function cambiarActivo(usuarioId: string, activo: boolean): Promise
     return { ok: false, error: { code: "soloOwnerEditaOwner" } };
   }
 
-  const { error } = await supabase
-    .from("empresa_usuario")
-    .update({ activo })
-    .eq("empresa_id", activa.empresa.id)
-    .eq("usuario_id", usuarioId);
+  const { error } = await supabase.rpc("cambiar_estado_miembro", {
+    p_empresa_id: activa.empresa.id,
+    p_usuario_id: usuarioId,
+    p_activo: activo,
+  });
 
   if (error) {
     return { ok: false, error: { code: "actualizarFallido" } };

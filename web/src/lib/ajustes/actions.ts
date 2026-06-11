@@ -55,19 +55,17 @@ export async function actualizarAjustesEmpresa(
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("empresa")
-    .update({
-      nombre: parsed.data.nombre,
-      cif: parsed.data.cif,
-      direccion: parsed.data.direccion,
-      telefono: parsed.data.telefono,
-      email: parsed.data.email,
-      zona_horaria: parsed.data.zonaHoraria,
-      ticket_cabecera: parsed.data.ticketCabecera,
-      ticket_pie: parsed.data.ticketPie,
-    })
-    .eq("id", activa.empresa.id);
+  const { error } = await supabase.rpc("actualizar_ajustes_empresa", {
+    p_empresa_id: activa.empresa.id,
+    p_nombre: parsed.data.nombre,
+    p_cif: parsed.data.cif,
+    p_direccion: parsed.data.direccion,
+    p_telefono: parsed.data.telefono,
+    p_email: parsed.data.email,
+    p_zona_horaria: parsed.data.zonaHoraria,
+    p_ticket_cabecera: parsed.data.ticketCabecera,
+    p_ticket_pie: parsed.data.ticketPie,
+  });
 
   if (error) {
     return { ok: false, error: { code: "guardarFallido" } };

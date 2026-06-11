@@ -3,20 +3,24 @@ package com.recre.app.core.data.remote
 import com.recre.app.core.data.remote.dto.AlertaDto
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Count
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.postgrest.rpc
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
  * Frontera HTTP de la pantalla "Alertas" (T-64).
  *
- * Solo lee y marca como leídas. La inserción la hace el backend
- * automáticamente cuando T-21 detecta conflicto (alerta tipo
- * `recaudacion_conflicto`), T-26a registra una anulación
- * (`recaudacion_anulada`) o T-26b cierra un conflicto (la propia
- * alerta original se marca leída desde el resolver).
+ * Solo LEE y marca como leídas. La escritura directa a `alerta` está REVOCADA:
+ * el marcado pasa por las RPCs SECURITY DEFINER `marcar_alerta_leida` /
+ * `marcar_alertas_leidas_empresa`, que validan pertenencia a la empresa de la
+ * alerta. La inserción la hace el backend automáticamente (service_role) cuando
+ * T-21 detecta conflicto, T-26a registra una anulación o T-26b cierra un
+ * conflicto.
  *
  * Al ser tan simple, no se cachea en Room: refresco bajo demanda. Eso
  * mantiene el estado siempre fresco al volver a la pantalla principal,
@@ -27,11 +31,15 @@ class AlertasRemoteDataSource @Inject constructor(
     private val supabase: SupabaseClient,
 ) {
 
-    /** Update parcial: solo el flag `leida`. Va como objeto serializable
-     *  para que supabase-kt lo convierta a `{ "leida": true }` sin
-     *  ambigüedades de tipos. */
     @Serializable
-    private data class LeidaUpdate(val leida: Boolean = true)
+    private data class MarcarAlertaParams(
+        @SerialName("p_alerta_id") val alertaId: String,
+    )
+
+    @Serializable
+    private data class MarcarEmpresaParams(
+        @SerialName("p_empresa_id") val empresaId: String,
+    )
 
     /**
      * Lista alertas pendientes de la empresa activa. Limita a 50; lo
@@ -70,30 +78,16 @@ class AlertasRemoteDataSource @Inject constructor(
         return result.countOrNull() ?: 0L
     }
 
-    /**
-     * Marca una alerta como leída. La RLS sobre `alerta` permite
-     * UPDATE a cualquier miembro de la empresa.
-     */
-    suspend fun marcarLeida(empresaId: String, alertaId: String) {
-        supabase
-            .from("alerta")
-            .update(LeidaUpdate()) {
-                filter {
-                    eq("id", alertaId)
-                    eq("empresa_id", empresaId)
-                }
-            }
+    /** Marca una alerta como leída vía RPC (valida pertenencia server-side). */
+    suspend fun marcarLeida(alertaId: String) {
+        supabase.postgrest.rpc("marcar_alerta_leida", MarcarAlertaParams(alertaId))
     }
 
-    /** Marca todas las pendientes de una empresa como leídas. */
+    /** Marca todas las pendientes de una empresa como leídas vía RPC. */
     suspend fun marcarTodasLeidas(empresaId: String) {
-        supabase
-            .from("alerta")
-            .update(LeidaUpdate()) {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("leida", false)
-                }
-            }
+        supabase.postgrest.rpc(
+            "marcar_alertas_leidas_empresa",
+            MarcarEmpresaParams(empresaId),
+        )
     }
 }

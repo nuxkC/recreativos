@@ -15,7 +15,7 @@ const IdSchema = z.string().uuid();
  * hacerlo (RLS lo permite).
  */
 export async function marcarAlertaComoLeida(alertaId: string): Promise<ActionResult> {
-  const activa = await requireMembresiaActiva();
+  await requireMembresiaActiva();
 
   const idCheck = IdSchema.safeParse(alertaId);
   if (!idCheck.success) {
@@ -23,11 +23,9 @@ export async function marcarAlertaComoLeida(alertaId: string): Promise<ActionRes
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("alerta")
-    .update({ leida: true })
-    .eq("id", alertaId)
-    .eq("empresa_id", activa.empresa.id);
+  const { error } = await supabase.rpc("marcar_alerta_leida", {
+    p_alerta_id: alertaId,
+  });
 
   if (error) {
     return { ok: false, error: { code: "actualizarFallido" } };

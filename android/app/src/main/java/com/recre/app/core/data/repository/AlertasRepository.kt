@@ -56,8 +56,8 @@ class AlertasRepositoryImpl @Inject constructor(
     }
 
     override suspend fun marcarLeida(alertaId: String): DomainResult<Unit> {
-        val empresaId = empresaActiva() ?: return DomainResult.Failure(DomainError.Auth())
-        return runCatching { remote.marcarLeida(empresaId, alertaId) }.fold(
+        empresaActiva() ?: return DomainResult.Failure(DomainError.Auth())
+        return runCatching { remote.marcarLeida(alertaId) }.fold(
             onSuccess = { DomainResult.Success(Unit) },
             onFailure = ::mapErrorToDomain,
         )
