@@ -66,11 +66,11 @@ export async function generarPdfTicket(input: PdfInput): Promise<Uint8Array> {
   // Contadores
   w.kv(
     "Cont. Entradas:",
-    `${input.contadoresAnterior.entradas} → ${input.contadoresActual.entradas}`,
+    `${input.contadoresAnterior.entradas} -> ${input.contadoresActual.entradas}`,
   );
   w.kv(
     "Cont. Salidas:",
-    `${input.contadoresAnterior.salidas} → ${input.contadoresActual.salidas}`,
+    `${input.contadoresAnterior.salidas} -> ${input.contadoresActual.salidas}`,
   );
   w.kv("Valor crédito:", `${input.resultado.valor_credito} €`);
   w.separator();

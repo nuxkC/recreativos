@@ -249,7 +249,11 @@ Deno.serve(withHandler(async (req: Request) => {
     conflicto,
   });
 
-  const { data: row, error: insertError } = await supabase
+  // La inserción va con service_role: el rol `authenticated` no tiene GRANT
+  // INSERT sobre `recaudacion` (las escrituras solo se hacen server-side). El
+  // acceso al tenant ya se validó arriba con el cliente de usuario (RLS) y
+  // `requireRolEnEmpresa`.
+  const { data: row, error: insertError } = await service
     .from("recaudacion")
     .insert(insertPayload)
     .select()

@@ -44,7 +44,11 @@ class RecaudacionRemoteDataSource @Inject constructor(
                 message = raw ?: "HTTP ${response.status.value}",
             )
         }
-        return response.body()
+        // El contrato de éxito del backend envuelve el payload en
+        // `{ data: ... }` (ver `_shared/errors.ts#jsonResponse`); lo
+        // desenvolvemos antes de entregar el DTO.
+        val raw = response.body<String>()
+        return JSON.decodeFromString<EdgeEnvelope<CrearRecaudacionResponse>>(raw).data
     }
 
     /**
@@ -63,7 +67,8 @@ class RecaudacionRemoteDataSource @Inject constructor(
                 message = raw ?: "HTTP ${response.status.value}",
             )
         }
-        return response.body()
+        val raw = response.body<String>()
+        return JSON.decodeFromString<EdgeEnvelope<CrearCambioPlacaResponse>>(raw).data
     }
 
     /**
@@ -144,6 +149,13 @@ class RecaudacionRemoteError(
     val code: String?,
     message: String,
 ) : RuntimeException(message)
+
+/**
+ * Sobre genérico de las Edge Functions: el contrato de éxito envuelve el
+ * payload real en `{ data: ... }` (ver `_shared/errors.ts#jsonResponse`).
+ */
+@Serializable
+private data class EdgeEnvelope<T>(val data: T)
 
 @Serializable
 private data class AdquirirLockBody(
