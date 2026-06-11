@@ -514,6 +514,10 @@
       "parteEmpresa": "Parte empresa",
       "valorCredito": "Valor del crédito",
       "estado": "Estado",
+      "brutoReal": "Bruto real (sin redondear)",
+      "brutoRedondeado": "Bruto oficial (redondeado)",
+      "salidasLeido": "Salidas leído",
+      "salidasAjustado": "Salidas ajustado (oficial)",
       "entradasAnterior": "Entradas anterior",
       "entradasActual": "Entradas actual",
       "entradasDelta": "Δ Entradas",
@@ -567,7 +571,9 @@
       "evidenciaDescripcion": "Firma y, si las hay, fotos de los contadores.",
       "sinFirma": "Sin firma archivada.",
       "sinFoto": "Sin foto archivada.",
-      "auditoria": "Auditoría"
+      "auditoria": "Auditoría",
+      "redondeo": "Redondeo aplicado",
+      "redondeoDescripcion": "Esta recaudación se redondeó al múltiplo de {unidad} € más cercano ajustando el contador de salidas; la diferencia se arrastra a la siguiente."
     },
     "desglose": {
       "denominacion": "Denominación",
