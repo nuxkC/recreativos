@@ -93,3 +93,13 @@ Aditivas e inmutables: una migración aplicada **jamás se edita**; se crea otra
 - Conventional Commits: `<tipo>(<scope>): <descripción> (T-XX)` — scopes: `web`, `android`, `supabase`, `spec`, `repo`, `ci`. Descripción en presente, minúscula, ≤ 70 caracteres.
 - Ramas: `<tipo>/<scope>-<descripcion>` (ej. `feat/web-licencias-crud`). Una tarea `T-XX` → una rama → un PR (< 400 líneas; squash & merge).
 - El plan de tareas con los `T-XX` está en `.kiro/specs/recre/tasks.md`; márcalo al completar tareas.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
