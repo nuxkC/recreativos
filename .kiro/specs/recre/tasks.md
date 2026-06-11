@@ -102,6 +102,13 @@ Plan dividido en fases. Cada tarea está pensada para ser un PR pequeño y verif
 - [x] **T-210** Lockdown de escritura: toda escritura vía función (RPC `SECURITY DEFINER` / Edge `service_role`); REVOKE de INSERT/UPDATE/DELETE a `authenticated`/`anon` en todas las tablas de dominio; guardarraíl pgTAP global. Ver design.md §12.1.
 - [x] **T-211** Redondeo opcional de la recaudación bruta por empresa: el bruto se lleva al múltiplo más cercano (config `empresa.redondeo_recaudacion`) falseando server-side la lectura de salidas, que se persiste como real para que la diferencia se arrastre vía baseline; rastro de auditoría (`contador_salidas_leido`, `recaudacion_bruta_real`, `redondeo_aplicado`). Backend SSOT+migración+RPC+edge (#6), toggle web en ajustes (#7), rastro en el detalle web (#9) y cálculo local espejo en Android con migración Room 3→4 (#10).
 
+### Tolva y préstamos (deudas del local con recuperación)
+
+- [x] **T-212** Modelo backend de tolva y préstamos: `instalacion.tolva` (informativo), tablas `credito_local` (tolva/préstamo, deuda del local) y `recuperacion` (libro mayor), vistas de saldo (`v_credito_local_saldo`, `v_local_saldo`), `empresa.porcentaje_recuperacion` + override `local.porcentaje_recuperacion`; RPCs `crear_prestamo`, `registrar_recuperacion_efectivo`, `condonar_credito`, `set_porcentaje_recuperacion_local`; `crear_instalacion` extendida con tolva + hook de traslado (`p_tolva_continua_credito_id`) y guardarraíl; `actualizar_ajustes_empresa` con el % de recuperación; RLS solo-lectura + REVOKE; tests pgTAP (`09_credito_local_recuperacion`) y guardarraíles 07/08 al día. Invariante "la tolva pertenece al local" documentada en design.md §3.14/§5.5. *(this PR)*
+- [ ] **T-213** Web: tolva en el alta de instalación; % de recuperación en Ajustes (empresa) y ficha de local (override); ficha de local con libro mayor (saldo, deudas, abonos) + "nuevo préstamo" + "registrar pago en efectivo"; tarjeta "capital en la calle".
+- [ ] **T-214** Recaudación recupera deuda: helper compartido + integración en `crear-recaudacion` (persistencia atómica recaudación + recuperaciones vía service_role); `desglose_local` pasa a cuadrar con `pagado_local`; columnas + ticket; revertir recuperaciones al anular; visualización en el detalle web.
+- [ ] **T-215** Android: sync de saldo/% por local; espejo Kotlin del preview de recuperación (offline); `desglose_local` objetivo = `pagado_local`; orden de imputación manual; tolva en gestión; ficha de deudas + pago en efectivo; migración Room 4→5.
+
 ## Convenciones
 
 - Migraciones SQL en orden con timestamp `YYYYMMDDhhmmss_descripcion.sql`.

@@ -48,7 +48,8 @@ empresa (
   logo_url text,
   zona_horaria text DEFAULT 'Europe/Madrid',
   ticket_cabecera text,
-  ticket_pie text
+  ticket_pie text,
+  porcentaje_recuperacion smallint NOT NULL DEFAULT 0  -- % de la parte_local retenido por defecto para amortizar deudas del local (T-212)
 )
 ```
 
@@ -118,7 +119,8 @@ local (
   titular_nombre text,
   telefono text,
   email text,
-  notas text
+  notas text,
+  porcentaje_recuperacion smallint  -- override del % de recuperación; NULL = hereda empresa.porcentaje_recuperacion (T-212)
 )
 ```
 
@@ -136,6 +138,7 @@ instalacion (
   porcentaje_local numeric(5,2) NOT NULL CHECK (porcentaje_local BETWEEN 0 AND 100),
   contador_entradas_base bigint NOT NULL,
   contador_salidas_base bigint NOT NULL,
+  tolva numeric(10,2) NOT NULL DEFAULT 0 CHECK (tolva >= 0),  -- dinero físico dejado en la máquina (informativo; la deuda del local va en credito_local) (T-212)
   estado text NOT NULL DEFAULT 'activa' CHECK (estado IN ('activa','cerrada')),
   notas text
 );
@@ -291,6 +294,52 @@ alerta (
 - `v_instalacion_actual`: instalación activa con joins a máquina, local, licencia y baseline calculada.
 - `v_recaudaciones_por_local_mes`, `v_recaudaciones_por_maquina_mes`: agregados.
 - `v_alertas_pendientes`: alertas no leídas por empresa.
+- `v_credito_local_saldo`: cada deuda (tolva/préstamo) con su importe recuperado y saldo vivo (`principal − Σ recuperaciones`).
+- `v_local_saldo`: saldo de deuda agregado por local (solo deudas abiertas), desglosado en tolva/préstamo. Alimenta el libro mayor y la tarjeta "capital en la calle".
+
+### 3.14 `credito_local` (T-212)
+```sql
+credito_local (
+  id uuid PK,
+  empresa_id uuid REFERENCES empresa(id) ON DELETE RESTRICT,
+  local_id uuid REFERENCES local(id) ON DELETE RESTRICT,
+  tipo text CHECK (tipo IN ('tolva','prestamo')),
+  instalacion_id uuid REFERENCES instalacion(id) ON DELETE SET NULL,  -- puntero re-apuntable; tolva: dónde está ahora, préstamo: NULL
+  principal numeric(10,2) CHECK (principal > 0),  -- tolva: round(porcentaje_local × tolva); préstamo: lo prestado
+  tipo_interes numeric(5,2) DEFAULT 0,            -- guardado, sin devengo en v1
+  fecha date NOT NULL,
+  estado text DEFAULT 'abierto' CHECK (estado IN ('abierto','saldado','condonado')),
+  notas text
+);
+```
+
+Deuda del local con la empresa. **Invariante de traslado**: la deuda de tolva
+PERTENECE AL LOCAL, no a la instalación; `instalacion_id` es solo un puntero
+re-apuntable. Al cambiar de máquina (cerrar instalación + abrir otra) la MISMA
+tolva se traslada re-apuntando este crédito vía
+`crear_instalacion(..., p_tolva_continua_credito_id)`, nunca duplicándola. El
+delta de importe (más → deuda adicional; menos → condonación parcial) lo
+resolverá el flujo de traslado completo (trabajo futuro; en T-212 solo se
+re-apunta preservando el principal).
+
+### 3.15 `recuperacion` (T-212)
+```sql
+recuperacion (
+  id uuid PK,
+  empresa_id uuid REFERENCES empresa(id) ON DELETE RESTRICT,
+  local_id uuid REFERENCES local(id) ON DELETE RESTRICT,
+  credito_id uuid REFERENCES credito_local(id) ON DELETE RESTRICT,
+  origen text CHECK (origen IN ('efectivo','recaudacion')),
+  importe numeric(10,2) CHECK (importe > 0),
+  recaudacion_id uuid REFERENCES recaudacion(id),  -- NOT NULL si origen='recaudacion': de qué recaudación se retuvo
+  fecha timestamptz DEFAULT now(),
+  usuario_id uuid REFERENCES usuario(id)
+);
+```
+
+Libro mayor (append-only) de abonos a una deuda. El saldo vivo se deriva en
+`v_credito_local_saldo`. Da la trazabilidad de cuánto se quitó, de dónde y en qué
+recaudaciones.
 
 ## 4. Row Level Security (RLS)
 
@@ -381,6 +430,37 @@ La Edge Function `crear-recaudacion` valida:
 - Cada `cantidad` es entero ≥ 0.
 - `sum(denominacion * cantidad) for desglose_total == bruto` (con tolerancia 0).
 - `sum(denominacion * cantidad) for desglose_local == parte_local`.
+
+### 5.5 Recuperación de deuda (T-212 modelo · T-214 automática)
+
+El local debe a la empresa una **tolva** (`porcentaje_local × tolva` física) y/o
+**préstamos**. Se recuperan reteniendo un % de su `parte_local` en cada
+recaudación, o en efectivo. Config del %:
+`COALESCE(local.porcentaje_recuperacion, empresa.porcentaje_recuperacion)`;
+0 = sin recuperación automática.
+
+Por cada recaudación con `parte_local > 0` y deuda pendiente:
+
+```
+pct        = COALESCE(local.porcentaje_recuperacion, empresa.porcentaje_recuperacion)
+objetivo   = round(parte_local * pct / 100, 2)
+recuperado = min(objetivo, saldo_total_deuda)   # nunca más que lo que se debe
+# imputación por orden: tolva primero, luego FIFO (préstamos por antigüedad);
+# el técnico puede reordenar manualmente.
+pagado_local = parte_local - recuperado          # lo que se lleva el local
+```
+
+El dinero retenido **NO es ingreso de la empresa**: es amortización de deuda. Por
+eso `parte_empresa` NO cambia, el cálculo SSOT (`calculo.ts`, §5.3) NO se toca, y
+la retención se registra aparte en `recuperacion`. En T-214 la Edge Function de
+recaudación persistirá recaudación + recuperaciones atómicamente,
+`desglose_local` pasará a cuadrar con `pagado_local` (en vez de `parte_local`,
+§5.4) y anular una recaudación revertirá sus recuperaciones.
+
+**Ejemplo** (bruto 260, tasa 60, % local 50, deuda 100, % recuperación 100):
+neto = 200 → parte_local 100, parte_empresa 100. recuperado = min(100, 100) = 100
+→ el local se lleva 0; la empresa recibe 60 (tasa) + 100 (su parte) y además
+amortiza 100 de deuda. Saldo de deuda → 0.
 
 ## 6. Edge Functions
 
@@ -611,7 +691,9 @@ se impone con dos capas a la vez:
      Validan rol + tenant internamente con los helpers `usuario_es_*`. Ej.:
      `crear/actualizar/eliminar_{licencia,maquina,local,instalacion}`,
      `actualizar_ajustes_empresa`, `cambiar_rol_miembro`, `cambiar_estado_miembro`,
-     `marcar_alerta_leida`, `marcar_alertas_leidas_empresa`. Se conceden
+     `marcar_alerta_leida`, `marcar_alertas_leidas_empresa`, `crear_prestamo`,
+     `registrar_recuperacion_efectivo`, `condonar_credito` (admin),
+     `set_porcentaje_recuperacion_local`. Se conceden
      (`GRANT EXECUTE`) solo a `authenticated`.
    - **Edge Functions con `service_role`** para flujos operativos y efectos
      externos (cálculo SSOT, locks, PDFs, emails): `crear-recaudacion`,
@@ -655,3 +737,7 @@ falla si alguna tabla de dominio concede escritura directa a `authenticated`/`an
 | Borrar lectura insuficiente | Solo log mínimo |
 | CRUD desde la app | Completo en fase 1 (rol >= gestor), exige conexión |
 | Redondeo | Half-up al céntimo; empresa absorbe la diferencia |
+| Tolva | Dinero físico en la máquina (informativo); deuda del local = `porcentaje_local × tolva` |
+| Préstamos al local | Sin límite; principal sin interés en v1 (`tipo_interes` guardado, no devenga) |
+| Recuperación de deuda | Auto reteniendo % de `parte_local` (config empresa + override local) o en efectivo; tolva primero, luego FIFO; retención NO es ingreso (no toca el SSOT) |
+| Traslado de tolva | La deuda pertenece al local; cambiar de máquina la re-apunta, no la duplica |
