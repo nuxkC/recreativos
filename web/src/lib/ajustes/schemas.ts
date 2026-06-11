@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ZONAS_HORARIAS } from "./types";
+import { REDONDEO_RECAUDACION_OPCIONES, ZONAS_HORARIAS } from "./types";
 
 const trimmedString = z
   .string()
@@ -26,6 +26,12 @@ export const EmpresaAjustesSchema = z.object({
   zonaHoraria: z.enum(ZONAS_HORARIAS, { message: "zonaHorariaInvalida" }),
   ticketCabecera: trimmedString.pipe(z.string().max(500, { message: "ticketMuyLargo" }).nullable()),
   ticketPie: trimmedString.pipe(z.string().max(500, { message: "ticketMuyLargo" }).nullable()),
+  redondeoRecaudacion: z.coerce
+    .number()
+    .int()
+    .refine((v) => (REDONDEO_RECAUDACION_OPCIONES as readonly number[]).includes(v), {
+      message: "redondeoInvalido",
+    }),
 });
 
 export type EmpresaAjustesInput = z.infer<typeof EmpresaAjustesSchema>;

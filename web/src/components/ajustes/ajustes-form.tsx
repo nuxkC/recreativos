@@ -29,7 +29,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { actualizarAjustesEmpresa } from "@/lib/ajustes/actions";
 import { EmpresaAjustesSchema } from "@/lib/ajustes/schemas";
-import { ZONAS_HORARIAS, type EmpresaAjustes, type ZonaHoraria } from "@/lib/ajustes/types";
+import {
+  REDONDEO_RECAUDACION_OPCIONES,
+  ZONAS_HORARIAS,
+  type EmpresaAjustes,
+  type ZonaHoraria,
+} from "@/lib/ajustes/types";
 
 type AjustesFormValues = {
   nombre: string;
@@ -40,6 +45,7 @@ type AjustesFormValues = {
   zonaHoraria: ZonaHoraria;
   ticketCabecera: string;
   ticketPie: string;
+  redondeoRecaudacion: number;
 };
 
 interface AjustesFormProps {
@@ -59,12 +65,15 @@ function defaults(empresa: EmpresaAjustes): AjustesFormValues {
     zonaHoraria: tz,
     ticketCabecera: empresa.ticketCabecera ?? "",
     ticketPie: empresa.ticketPie ?? "",
+    redondeoRecaudacion: empresa.redondeoRecaudacion,
   };
 }
 
 function buildFormData(values: AjustesFormValues): FormData {
   const fd = new FormData();
-  Object.entries(values).forEach(([k, v]) => fd.set(k, v));
+  // String(v): los valores no-texto (p.ej. redondeoRecaudacion: number) deben
+  // ir como string en el FormData; el schema los vuelve a coercer.
+  Object.entries(values).forEach(([k, v]) => fd.set(k, String(v)));
   return fd;
 }
 
@@ -256,6 +265,45 @@ export function AjustesForm({ empresa }: AjustesFormProps) {
                   <Textarea rows={3} maxLength={500} {...field} />
                 </FormControl>
                 <FormDescription>{tCampos("ticketPieAyuda")}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="space-y-4 rounded-md border p-4">
+          <div>
+            <h2 className="text-base font-medium">{t("seccion.recaudacion")}</h2>
+            <p className="text-sm text-muted-foreground">
+              {t("seccion.recaudacionDescripcion")}
+            </p>
+          </div>
+          <FormField
+            control={form.control}
+            name="redondeoRecaudacion"
+            render={({ field }) => (
+              <FormItem className="sm:max-w-xs">
+                <FormLabel>{tCampos("redondeoRecaudacion")}</FormLabel>
+                <Select
+                  value={String(field.value)}
+                  onValueChange={(v) => field.onChange(Number(v))}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {REDONDEO_RECAUDACION_OPCIONES.map((opt) => (
+                      <SelectItem key={opt} value={String(opt)}>
+                        {opt === 0
+                          ? tCampos("redondeoDesactivado")
+                          : tCampos("redondeoUnidad", { unidad: opt })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>{tCampos("redondeoRecaudacionAyuda")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

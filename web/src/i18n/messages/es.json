@@ -814,7 +814,9 @@
     },
     "seccion": {
       "ticket": "Ticket de recaudación",
-      "ticketDescripcion": "Líneas opcionales que se imprimen al principio y al final del ticket."
+      "ticketDescripcion": "Líneas opcionales que se imprimen al principio y al final del ticket.",
+      "recaudacion": "Recaudación",
+      "recaudacionDescripcion": "Preferencias de cálculo aplicadas a todas las recaudaciones de la empresa."
     },
     "nota": {
       "logo": "El logo del ticket se sube por separado en una iteración futura: requiere una Edge Function dedicada porque el bucket logos/ está restringido a service_role."
@@ -830,7 +832,11 @@
       "ticketCabecera": "Cabecera del ticket",
       "ticketCabeceraAyuda": "Se imprime arriba del ticket. Suele incluir nombre comercial y CIF.",
       "ticketPie": "Pie del ticket",
-      "ticketPieAyuda": "Se imprime al final del ticket. Útil para datos de contacto o avisos."
+      "ticketPieAyuda": "Se imprime al final del ticket. Útil para datos de contacto o avisos.",
+      "redondeoRecaudacion": "Redondeo de la recaudación",
+      "redondeoRecaudacionAyuda": "Si se activa, el bruto de cada recaudación se redondea al múltiplo más cercano ajustando el contador de salidas; la diferencia se arrastra a la siguiente recaudación.",
+      "redondeoDesactivado": "Desactivado",
+      "redondeoUnidad": "Redondear a {unidad} €"
     },
     "accion": {
       "guardar": "Guardar cambios",
@@ -844,7 +850,8 @@
       "telefonoMuyLargo": "El teléfono no puede tener más de 30 caracteres.",
       "emailInvalido": "El correo electrónico no tiene un formato válido.",
       "zonaHorariaInvalida": "Selecciona una zona horaria válida.",
-      "ticketMuyLargo": "Este texto no puede tener más de 500 caracteres."
+      "ticketMuyLargo": "Este texto no puede tener más de 500 caracteres.",
+      "redondeoInvalido": "Selecciona una opción de redondeo válida."
     },
     "errores": {
       "validacion": "Hay campos sin completar correctamente.",

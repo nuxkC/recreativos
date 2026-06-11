@@ -34,6 +34,7 @@ function parseAjustesForm(formData: FormData): Record<string, unknown> {
     zonaHoraria: formData.get("zonaHoraria") ?? "Europe/Madrid",
     ticketCabecera: formData.get("ticketCabecera") ?? "",
     ticketPie: formData.get("ticketPie") ?? "",
+    redondeoRecaudacion: formData.get("redondeoRecaudacion") ?? "0",
   };
 }
 
@@ -65,6 +66,7 @@ export async function actualizarAjustesEmpresa(
     p_zona_horaria: parsed.data.zonaHoraria,
     p_ticket_cabecera: parsed.data.ticketCabecera,
     p_ticket_pie: parsed.data.ticketPie,
+    p_redondeo_recaudacion: parsed.data.redondeoRecaudacion,
   });
 
   if (error) {
