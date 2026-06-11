@@ -2,8 +2,9 @@ package com.recre.app.core.data.repository
 
 import com.recre.app.core.data.remote.MaquinasRemoteDataSource
 import com.recre.app.core.data.remote.clasificarErrorGestion
-import com.recre.app.core.data.remote.dto.MaquinaInsertDto
-import com.recre.app.core.data.remote.dto.MaquinaUpdateDto
+import com.recre.app.core.data.remote.dto.ActualizarMaquinaParams
+import com.recre.app.core.data.remote.dto.CrearMaquinaParams
+import com.recre.app.core.data.remote.dto.EliminarMaquinaParams
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import com.recre.app.core.sync.SyncManager
@@ -59,7 +60,7 @@ class MaquinasGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.crear(
-                MaquinaInsertDto(
+                CrearMaquinaParams(
                     empresaId = empresaId,
                     numeroSerie = input.numeroSerie,
                     modelo = input.modelo,
@@ -86,9 +87,8 @@ class MaquinasGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.actualizar(
-                empresaId = empresaId,
-                id = id,
-                dto = MaquinaUpdateDto(
+                ActualizarMaquinaParams(
+                    id = id,
                     numeroSerie = input.numeroSerie,
                     modelo = input.modelo,
                     fabricante = input.fabricante,
@@ -112,7 +112,7 @@ class MaquinasGestorRepositoryImpl @Inject constructor(
         val empresaId = empresaActivaId()
             ?: return GestionResult.Failure(DomainError.Auth("Sin empresa activa"), "auth")
 
-        return runCatching { remote.eliminar(empresaId, id) }.fold(
+        return runCatching { remote.eliminar(EliminarMaquinaParams(id)) }.fold(
             onSuccess = {
                 syncManager.forzarSincronizacion(empresaId)
                 GestionResult.Success(Unit)

@@ -48,8 +48,6 @@ data class InstalacionFormUiState(
     val fechaInicio: String = LocalDate.now().toString(),
     val tasaSemanal: String = "",
     val porcentajeLocal: String = "",
-    val contadorEntradasBase: String = "0",
-    val contadorSalidasBase: String = "0",
     val notas: String = "",
     // Validación + estado de envío
     val errores: Map<String, String> = emptyMap(),
@@ -71,9 +69,9 @@ data class InstalacionFormUiState(
  *   filtran las que están ocupadas por instalaciones activas. Si no hay
  *   candidatas, el form muestra un mensaje claro.
  * - **Edición**: FKs deshabilitadas, solo se editan
- *   `fecha_inicio`/`tasa_semanal`/`porcentaje_local`/`contadores_base`/
- *   `notas`. El **cierre** se hace con un dialog que llama a la Edge
- *   Function `cerrar-instalacion`.
+ *   `fecha_inicio`/`tasa_semanal`/`porcentaje_local`/`notas`. La base de
+ *   contadores la deriva el servidor (no se teclea). El **cierre** se hace
+ *   con un dialog que llama a la Edge Function `cerrar-instalacion`.
  *
  * No se persisten cambios offline: el [com.recre.app.core.sync.SyncManager]
  * forzado tras cada éxito refresca la cache. PR-J (T-70) añadirá el
@@ -173,8 +171,6 @@ class InstalacionFormViewModel @Inject constructor(
                     fechaInicio = ent.fechaInicio,
                     tasaSemanal = ent.tasaSemanal,
                     porcentajeLocal = ent.porcentajeLocal,
-                    contadorEntradasBase = ent.contadorEntradasBase.toString(),
-                    contadorSalidasBase = ent.contadorSalidasBase.toString(),
                 )
             }
         }
@@ -187,8 +183,6 @@ class InstalacionFormViewModel @Inject constructor(
     fun onFechaInicioChange(v: String) = _state.update { it.copy(fechaInicio = v) }
     fun onTasaChange(v: String) = _state.update { it.copy(tasaSemanal = v) }
     fun onPorcentajeChange(v: String) = _state.update { it.copy(porcentajeLocal = v) }
-    fun onEntradasChange(v: String) = _state.update { it.copy(contadorEntradasBase = v) }
-    fun onSalidasChange(v: String) = _state.update { it.copy(contadorSalidasBase = v) }
     fun onNotasChange(v: String) = _state.update { it.copy(notas = v) }
     fun consumirError() = _state.update { it.copy(errorCode = null) }
 
@@ -216,10 +210,6 @@ class InstalacionFormViewModel @Inject constructor(
         if (tasa == null) errores["tasaSemanal"] = "tasa_invalida"
         val pct = normalizarDecimal(s.porcentajeLocal, BigDecimal.ZERO, MAX_PCT, 2)
         if (pct == null) errores["porcentajeLocal"] = "porcentaje_invalido"
-        val entradas = s.contadorEntradasBase.toLongOrNull()
-        if (entradas == null || entradas < 0) errores["contadorEntradas"] = "contador_invalido"
-        val salidas = s.contadorSalidasBase.toLongOrNull()
-        if (salidas == null || salidas < 0) errores["contadorSalidas"] = "contador_invalido"
 
         if (errores.isNotEmpty()) {
             _state.update { it.copy(errores = errores) }
@@ -235,8 +225,6 @@ class InstalacionFormViewModel @Inject constructor(
                         fechaInicio = s.fechaInicio,
                         tasaSemanal = tasa!!.toPlainString(),
                         porcentajeLocal = pct!!.toPlainString(),
-                        contadorEntradasBase = entradas!!,
-                        contadorSalidasBase = salidas!!,
                         notas = s.notas.normalizarOpcional(),
                     ),
                 )
@@ -249,8 +237,6 @@ class InstalacionFormViewModel @Inject constructor(
                         fechaInicio = s.fechaInicio,
                         tasaSemanal = tasa!!.toPlainString(),
                         porcentajeLocal = pct!!.toPlainString(),
-                        contadorEntradasBase = entradas!!,
-                        contadorSalidasBase = salidas!!,
                         notas = s.notas.normalizarOpcional(),
                     ),
                 )

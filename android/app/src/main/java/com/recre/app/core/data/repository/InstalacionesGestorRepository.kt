@@ -3,8 +3,9 @@ package com.recre.app.core.data.repository
 import com.recre.app.core.data.remote.InstalacionesRemoteDataSource
 import com.recre.app.core.data.remote.clasificarErrorGestion
 import com.recre.app.core.data.remote.dto.CerrarInstalacionRequest
-import com.recre.app.core.data.remote.dto.InstalacionInsertDto
-import com.recre.app.core.data.remote.dto.InstalacionUpdateDto
+import com.recre.app.core.data.remote.dto.ActualizarInstalacionParams
+import com.recre.app.core.data.remote.dto.CrearInstalacionParams
+import com.recre.app.core.data.remote.dto.EliminarInstalacionParams
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import com.recre.app.core.sync.SyncManager
@@ -49,8 +50,6 @@ data class InstalacionInputData(
     val fechaInicio: String,
     val tasaSemanal: String,
     val porcentajeLocal: String,
-    val contadorEntradasBase: Long,
-    val contadorSalidasBase: Long,
     val notas: String?,
 )
 
@@ -59,8 +58,6 @@ data class InstalacionUpdateData(
     val fechaInicio: String,
     val tasaSemanal: String,
     val porcentajeLocal: String,
-    val contadorEntradasBase: Long,
-    val contadorSalidasBase: Long,
     val notas: String?,
 )
 
@@ -77,7 +74,7 @@ class InstalacionesGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.crear(
-                InstalacionInsertDto(
+                CrearInstalacionParams(
                     empresaId = empresaId,
                     maquinaId = input.maquinaId,
                     licenciaId = input.licenciaId,
@@ -85,9 +82,6 @@ class InstalacionesGestorRepositoryImpl @Inject constructor(
                     fechaInicio = input.fechaInicio,
                     tasaSemanal = input.tasaSemanal,
                     porcentajeLocal = input.porcentajeLocal,
-                    contadorEntradasBase = input.contadorEntradasBase,
-                    contadorSalidasBase = input.contadorSalidasBase,
-                    estado = "activa",
                     notas = input.notas,
                 ),
             )
@@ -106,14 +100,11 @@ class InstalacionesGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.actualizar(
-                empresaId = empresaId,
-                id = id,
-                dto = InstalacionUpdateDto(
+                ActualizarInstalacionParams(
+                    id = id,
                     fechaInicio = input.fechaInicio,
                     tasaSemanal = input.tasaSemanal,
                     porcentajeLocal = input.porcentajeLocal,
-                    contadorEntradasBase = input.contadorEntradasBase,
-                    contadorSalidasBase = input.contadorSalidasBase,
                     notas = input.notas,
                 ),
             )
@@ -130,7 +121,7 @@ class InstalacionesGestorRepositoryImpl @Inject constructor(
         val empresaId = empresaActivaId()
             ?: return GestionResult.Failure(DomainError.Auth("Sin empresa activa"), "auth")
 
-        return runCatching { remote.eliminar(empresaId, id) }.fold(
+        return runCatching { remote.eliminar(EliminarInstalacionParams(id)) }.fold(
             onSuccess = {
                 syncManager.forzarSincronizacion(empresaId)
                 GestionResult.Success(Unit)

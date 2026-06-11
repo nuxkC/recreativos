@@ -11,6 +11,7 @@
 import { ZodError } from "zod";
 
 import { requireRolEnEmpresa, requireUser } from "../_shared/auth.ts";
+import { getServiceClient } from "../_shared/db.ts";
 import { jsonResponse, makeError } from "../_shared/errors.ts";
 import { withHandler } from "../_shared/handler.ts";
 import { CerrarInstalacionInputSchema } from "../_shared/schemas.ts";
@@ -66,10 +67,15 @@ Deno.serve(withHandler(async (req: Request) => {
 
   await requireRolEnEmpresa(supabase, inst.empresa_id, ROLES_GESTION);
 
-  // Liberamos cualquier lock activo asociado.
-  await supabase.from("recaudacion_lock").delete().eq("instalacion_id", input.instalacion_id);
+  // Liberamos cualquier lock activo asociado. La escritura directa a
+  // `recaudacion_lock` está revocada para clientes: se borra con service_role.
+  // El rol gestor+tenant ya se validó arriba con requireRolEnEmpresa.
+  await getServiceClient().from("recaudacion_lock").delete().eq("instalacion_id", input.instalacion_id);
 
-  const { data: row, error: updError } = await supabase
+  // La escritura directa a `instalacion` está revocada para clientes: el cierre
+  // se persiste con service_role (RLS bypass). El rol+tenant ya se validó arriba
+  // con requireRolEnEmpresa sobre el cliente de usuario.
+  const { data: row, error: updError } = await getServiceClient()
     .from("instalacion")
     .update({
       estado: "cerrada",

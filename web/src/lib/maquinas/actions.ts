@@ -72,21 +72,17 @@ export async function crearMaquina(
   }
 
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("maquina")
-    .insert({
-      empresa_id: activa.empresa.id,
-      numero_serie: parsed.data.numeroSerie,
-      modelo: parsed.data.modelo,
-      fabricante: parsed.data.fabricante,
-      valor_credito: parsed.data.valorCredito,
-      contador_entradas_inicial: parsed.data.contadorEntradasInicial,
-      contador_salidas_inicial: parsed.data.contadorSalidasInicial,
-      estado: parsed.data.estado,
-      notas: parsed.data.notas,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("crear_maquina", {
+    p_empresa_id: activa.empresa.id,
+    p_numero_serie: parsed.data.numeroSerie,
+    p_modelo: parsed.data.modelo,
+    p_fabricante: parsed.data.fabricante,
+    p_valor_credito: parsed.data.valorCredito,
+    p_contador_entradas_inicial: parsed.data.contadorEntradasInicial,
+    p_contador_salidas_inicial: parsed.data.contadorSalidasInicial,
+    p_estado: parsed.data.estado,
+    p_notas: parsed.data.notas ?? null,
+  });
 
   if (error) {
     if (error.code === "23505") {
@@ -106,7 +102,7 @@ export async function crearMaquina(
   // redirect() aquí: cuando la action se invoca de forma programática (no como
   // <form action>), su NEXT_REDIRECT no llega al try/catch del cliente, que
   // entonces trata el éxito como un error inesperado.
-  return { ok: true, data: { id: data.id } };
+  return { ok: true, data: { id: data } };
 }
 
 // -----------------------------------------------------------------------------
@@ -118,7 +114,7 @@ export async function actualizarMaquina(
   _prevState: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(maquinaId);
   if (!idCheck.success) {
@@ -137,20 +133,17 @@ export async function actualizarMaquina(
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("maquina")
-    .update({
-      numero_serie: parsed.data.numeroSerie,
-      modelo: parsed.data.modelo,
-      fabricante: parsed.data.fabricante,
-      valor_credito: parsed.data.valorCredito,
-      contador_entradas_inicial: parsed.data.contadorEntradasInicial,
-      contador_salidas_inicial: parsed.data.contadorSalidasInicial,
-      estado: parsed.data.estado,
-      notas: parsed.data.notas,
-    })
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", maquinaId);
+  const { error } = await supabase.rpc("actualizar_maquina", {
+    p_id: maquinaId,
+    p_numero_serie: parsed.data.numeroSerie,
+    p_modelo: parsed.data.modelo,
+    p_fabricante: parsed.data.fabricante,
+    p_valor_credito: parsed.data.valorCredito,
+    p_contador_entradas_inicial: parsed.data.contadorEntradasInicial,
+    p_contador_salidas_inicial: parsed.data.contadorSalidasInicial,
+    p_estado: parsed.data.estado,
+    p_notas: parsed.data.notas ?? null,
+  });
 
   if (error) {
     if (error.code === "23505") {
@@ -175,7 +168,7 @@ export async function actualizarMaquina(
 // -----------------------------------------------------------------------------
 
 export async function eliminarMaquina(maquinaId: string): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(maquinaId);
   if (!idCheck.success) {
@@ -183,11 +176,9 @@ export async function eliminarMaquina(maquinaId: string): Promise<ActionResult> 
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("maquina")
-    .delete()
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", maquinaId);
+  const { error } = await supabase.rpc("eliminar_maquina", {
+    p_id: maquinaId,
+  });
 
   if (error) {
     if (error.code === "23503") {

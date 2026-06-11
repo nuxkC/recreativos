@@ -169,31 +169,6 @@ fun InstalacionFormScreen(
                     modifier = Modifier.weight(1f),
                 )
             }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                GestionTextField(
-                    label = stringResource(R.string.gestion_instalacion_contador_entradas),
-                    value = state.contadorEntradasBase,
-                    onValueChange = viewModel::onEntradasChange,
-                    keyboardType = KeyboardType.Number,
-                    error = state.errores["contadorEntradas"]?.let {
-                        stringResource(R.string.gestion_validacion_contador)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                GestionTextField(
-                    label = stringResource(R.string.gestion_instalacion_contador_salidas),
-                    value = state.contadorSalidasBase,
-                    onValueChange = viewModel::onSalidasChange,
-                    keyboardType = KeyboardType.Number,
-                    error = state.errores["contadorSalidas"]?.let {
-                        stringResource(R.string.gestion_validacion_contador)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-            }
             GestionTextField(
                 label = stringResource(R.string.gestion_instalacion_notas),
                 value = state.notas,

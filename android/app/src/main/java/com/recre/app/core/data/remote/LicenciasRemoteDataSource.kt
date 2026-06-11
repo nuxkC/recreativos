@@ -1,61 +1,36 @@
 package com.recre.app.core.data.remote
 
-import com.recre.app.core.data.remote.dto.IdResponseDto
-import com.recre.app.core.data.remote.dto.LicenciaInsertDto
-import com.recre.app.core.data.remote.dto.LicenciaUpdateDto
+import com.recre.app.core.data.remote.dto.ActualizarLicenciaParams
+import com.recre.app.core.data.remote.dto.CrearLicenciaParams
+import com.recre.app.core.data.remote.dto.EliminarLicenciaParams
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Frontera HTTP para el CRUD de Licencias en la app del técnico (T-66).
  *
- * Operaciones pensadas para roles `gestor+`. La RLS de la tabla
- * `licencia` (T-15) ya restringe `INSERT/UPDATE/DELETE` a esos roles;
- * aquí simplemente lanzamos las llamadas. Los errores se propagan como
- * excepciones (subclases de `RestException` de supabase-kt) y la capa
- * repositorio las normaliza con [clasificarErrorGestion].
- *
- * Multi-tenant: aunque RLS filtra por empresa, todos los UPDATE/DELETE
- * llevan `eq("empresa_id", empresaId)` explícito para minimizar el
- * riesgo de tocar la fila equivocada si por algún motivo viajara un id
- * cruzado.
+ * La escritura directa a `licencia` está REVOCADA: alta/edición/borrado pasan
+ * por las RPCs SECURITY DEFINER `crear/actualizar/eliminar_licencia`, que
+ * validan rol (gestor) + tenant server-side. Los errores se propagan como
+ * excepciones (subclases de `RestException`) y la capa repositorio las
+ * normaliza con [clasificarErrorGestion] (23505 duplicado, 23503 en uso, etc.).
  */
 @Singleton
 class LicenciasRemoteDataSource @Inject constructor(
     private val supabase: SupabaseClient,
 ) {
 
-    suspend fun crear(dto: LicenciaInsertDto): String {
-        return supabase
-            .from("licencia")
-            .insert(dto) {
-                select()
-            }
-            .decodeSingle<IdResponseDto>()
-            .id
+    suspend fun crear(params: CrearLicenciaParams): String =
+        supabase.postgrest.rpc("crear_licencia", params).decodeAs<String>()
+
+    suspend fun actualizar(params: ActualizarLicenciaParams) {
+        supabase.postgrest.rpc("actualizar_licencia", params)
     }
 
-    suspend fun actualizar(empresaId: String, id: String, dto: LicenciaUpdateDto) {
-        supabase
-            .from("licencia")
-            .update(dto) {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("id", id)
-                }
-            }
-    }
-
-    suspend fun eliminar(empresaId: String, id: String) {
-        supabase
-            .from("licencia")
-            .delete {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("id", id)
-                }
-            }
+    suspend fun eliminar(params: EliminarLicenciaParams) {
+        supabase.postgrest.rpc("eliminar_licencia", params)
     }
 }

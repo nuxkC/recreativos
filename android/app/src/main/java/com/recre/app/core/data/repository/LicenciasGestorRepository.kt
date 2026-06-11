@@ -2,8 +2,9 @@ package com.recre.app.core.data.repository
 
 import com.recre.app.core.data.remote.LicenciasRemoteDataSource
 import com.recre.app.core.data.remote.clasificarErrorGestion
-import com.recre.app.core.data.remote.dto.LicenciaInsertDto
-import com.recre.app.core.data.remote.dto.LicenciaUpdateDto
+import com.recre.app.core.data.remote.dto.ActualizarLicenciaParams
+import com.recre.app.core.data.remote.dto.CrearLicenciaParams
+import com.recre.app.core.data.remote.dto.EliminarLicenciaParams
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import com.recre.app.core.sync.SyncManager
@@ -62,7 +63,7 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.crear(
-                LicenciaInsertDto(
+                CrearLicenciaParams(
                     empresaId = empresaId,
                     numero = input.numero,
                     tipo = input.tipo,
@@ -88,9 +89,8 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.actualizar(
-                empresaId = empresaId,
-                id = id,
-                dto = LicenciaUpdateDto(
+                ActualizarLicenciaParams(
+                    id = id,
                     numero = input.numero,
                     tipo = input.tipo,
                     fechaExpedicion = input.fechaExpedicion,
@@ -113,7 +113,7 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
         val empresaId = empresaActivaId()
             ?: return GestionResult.Failure(DomainError.Auth("Sin empresa activa"), "auth")
 
-        return runCatching { remote.eliminar(empresaId, id) }.fold(
+        return runCatching { remote.eliminar(EliminarLicenciaParams(id)) }.fold(
             onSuccess = {
                 syncManager.forzarSincronizacion(empresaId)
                 GestionResult.Success(Unit)

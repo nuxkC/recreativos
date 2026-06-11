@@ -52,18 +52,6 @@ const decimalPorcentaje = z
   .refine((d) => d.gte(0) && d.lte(100), { message: "porcentajeFueraDeRango" })
   .transform((d) => d.toFixed(2));
 
-const enteroNoNegativo = z
-  .union([z.string(), z.number()])
-  .transform((v) => (typeof v === "number" ? v : v.trim()))
-  .pipe(
-    z
-      .union([z.string(), z.number()])
-      .transform((v) => Number(v))
-      .refine((n) => Number.isFinite(n) && Number.isInteger(n) && n >= 0, {
-        message: "contadorInvalido",
-      }),
-  );
-
 export const InstalacionInputSchema = z.object({
   maquinaId: Uuid,
   licenciaId: Uuid,
@@ -71,8 +59,6 @@ export const InstalacionInputSchema = z.object({
   fechaInicio: isoDateRequired,
   tasaSemanal: decimalNoNegativo,
   porcentajeLocal: decimalPorcentaje,
-  contadorEntradasBase: enteroNoNegativo,
-  contadorSalidasBase: enteroNoNegativo,
   estado: z.enum(ESTADOS_INSTALACION).default("activa"),
   notas: trimmedString.pipe(z.string().max(2000, { message: "notasMuyLargas" }).nullable()),
 });

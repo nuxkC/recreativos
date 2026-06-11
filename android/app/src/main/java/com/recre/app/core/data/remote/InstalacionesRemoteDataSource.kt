@@ -1,12 +1,13 @@
 package com.recre.app.core.data.remote
 
+import com.recre.app.core.data.remote.dto.ActualizarInstalacionParams
 import com.recre.app.core.data.remote.dto.CerrarInstalacionRequest
-import com.recre.app.core.data.remote.dto.IdResponseDto
-import com.recre.app.core.data.remote.dto.InstalacionInsertDto
-import com.recre.app.core.data.remote.dto.InstalacionUpdateDto
+import com.recre.app.core.data.remote.dto.CrearInstalacionParams
+import com.recre.app.core.data.remote.dto.EliminarInstalacionParams
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.functions.functions
-import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import javax.inject.Inject
@@ -19,8 +20,8 @@ import kotlinx.serialization.json.JsonPrimitive
 /**
  * Frontera HTTP para el CRUD de Instalaciones en la app del técnico (T-69).
  *
- * - Alta directamente vía PostgREST con [InstalacionInsertDto].
- * - Update parcial sin tocar FKs ni `estado`.
+ * - Alta/edición/borrado vía RPC SECURITY DEFINER (la escritura directa a la
+ *   tabla está revocada). La base de contadores la deriva el servidor.
  * - **Cierre** vía Edge Function `cerrar-instalacion` (T-23): además de
  *   marcar `estado='cerrada'` y `fecha_fin`, libera locks pendientes y
  *   aplica las validaciones de coherencia. NO se hace UPDATE directo.
@@ -33,36 +34,17 @@ class InstalacionesRemoteDataSource @Inject constructor(
     private val supabase: SupabaseClient,
 ) {
 
-    suspend fun crear(dto: InstalacionInsertDto): String {
-        return supabase
-            .from("instalacion")
-            .insert(dto) {
-                select()
-            }
-            .decodeSingle<IdResponseDto>()
-            .id
+    suspend fun crear(params: CrearInstalacionParams): String =
+        supabase.postgrest
+            .rpc("crear_instalacion", params)
+            .decodeAs<String>()
+
+    suspend fun actualizar(params: ActualizarInstalacionParams) {
+        supabase.postgrest.rpc("actualizar_instalacion", params)
     }
 
-    suspend fun actualizar(empresaId: String, id: String, dto: InstalacionUpdateDto) {
-        supabase
-            .from("instalacion")
-            .update(dto) {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("id", id)
-                }
-            }
-    }
-
-    suspend fun eliminar(empresaId: String, id: String) {
-        supabase
-            .from("instalacion")
-            .delete {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("id", id)
-                }
-            }
+    suspend fun eliminar(params: EliminarInstalacionParams) {
+        supabase.postgrest.rpc("eliminar_instalacion", params)
     }
 
     /**

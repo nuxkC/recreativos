@@ -25,9 +25,14 @@ INSERT INTO public.empresa_usuario (empresa_id, usuario_id, rol)
 INSERT INTO public.licencia (id, empresa_id, numero)
     VALUES ('e0000000-0000-0000-0000-000000000010',
             'e0000000-0000-0000-0000-000000000001', 'L-T-01');
-INSERT INTO public.maquina (id, empresa_id, numero_serie, valor_credito)
+-- La base de la instalación se DERIVA de la máquina (trigger
+-- trg_set_contador_base_instalacion). Para que la base sea 1000/500 sin
+-- historial previo, la máquina arranca con esos contadores iniciales.
+INSERT INTO public.maquina (id, empresa_id, numero_serie, valor_credito,
+                            contador_entradas_inicial, contador_salidas_inicial)
     VALUES ('e0000000-0000-0000-0000-000000000020',
-            'e0000000-0000-0000-0000-000000000001', 'M-T-01', 0.20);
+            'e0000000-0000-0000-0000-000000000001', 'M-T-01', 0.20,
+            1000, 500);
 INSERT INTO public.local (id, empresa_id, nombre)
     VALUES ('e0000000-0000-0000-0000-000000000030',
             'e0000000-0000-0000-0000-000000000001', 'Bar Test');

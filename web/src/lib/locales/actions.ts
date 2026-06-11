@@ -70,20 +70,16 @@ export async function crearLocal(
   }
 
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("local")
-    .insert({
-      empresa_id: activa.empresa.id,
-      nombre: parsed.data.nombre,
-      direccion: parsed.data.direccion,
-      cif_o_nif: parsed.data.cifONif,
-      titular_nombre: parsed.data.titularNombre,
-      telefono: parsed.data.telefono,
-      email: parsed.data.email,
-      notas: parsed.data.notas,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("crear_local", {
+    p_empresa_id: activa.empresa.id,
+    p_nombre: parsed.data.nombre,
+    p_direccion: parsed.data.direccion,
+    p_cif_o_nif: parsed.data.cifONif,
+    p_titular_nombre: parsed.data.titularNombre,
+    p_telefono: parsed.data.telefono,
+    p_email: parsed.data.email,
+    p_notas: parsed.data.notas ?? null,
+  });
 
   if (error) {
     return { ok: false, error: { code: "guardarFallido" } };
@@ -94,7 +90,7 @@ export async function crearLocal(
   // redirect() aquí: cuando la action se invoca de forma programática (no como
   // <form action>), su NEXT_REDIRECT no llega al try/catch del cliente, que
   // entonces trata el éxito como un error inesperado.
-  return { ok: true, data: { id: data.id } };
+  return { ok: true, data: { id: data } };
 }
 
 // -----------------------------------------------------------------------------
@@ -106,7 +102,7 @@ export async function actualizarLocal(
   _prevState: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(localId);
   if (!idCheck.success) {
@@ -125,19 +121,16 @@ export async function actualizarLocal(
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("local")
-    .update({
-      nombre: parsed.data.nombre,
-      direccion: parsed.data.direccion,
-      cif_o_nif: parsed.data.cifONif,
-      titular_nombre: parsed.data.titularNombre,
-      telefono: parsed.data.telefono,
-      email: parsed.data.email,
-      notas: parsed.data.notas,
-    })
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", localId);
+  const { error } = await supabase.rpc("actualizar_local", {
+    p_id: localId,
+    p_nombre: parsed.data.nombre,
+    p_direccion: parsed.data.direccion,
+    p_cif_o_nif: parsed.data.cifONif,
+    p_titular_nombre: parsed.data.titularNombre,
+    p_telefono: parsed.data.telefono,
+    p_email: parsed.data.email,
+    p_notas: parsed.data.notas ?? null,
+  });
 
   if (error) {
     return { ok: false, error: { code: "guardarFallido" } };
@@ -153,7 +146,7 @@ export async function actualizarLocal(
 // -----------------------------------------------------------------------------
 
 export async function eliminarLocal(localId: string): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(localId);
   if (!idCheck.success) {
@@ -161,11 +154,9 @@ export async function eliminarLocal(localId: string): Promise<ActionResult> {
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("local")
-    .delete()
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", localId);
+  const { error } = await supabase.rpc("eliminar_local", {
+    p_id: localId,
+  });
 
   if (error) {
     if (error.code === "23503") {

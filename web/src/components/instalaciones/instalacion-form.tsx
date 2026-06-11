@@ -47,8 +47,6 @@ type InstalacionFormValues = {
   fechaInicio: string;
   tasaSemanal: string;
   porcentajeLocal: string;
-  contadorEntradasBase: string;
-  contadorSalidasBase: string;
   notas: string;
 };
 
@@ -68,8 +66,6 @@ function defaults(instalacion?: Instalacion): InstalacionFormValues {
     fechaInicio: instalacion?.fechaInicio ?? "",
     tasaSemanal: instalacion?.tasaSemanal ?? "",
     porcentajeLocal: instalacion?.porcentajeLocal ?? "50.00",
-    contadorEntradasBase: instalacion ? String(instalacion.contadorEntradasBase) : "0",
-    contadorSalidasBase: instalacion ? String(instalacion.contadorSalidasBase) : "0",
     notas: instalacion?.notas ?? "",
   };
 }
@@ -326,47 +322,6 @@ export function InstalacionForm({
                     />
                   </FormControl>
                   <FormDescription>{tCampos("porcentajeLocalAyuda")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contadorEntradasBase"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{tCampos("contadorEntradasBase")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      step={1}
-                      autoComplete="off"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>{tCampos("contadorBaseAyuda")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contadorSalidasBase"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{tCampos("contadorSalidasBase")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      step={1}
-                      autoComplete="off"
-                      {...field}
-                    />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

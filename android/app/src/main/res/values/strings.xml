@@ -411,8 +411,6 @@
     <string name="gestion_instalacion_fecha_inicio">Fecha de inicio</string>
     <string name="gestion_instalacion_tasa_semanal">Tasa semanal (€)</string>
     <string name="gestion_instalacion_porcentaje_local">% local</string>
-    <string name="gestion_instalacion_contador_entradas">Contador entradas base</string>
-    <string name="gestion_instalacion_contador_salidas">Contador salidas base</string>
     <string name="gestion_instalacion_notas">Notas</string>
     <string name="gestion_instalacion_tasa_pct">Tasa: %1$s € · Local: %2$s %%</string>
     <string name="gestion_instalacion_sin_maquinas_disponibles">No quedan máquinas libres. Da de alta una máquina nueva o cierra una instalación existente.</string>

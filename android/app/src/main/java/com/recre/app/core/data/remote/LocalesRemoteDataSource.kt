@@ -1,56 +1,34 @@
 package com.recre.app.core.data.remote
 
-import com.recre.app.core.data.remote.dto.IdResponseDto
-import com.recre.app.core.data.remote.dto.LocalInsertDto
-import com.recre.app.core.data.remote.dto.LocalUpdateDto
+import com.recre.app.core.data.remote.dto.ActualizarLocalParams
+import com.recre.app.core.data.remote.dto.CrearLocalParams
+import com.recre.app.core.data.remote.dto.EliminarLocalParams
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Frontera HTTP para el CRUD de Locales en la app del técnico (T-68).
- * Mismo patrón que [LicenciasRemoteDataSource].
  *
- * Notas:
- * - `local` es palabra reservada en SQLite — pero PostgREST acepta el
- *   nombre sin entrecomillar y la BBDD usa `"local"` con quotes en el
- *   SQL. El SDK gestiona el escape internamente.
+ * La escritura directa a `local` está REVOCADA: todo pasa por las RPCs
+ * SECURITY DEFINER `crear/actualizar/eliminar_local` (validan gestor +
+ * tenant). Mismo patrón que [LicenciasRemoteDataSource].
  */
 @Singleton
 class LocalesRemoteDataSource @Inject constructor(
     private val supabase: SupabaseClient,
 ) {
 
-    suspend fun crear(dto: LocalInsertDto): String {
-        return supabase
-            .from("local")
-            .insert(dto) {
-                select()
-            }
-            .decodeSingle<IdResponseDto>()
-            .id
+    suspend fun crear(params: CrearLocalParams): String =
+        supabase.postgrest.rpc("crear_local", params).decodeAs<String>()
+
+    suspend fun actualizar(params: ActualizarLocalParams) {
+        supabase.postgrest.rpc("actualizar_local", params)
     }
 
-    suspend fun actualizar(empresaId: String, id: String, dto: LocalUpdateDto) {
-        supabase
-            .from("local")
-            .update(dto) {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("id", id)
-                }
-            }
-    }
-
-    suspend fun eliminar(empresaId: String, id: String) {
-        supabase
-            .from("local")
-            .delete {
-                filter {
-                    eq("empresa_id", empresaId)
-                    eq("id", id)
-                }
-            }
+    suspend fun eliminar(params: EliminarLocalParams) {
+        supabase.postgrest.rpc("eliminar_local", params)
     }
 }

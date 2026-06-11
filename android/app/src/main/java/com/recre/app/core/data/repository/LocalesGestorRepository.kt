@@ -2,8 +2,9 @@ package com.recre.app.core.data.repository
 
 import com.recre.app.core.data.remote.LocalesRemoteDataSource
 import com.recre.app.core.data.remote.clasificarErrorGestion
-import com.recre.app.core.data.remote.dto.LocalInsertDto
-import com.recre.app.core.data.remote.dto.LocalUpdateDto
+import com.recre.app.core.data.remote.dto.ActualizarLocalParams
+import com.recre.app.core.data.remote.dto.CrearLocalParams
+import com.recre.app.core.data.remote.dto.EliminarLocalParams
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import com.recre.app.core.sync.SyncManager
@@ -59,7 +60,7 @@ class LocalesGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.crear(
-                LocalInsertDto(
+                CrearLocalParams(
                     empresaId = empresaId,
                     nombre = input.nombre,
                     direccion = input.direccion,
@@ -85,9 +86,8 @@ class LocalesGestorRepositoryImpl @Inject constructor(
 
         return runCatching {
             remote.actualizar(
-                empresaId = empresaId,
-                id = id,
-                dto = LocalUpdateDto(
+                ActualizarLocalParams(
+                    id = id,
                     nombre = input.nombre,
                     direccion = input.direccion,
                     cifONif = input.cifONif,
@@ -110,7 +110,7 @@ class LocalesGestorRepositoryImpl @Inject constructor(
         val empresaId = empresaActivaId()
             ?: return GestionResult.Failure(DomainError.Auth("Sin empresa activa"), "auth")
 
-        return runCatching { remote.eliminar(empresaId, id) }.fold(
+        return runCatching { remote.eliminar(EliminarLocalParams(id)) }.fold(
             onSuccess = {
                 syncManager.forzarSincronizacion(empresaId)
                 GestionResult.Success(Unit)

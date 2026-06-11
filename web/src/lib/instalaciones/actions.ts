@@ -34,8 +34,6 @@ function parseInstalacionForm(formData: FormData): Record<string, unknown> {
     fechaInicio: formData.get("fechaInicio") ?? "",
     tasaSemanal: formData.get("tasaSemanal") ?? "",
     porcentajeLocal: formData.get("porcentajeLocal") ?? "",
-    contadorEntradasBase: formData.get("contadorEntradasBase") ?? "",
-    contadorSalidasBase: formData.get("contadorSalidasBase") ?? "",
     estado: formData.get("estado") ?? "activa",
     notas: formData.get("notas") ?? "",
   };
@@ -151,23 +149,19 @@ export async function crearInstalacion(
     };
   }
 
-  const { data, error } = await supabase
-    .from("instalacion")
-    .insert({
-      empresa_id: activa.empresa.id,
-      maquina_id: input.maquinaId,
-      licencia_id: input.licenciaId,
-      local_id: input.localId,
-      fecha_inicio: input.fechaInicio,
-      tasa_semanal: input.tasaSemanal,
-      porcentaje_local: input.porcentajeLocal,
-      contador_entradas_base: input.contadorEntradasBase,
-      contador_salidas_base: input.contadorSalidasBase,
-      estado: "activa",
-      notas: input.notas,
-    })
-    .select("id")
-    .single();
+  // La escritura directa a `instalacion` está revocada: el alta pasa por la RPC
+  // SECURITY DEFINER, que valida rol+tenant y DERIVA la base de contadores de la
+  // máquina (por eso no se envía).
+  const { data, error } = await supabase.rpc("crear_instalacion", {
+    p_empresa_id: activa.empresa.id,
+    p_maquina_id: input.maquinaId,
+    p_licencia_id: input.licenciaId,
+    p_local_id: input.localId,
+    p_fecha_inicio: input.fechaInicio,
+    p_tasa_semanal: input.tasaSemanal,
+    p_porcentaje_local: input.porcentajeLocal,
+    p_notas: input.notas ?? null,
+  });
 
   if (error) {
     return { ok: false, error: mapPgErrorToCode(error) };
@@ -178,7 +172,7 @@ export async function crearInstalacion(
   // redirect() aquí: cuando la action se invoca de forma programática (no como
   // <form action>), su NEXT_REDIRECT no llega al try/catch del cliente, que
   // entonces trata el éxito como un error inesperado.
-  return { ok: true, data: { id: data.id } };
+  return { ok: true, data: { id: data } };
 }
 
 // -----------------------------------------------------------------------------
@@ -190,7 +184,7 @@ export async function actualizarInstalacion(
   _prevState: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(instalacionId);
   if (!idCheck.success) {
@@ -210,21 +204,16 @@ export async function actualizarInstalacion(
   const input = parsed.data;
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("instalacion")
-    .update({
-      // Las FKs no se cambian: si el usuario quiere otra máquina/licencia/
-      // local debe cerrar y crear una nueva instalación (mantiene la
-      // historia y la baseline coherentes).
-      fecha_inicio: input.fechaInicio,
-      tasa_semanal: input.tasaSemanal,
-      porcentaje_local: input.porcentajeLocal,
-      contador_entradas_base: input.contadorEntradasBase,
-      contador_salidas_base: input.contadorSalidasBase,
-      notas: input.notas,
-    })
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", instalacionId);
+  // Edición vía RPC SECURITY DEFINER. Las FKs y la base de contadores son
+  // inmutables: para reasignar máquina/licencia/local hay que cerrar y crear
+  // una nueva instalación (mantiene la historia y la baseline coherentes).
+  const { error } = await supabase.rpc("actualizar_instalacion", {
+    p_id: instalacionId,
+    p_fecha_inicio: input.fechaInicio,
+    p_tasa_semanal: input.tasaSemanal,
+    p_porcentaje_local: input.porcentajeLocal,
+    p_notas: input.notas ?? null,
+  });
 
   if (error) {
     return { ok: false, error: mapPgErrorToCode(error) };
@@ -240,7 +229,7 @@ export async function actualizarInstalacion(
 // -----------------------------------------------------------------------------
 
 export async function eliminarInstalacion(instalacionId: string): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(instalacionId);
   if (!idCheck.success) {
@@ -248,11 +237,9 @@ export async function eliminarInstalacion(instalacionId: string): Promise<Action
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("instalacion")
-    .delete()
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", instalacionId);
+  const { error } = await supabase.rpc("eliminar_instalacion", {
+    p_id: instalacionId,
+  });
 
   if (error) {
     if (error.code === "23503") {

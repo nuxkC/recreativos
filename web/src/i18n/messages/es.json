@@ -391,9 +391,6 @@
       "tasaSemanalAyuda": "Tasa fiscal aplicable cada semana ISO. Acepta coma o punto decimal.",
       "porcentajeLocal": "Porcentaje del local (%)",
       "porcentajeLocalAyuda": "Porcentaje del importe NETO que se queda el titular del local (0–100).",
-      "contadorEntradasBase": "Contador de entradas base",
-      "contadorSalidasBase": "Contador de salidas base",
-      "contadorBaseAyuda": "Lectura del contador en la fecha de inicio. Es el punto de partida para calcular la primera recaudación.",
       "estado": "Estado",
       "notas": "Notas",
       "notasCierre": "Notas del cierre"
@@ -459,7 +456,6 @@
       "porcentajeRequerido": "El porcentaje del local es obligatorio.",
       "porcentajeInvalido": "El porcentaje no es un número válido.",
       "porcentajeFueraDeRango": "El porcentaje debe estar entre 0 y 100.",
-      "contadorInvalido": "El contador debe ser un entero ≥ 0.",
       "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres.",
       "licenciaConInstalacionActiva": "Esta licencia ya tiene una instalación activa.",
       "maquinaConInstalacionActiva": "Esta máquina ya tiene una instalación activa.",

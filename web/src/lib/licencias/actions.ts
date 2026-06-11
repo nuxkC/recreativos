@@ -70,20 +70,16 @@ export async function crearLicencia(
   }
 
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("licencia")
-    .insert({
-      empresa_id: activa.empresa.id,
-      numero: parsed.data.numero,
-      tipo: parsed.data.tipo,
-      fecha_expedicion: parsed.data.fechaExpedicion,
-      fecha_caducidad: parsed.data.fechaCaducidad,
-      comunidad_autonoma: parsed.data.comunidadAutonoma,
-      estado: parsed.data.estado,
-      notas: parsed.data.notas,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("crear_licencia", {
+    p_empresa_id: activa.empresa.id,
+    p_numero: parsed.data.numero,
+    p_tipo: parsed.data.tipo,
+    p_fecha_expedicion: parsed.data.fechaExpedicion,
+    p_fecha_caducidad: parsed.data.fechaCaducidad,
+    p_comunidad_autonoma: parsed.data.comunidadAutonoma,
+    p_estado: parsed.data.estado,
+    p_notas: parsed.data.notas ?? null,
+  });
 
   if (error) {
     if (error.code === "23505") {
@@ -103,7 +99,7 @@ export async function crearLicencia(
   // redirect() aquí: cuando la action se invoca de forma programática (no como
   // <form action>), su NEXT_REDIRECT no llega al try/catch del cliente, que
   // entonces trata el éxito como un error inesperado.
-  return { ok: true, data: { id: data.id } };
+  return { ok: true, data: { id: data } };
 }
 
 // -----------------------------------------------------------------------------
@@ -115,7 +111,7 @@ export async function actualizarLicencia(
   _prevState: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(licenciaId);
   if (!idCheck.success) {
@@ -134,19 +130,16 @@ export async function actualizarLicencia(
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("licencia")
-    .update({
-      numero: parsed.data.numero,
-      tipo: parsed.data.tipo,
-      fecha_expedicion: parsed.data.fechaExpedicion,
-      fecha_caducidad: parsed.data.fechaCaducidad,
-      comunidad_autonoma: parsed.data.comunidadAutonoma,
-      estado: parsed.data.estado,
-      notas: parsed.data.notas,
-    })
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", licenciaId);
+  const { error } = await supabase.rpc("actualizar_licencia", {
+    p_id: licenciaId,
+    p_numero: parsed.data.numero,
+    p_tipo: parsed.data.tipo,
+    p_fecha_expedicion: parsed.data.fechaExpedicion,
+    p_fecha_caducidad: parsed.data.fechaCaducidad,
+    p_comunidad_autonoma: parsed.data.comunidadAutonoma,
+    p_estado: parsed.data.estado,
+    p_notas: parsed.data.notas ?? null,
+  });
 
   if (error) {
     if (error.code === "23505") {
@@ -171,7 +164,7 @@ export async function actualizarLicencia(
 // -----------------------------------------------------------------------------
 
 export async function eliminarLicencia(licenciaId: string): Promise<ActionResult> {
-  const activa = await requireRol(ROLES_GESTION);
+  await requireRol(ROLES_GESTION);
 
   const idCheck = IdSchema.safeParse(licenciaId);
   if (!idCheck.success) {
@@ -179,11 +172,9 @@ export async function eliminarLicencia(licenciaId: string): Promise<ActionResult
   }
 
   const supabase = createClient();
-  const { error } = await supabase
-    .from("licencia")
-    .delete()
-    .eq("empresa_id", activa.empresa.id)
-    .eq("id", licenciaId);
+  const { error } = await supabase.rpc("eliminar_licencia", {
+    p_id: licenciaId,
+  });
 
   if (error) {
     if (error.code === "23503") {
