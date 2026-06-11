@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.ContadorCampo
 import com.recre.app.core.ocr.OcrError
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
@@ -144,7 +143,7 @@ fun ContadoresScreen(
                         ocrError = state.ocrError,
                         ocrAvisoBajaConfianza = state.ocrAvisoBajaConfianza,
                         ocrPermisoCamaraDenegado = state.ocrPermisoCamaraDenegado,
-                        onFotoCapturada = viewModel::procesarFotoContador,
+                        onFotoCapturada = viewModel::procesarFotoContadores,
                         onPermisoCamaraDenegado = viewModel::onPermisoCamaraDenegado,
                         onDescartarAvisoOcr = viewModel::descartarAvisoOcr,
                     )
@@ -206,11 +205,11 @@ private fun CamposContadores(
     baselineSalidas: Long,
     onEntradasChange: (String) -> Unit,
     onSalidasChange: (String) -> Unit,
-    ocrProcesando: ContadorCampo?,
+    ocrProcesando: Boolean,
     ocrError: OcrError?,
-    ocrAvisoBajaConfianza: ContadorCampo?,
+    ocrAvisoBajaConfianza: Boolean,
     ocrPermisoCamaraDenegado: Boolean,
-    onFotoCapturada: (ContadorCampo, android.net.Uri) -> Unit,
+    onFotoCapturada: (android.net.Uri) -> Unit,
     onPermisoCamaraDenegado: () -> Unit,
     onDescartarAvisoOcr: () -> Unit,
 ) {
@@ -226,10 +225,20 @@ private fun CamposContadores(
     )
     Spacer(Modifier.height(8.dp))
 
+    // Un único botón: una foto detecta ambos contadores.
+    ContadorOcrBoton(
+        label = stringResource(R.string.recaudacion_ocr_foto_contadores),
+        testTag = RecaudacionTestTags.OCR_FOTO_CONTADORES,
+        procesando = ocrProcesando,
+        onFotoCapturada = onFotoCapturada,
+        onPermisoDenegado = onPermisoCamaraDenegado,
+    )
+    Spacer(Modifier.height(12.dp))
+
     OcrAvisoBanner(
         ocrError = ocrError,
         ocrPermisoCamaraDenegado = ocrPermisoCamaraDenegado,
-        ocrBajaConfianza = ocrAvisoBajaConfianza != null,
+        ocrBajaConfianza = ocrAvisoBajaConfianza,
         onCerrar = onDescartarAvisoOcr,
     )
 
@@ -254,15 +263,6 @@ private fun CamposContadores(
             }
         },
     )
-    Spacer(Modifier.height(8.dp))
-    ContadorOcrBoton(
-        campo = ContadorCampo.ENTRADAS,
-        label = stringResource(R.string.recaudacion_ocr_foto_entradas),
-        testTag = RecaudacionTestTags.OCR_FOTO_ENTRADAS,
-        procesando = ocrProcesando == ContadorCampo.ENTRADAS,
-        onFotoCapturada = onFotoCapturada,
-        onPermisoDenegado = onPermisoCamaraDenegado,
-    )
     Spacer(Modifier.height(16.dp))
     OutlinedTextField(
         value = salidas,
@@ -284,15 +284,6 @@ private fun CamposContadores(
                 )
             }
         },
-    )
-    Spacer(Modifier.height(8.dp))
-    ContadorOcrBoton(
-        campo = ContadorCampo.SALIDAS,
-        label = stringResource(R.string.recaudacion_ocr_foto_salidas),
-        testTag = RecaudacionTestTags.OCR_FOTO_SALIDAS,
-        procesando = ocrProcesando == ContadorCampo.SALIDAS,
-        onFotoCapturada = onFotoCapturada,
-        onPermisoDenegado = onPermisoCamaraDenegado,
     )
 }
 

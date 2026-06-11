@@ -26,11 +26,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.recre.app.core.ocr.ContadorCampo
 import java.io.File
 
 /**
- * Botón de captura de foto del contador para OCR (T-100).
+ * Botón único de captura de foto de los contadores para OCR (T-100).
+ *
+ * Una sola foto contiene ambos contadores (entradas y salidas); el ViewModel
+ * los identifica con [com.recre.app.core.ocr.ContadorOcrParser.parseAmbos].
  *
  * Gestiona el permiso de cámara runtime y la captura con un intent de cámara
  * (`ActivityResultContracts.TakePicture`), evitando depender de CameraX. La
@@ -43,11 +45,10 @@ import java.io.File
  */
 @Composable
 fun ContadorOcrBoton(
-    campo: ContadorCampo,
     label: String,
     testTag: String,
     procesando: Boolean,
-    onFotoCapturada: (ContadorCampo, Uri) -> Unit,
+    onFotoCapturada: (Uri) -> Unit,
     onPermisoDenegado: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -62,7 +63,7 @@ fun ContadorOcrBoton(
     ) { exito ->
         val uri = capturaUri.value
         if (exito && uri != null) {
-            onFotoCapturada(campo, uri)
+            onFotoCapturada(uri)
         }
     }
 

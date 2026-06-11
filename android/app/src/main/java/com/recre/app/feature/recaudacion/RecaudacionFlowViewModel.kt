@@ -23,7 +23,6 @@ import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.core.data.repository.RecaudacionRepository
 import com.recre.app.core.locks.LockManager
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.ContadorCampo
 import com.recre.app.core.ocr.ContadorOcrParser
 import com.recre.app.core.ocr.ContadorOcrRecognizer
 import com.recre.app.core.ocr.Confianza
@@ -274,64 +273,66 @@ class RecaudacionFlowViewModel @Inject constructor(
     // -------------------------------------------------------------------------
 
     /**
-     * Reconoce el número del contador en la foto [imagen] y pre-rellena el
-     * input de [campo]. El valor detectado pasa por el mismo saneado y
-     * recálculo que la entrada manual ([onContadorEntradasChange] /
-     * [onContadorSalidasChange]), de modo que el técnico siempre puede
-     * corregirlo después.
+     * Reconoce **ambos** contadores (entradas y salidas) en una sola foto
+     * [imagen] y pre-rellena los dos inputs. [ContadorOcrParser.parseAmbos]
+     * decide qué número es cuál aplicando los filtros de dominio (cada contador
+     * ≥ su última lectura; salidas ≥ 70 % de entradas). Los valores detectados
+     * pasan por el mismo saneado y recálculo que la entrada manual, de modo que
+     * el técnico siempre puede corregirlos después.
      *
      * Estados expuestos en el UiState:
      *  - `ocrProcesando` mientras dura el reconocimiento.
-     *  - `ocrError` si no se pudo abrir la imagen, no hay texto/número o falla
-     *    el motor (la edición manual sigue disponible en todos los casos).
-     *  - `ocrAvisoBajaConfianza` si la lectura fue ambigua, para invitar a
-     *    revisar el valor pre-rellenado.
+     *  - `ocrError` si no se pudo abrir la imagen, no hay número plausible o
+     *    falla el motor (la edición manual sigue disponible en todos los casos).
+     *  - `ocrAvisoBajaConfianza` si la lectura fue ambigua o solo se identificó
+     *    uno de los dos contadores, para invitar a revisar lo pre-rellenado.
      *
      * La foto solo se usa localmente para el OCR; no se sube a Storage (ver
      * nota de alcance de T-100).
      */
-    fun procesarFotoContador(campo: ContadorCampo, imagen: Uri) {
+    fun procesarFotoContadores(imagen: Uri) {
+        val maquina = _uiState.value.maquina
+        if (maquina == null) {
+            _uiState.update { it.copy(ocrError = OcrError.SinTextoDetectable) }
+            return
+        }
         _uiState.update {
             it.copy(
-                ocrProcesando = campo,
+                ocrProcesando = true,
                 ocrError = null,
-                ocrAvisoBajaConfianza = null,
+                ocrAvisoBajaConfianza = false,
                 ocrPermisoCamaraDenegado = false,
             )
         }
         viewModelScope.launch {
             when (val resultado = ocrRecognizer.reconocerTexto(imagen)) {
                 is OcrTextoResult.Fallo -> {
-                    Timber.w("OCR contador %s fallo", campo)
-                    _uiState.update { it.copy(ocrProcesando = null, ocrError = resultado.error) }
+                    Timber.w("OCR contadores fallo")
+                    _uiState.update { it.copy(ocrProcesando = false, ocrError = resultado.error) }
                 }
                 is OcrTextoResult.Exito -> {
-                    val parse = ContadorOcrParser.parse(resultado.textoCrudo)
-                    val mejor = parse.mejor
-                    if (mejor == null) {
+                    val parse = ContadorOcrParser.parseAmbos(
+                        textoCrudo = resultado.textoCrudo,
+                        baselineEntradas = maquina.baselineEntradas,
+                        baselineSalidas = maquina.baselineSalidas,
+                    )
+                    if (parse.entradas == null && parse.salidas == null) {
                         _uiState.update {
-                            it.copy(
-                                ocrProcesando = null,
-                                ocrError = OcrError.SinTextoDetectable,
-                            )
+                            it.copy(ocrProcesando = false, ocrError = OcrError.SinTextoDetectable)
                         }
-                    } else {
-                        when (campo) {
-                            ContadorCampo.ENTRADAS -> onContadorEntradasChange(mejor.toString())
-                            ContadorCampo.SALIDAS -> onContadorSalidasChange(mejor.toString())
-                        }
-                        Timber.i("OCR contador %s pre-rellenado (confianza=%s)", campo, parse.confianza)
-                        _uiState.update {
-                            it.copy(
-                                ocrProcesando = null,
-                                ocrError = null,
-                                ocrAvisoBajaConfianza = if (parse.confianza == Confianza.BAJA) {
-                                    campo
-                                } else {
-                                    null
-                                },
-                            )
-                        }
+                        return@launch
+                    }
+                    parse.entradas?.let { onContadorEntradasChange(it.toString()) }
+                    parse.salidas?.let { onContadorSalidasChange(it.toString()) }
+                    Timber.i("OCR contadores pre-rellenado (confianza=%s)", parse.confianza)
+                    _uiState.update {
+                        it.copy(
+                            ocrProcesando = false,
+                            ocrError = null,
+                            // Baja confianza o detección parcial -> pedir revisión.
+                            ocrAvisoBajaConfianza = parse.confianza == Confianza.BAJA ||
+                                parse.entradas == null || parse.salidas == null,
+                        )
                     }
                 }
             }
@@ -343,17 +344,17 @@ class RecaudacionFlowViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 ocrError = null,
-                ocrAvisoBajaConfianza = null,
+                ocrAvisoBajaConfianza = false,
                 ocrPermisoCamaraDenegado = false,
             )
         }
     }
 
-    /** El técnico denegó el permiso de cámara al intentar escanear el contador. */
+    /** El técnico denegó el permiso de cámara al intentar escanear los contadores. */
     fun onPermisoCamaraDenegado() {
         Timber.i("Permiso de camara denegado para OCR de contadores")
         _uiState.update {
-            it.copy(ocrProcesando = null, ocrError = null, ocrPermisoCamaraDenegado = true)
+            it.copy(ocrProcesando = false, ocrError = null, ocrPermisoCamaraDenegado = true)
         }
     }
 

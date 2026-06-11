@@ -17,12 +17,6 @@ import android.net.Uri
  * a un copy concreto.
  */
 
-/** Campo de contador al que se asocia una captura/lectura OCR. */
-enum class ContadorCampo {
-    ENTRADAS,
-    SALIDAS,
-}
-
 /**
  * Reconocedor de texto sobre una imagen. La implementación on-device
  * ([MlKitContadorOcrRecognizer]) usa ML Kit Text Recognition.
