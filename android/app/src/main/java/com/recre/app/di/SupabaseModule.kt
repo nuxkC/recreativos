@@ -37,7 +37,7 @@ object SupabaseModule {
         install(Functions)
         // Realtime reutiliza la sesión de Auth automáticamente; postgres_changes
         // aplica RLS con ese JWT, así que cada técnico solo recibe filas de su
-        // empresa. Ver RealtimeManager y la migración 20260611140000.
+        // empresa. Ver RealtimeManager y la migración 20260611200000.
         install(Realtime)
     }
 }

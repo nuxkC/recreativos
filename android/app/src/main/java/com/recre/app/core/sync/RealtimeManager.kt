@@ -104,7 +104,7 @@ class RealtimeManager @Inject constructor(
     private companion object {
         /**
          * Tablas base que alimentan el baseline (ver migración
-         * 20260611140000). `recaudacion` y `cambio_placa` son las de mayor
+         * 20260611200000). `recaudacion` y `cambio_placa` son las de mayor
          * riesgo (otro técnico recauda / cambia placa de la misma máquina).
          */
         val TABLAS_BASELINE = listOf(
