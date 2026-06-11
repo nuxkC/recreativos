@@ -33,6 +33,13 @@ export interface CalcularInput {
   tasaSemanal: string;
   porcentajeLocal: string;
   semanas: number;
+  /**
+   * Unidad de redondeo del bruto (config por empresa; 0 = sin redondeo).
+   * Si > 0, el bruto se lleva al múltiplo más cercano de esta unidad
+   * falseando la lectura de salidas: ese contador ajustado se persiste como
+   * real y la diferencia rueda a la siguiente recaudación vía baseline.
+   */
+  redondeoUnidad?: number;
 }
 
 /**
@@ -49,13 +56,16 @@ export function calcularRecaudacion(input: CalcularInput): CalculoRecaudacionRes
   const salidasDiff = new Decimal(input.contadorSalidasActual).minus(input.baseline.salidas);
   const creditos = entradasDiff.minus(salidasDiff);
 
-  const bruto = creditos.times(valorCredito).toDecimalPlaces(CENTIMOS);
+  const brutoReal = creditos.times(valorCredito).toDecimalPlaces(CENTIMOS);
   const tasaTotal = tasaSemanal.times(input.semanas).toDecimalPlaces(CENTIMOS);
 
-  if (bruto.lessThan(tasaTotal)) {
+  // `procede` se decide con el bruto REAL: el dinero de verdad manda. El
+  // redondeo solo cambia cómo se presenta y guarda una recaudación que ya
+  // procede; nunca convierte en recaudable lo que no llega a la tasa.
+  if (brutoReal.lessThan(tasaTotal)) {
     return {
       procede: false,
-      bruto: bruto.toFixed(CENTIMOS),
+      bruto: brutoReal.toFixed(CENTIMOS),
       semanas: input.semanas,
       tasa_semanal: tasaSemanal.toFixed(CENTIMOS),
       tasa_total: tasaTotal.toFixed(CENTIMOS),
@@ -65,12 +75,47 @@ export function calcularRecaudacion(input: CalcularInput): CalculoRecaudacionRes
       parte_empresa: "0.00",
       valor_credito: valorCredito.toFixed(CENTIMOS),
       baseline: input.baseline,
+      contador_salidas_ajustado: input.contadorSalidasActual,
+      recaudacion_bruta_real: brutoReal.toFixed(CENTIMOS),
+      redondeo_aplicado: 0,
     };
+  }
+
+  // Redondeo opcional del bruto (config por empresa). Falseamos la lectura de
+  // salidas lo justo para que el bruto caiga en el múltiplo de `redondeoUnidad`
+  // más cercano; ese contador ajustado se persiste como real y la diferencia
+  // rueda a la siguiente recaudación vía baseline (obtener_baseline). No se
+  // pierde ni se inventa dinero: solo se reparte en cortes "redondos".
+  const redondeoUnidad = input.redondeoUnidad ?? 0;
+  let bruto = brutoReal;
+  let salidasAjustado = input.contadorSalidasActual;
+  let redondeoAplicado = 0;
+
+  if (redondeoUnidad > 0) {
+    const unidad = new Decimal(redondeoUnidad);
+    const ratio = brutoReal.dividedBy(unidad);
+    let brutoObjetivo = ratio.toDecimalPlaces(0).times(unidad);
+    // El redondeo nunca puede dejar el bruto por debajo de la tasa (neto < 0):
+    // en la rara franja justo encima de la tasa, redondeamos hacia arriba.
+    if (brutoObjetivo.lessThan(tasaTotal)) {
+      brutoObjetivo = ratio.toDecimalPlaces(0, Decimal.ROUND_CEIL).times(unidad);
+    }
+    // El contador es entero: creditosObjetivo se redondea al crédito más
+    // cercano. Con `valorCredito` divisor de la unidad (p.ej. 0,20 y 10) el
+    // bruto cae exacto; si no, queda en el múltiplo de valorCredito más
+    // próximo al objetivo (diferencia < valorCredito, documentada en tests).
+    const creditosObjetivo = brutoObjetivo.dividedBy(valorCredito).toDecimalPlaces(0);
+    bruto = creditosObjetivo.times(valorCredito).toDecimalPlaces(CENTIMOS);
+    // Créditos "de menos" respecto a lo real => subir salidas esa cantidad
+    // (más salidas = menos créditos netos = menos bruto), y viceversa.
+    const ajuste = creditos.minus(creditosObjetivo);
+    salidasAjustado = new Decimal(input.contadorSalidasActual).plus(ajuste).toNumber();
+    redondeoAplicado = redondeoUnidad;
   }
 
   const neto = bruto.minus(tasaTotal); // ya truncado a céntimos
   const parteLocal = neto.times(porcentajeLocal).dividedBy(100).toDecimalPlaces(CENTIMOS);
-  const parteEmpresa = neto.minus(parteLocal); // absorbe el redondeo
+  const parteEmpresa = neto.minus(parteLocal); // absorbe el redondeo de céntimos
 
   return {
     procede: true,
@@ -84,6 +129,9 @@ export function calcularRecaudacion(input: CalcularInput): CalculoRecaudacionRes
     parte_empresa: parteEmpresa.toFixed(CENTIMOS),
     valor_credito: valorCredito.toFixed(CENTIMOS),
     baseline: input.baseline,
+    contador_salidas_ajustado: salidasAjustado,
+    recaudacion_bruta_real: brutoReal.toFixed(CENTIMOS),
+    redondeo_aplicado: redondeoAplicado,
   };
 }
 

@@ -98,6 +98,7 @@ Deno.serve(withHandler(async (req: Request) => {
     tasaSemanal: ctx.instalacion.tasa_semanal,
     porcentajeLocal: ctx.instalacion.porcentaje_local,
     semanas,
+    redondeoUnidad: ctx.empresa.redondeo_recaudacion,
   });
 
   // Detectar conflicto ANTES de validar: la baseline que vio el cliente vs la
@@ -157,6 +158,7 @@ Deno.serve(withHandler(async (req: Request) => {
       tasaSemanal: ctx.instalacion.tasa_semanal,
       porcentajeLocal: ctx.instalacion.porcentaje_local,
       semanas: semanasCliente,
+      redondeoUnidad: ctx.empresa.redondeo_recaudacion,
     });
     if (!resultadoCliente.procede) {
       throw makeError(
@@ -217,7 +219,9 @@ Deno.serve(withHandler(async (req: Request) => {
     },
     contadoresActual: {
       entradas: input.contador_entradas_actual,
-      salidas: input.contador_salidas_actual,
+      // Salidas ajustadas: en el ticket la lectura debe cuadrar con el bruto
+      // oficial (redondeado). Sin redondeo coincide con la leída.
+      salidas: resultado.contador_salidas_ajustado,
     },
     resultado,
     desgloseTotal: input.desglose_total,
@@ -327,7 +331,7 @@ async function loadInstalacionContext(
        maquina:maquina_id(numero_serie, modelo, valor_credito),
        local:local_id(nombre, direccion, titular_nombre),
        licencia:licencia_id(numero),
-       empresa:empresa_id(id, nombre, zona_horaria, cif, ticket_cabecera, ticket_pie, logo_url)`,
+       empresa:empresa_id(id, nombre, zona_horaria, cif, ticket_cabecera, ticket_pie, logo_url, redondeo_recaudacion)`,
     )
     .eq("id", instalacionId)
     .maybeSingle();
@@ -520,7 +524,13 @@ function construirInsertPayload(p: InsertParams) {
     contador_entradas_anterior: p.input.baseline_entradas,
     contador_salidas_anterior: p.input.baseline_salidas,
     contador_entradas_actual: p.input.contador_entradas_actual,
-    contador_salidas_actual: p.input.contador_salidas_actual,
+    // Salidas ajustadas por el redondeo: se guardan como el contador real para
+    // que la baseline de la próxima recaudación arrastre la diferencia. La
+    // lectura original queda en `contador_salidas_leido` (solo auditoría).
+    contador_salidas_actual: p.resultado.contador_salidas_ajustado,
+    contador_salidas_leido: p.input.contador_salidas_actual,
+    recaudacion_bruta_real: p.resultado.recaudacion_bruta_real,
+    redondeo_aplicado: p.resultado.redondeo_aplicado,
     valor_credito_aplicado: p.resultado.valor_credito,
     recaudacion_bruta: p.resultado.bruto,
     semanas_aplicadas: p.resultado.semanas,

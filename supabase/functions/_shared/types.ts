@@ -51,6 +51,15 @@ export interface CalculoRecaudacionResult {
   parte_empresa: string;
   valor_credito: string;
   baseline: BaselineInfo;
+  /**
+   * Lectura de salidas tras el redondeo (config por empresa). Coincide con la
+   * leída si no hay redondeo. Es la que se persiste como contador real.
+   */
+  contador_salidas_ajustado: number;
+  /** Bruto antes de redondear (solo auditoría; nunca entra en el cálculo). */
+  recaudacion_bruta_real: string;
+  /** Unidad de redondeo aplicada (0 si no se redondeó). */
+  redondeo_aplicado: number;
 }
 
 /** Datos mínimos de una empresa que las Edge Functions necesitan al operar. */
@@ -62,6 +71,8 @@ export interface EmpresaContext {
   ticket_cabecera: string | null;
   ticket_pie: string | null;
   logo_url: string | null;
+  /** Unidad de redondeo del bruto (0 = sin redondeo). */
+  redondeo_recaudacion: number;
 }
 
 /** Datos de instalación + máquina + local + licencia, agregados. */
