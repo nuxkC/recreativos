@@ -44,6 +44,7 @@ import com.recre.app.R
 import com.recre.app.core.ocr.Confianza
 import com.recre.app.core.ocr.ContadorOcrAmbosResult
 import com.recre.app.core.ocr.ContadorOcrParser
+import com.recre.app.core.ocr.EstabilizadorContadorOcr
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import timber.log.Timber
 
@@ -75,8 +76,11 @@ fun EscanerContadoresOverlay(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Última lectura detectada en el fotograma más reciente; se actualiza en vivo.
+    // Lectura estable que se muestra al técnico. El analizador emite una lectura
+    // por fotograma; el estabilizador las consolida por consenso para eliminar el
+    // parpadeo del reconocedor (ver EstabilizadorContadorOcr).
     var deteccion by remember { mutableStateOf<ContadorOcrAmbosResult?>(null) }
+    val estabilizador = remember { EstabilizadorContadorOcr() }
 
     // Reconocedor ML Kit y proveedor de cámara: se liberan al cerrar el escáner.
     val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
@@ -118,7 +122,9 @@ fun EscanerContadoresOverlay(
                                     recognizer = recognizer,
                                     baselineEntradas = baselineEntradas,
                                     baselineSalidas = baselineSalidas,
-                                    onResultado = { deteccion = it },
+                                    onResultado = { cruda, instanteMs ->
+                                        deteccion = estabilizador.estabilizar(cruda, instanteMs)
+                                    },
                                 ),
                             )
                         }
@@ -233,7 +239,7 @@ private class ContadoresAnalyzer(
     private val recognizer: TextRecognizer,
     private val baselineEntradas: Long,
     private val baselineSalidas: Long,
-    private val onResultado: (ContadorOcrAmbosResult) -> Unit,
+    private val onResultado: (lectura: ContadorOcrAmbosResult, instanteMs: Long) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
     @OptIn(ExperimentalGetImage::class)
@@ -243,6 +249,9 @@ private class ContadoresAnalyzer(
             imageProxy.close()
             return
         }
+        // Marca de tiempo del fotograma (monótona, ns -> ms): el estabilizador la
+        // usa para su ventana temporal. Se captura antes del proceso asíncrono.
+        val instanteMs = imageProxy.imageInfo.timestamp / 1_000_000
         val input = InputImage.fromMediaImage(media, imageProxy.imageInfo.rotationDegrees)
         recognizer.process(input)
             .addOnSuccessListener { texto ->
@@ -252,6 +261,7 @@ private class ContadoresAnalyzer(
                         baselineEntradas = baselineEntradas,
                         baselineSalidas = baselineSalidas,
                     ),
+                    instanteMs,
                 )
             }
             .addOnCompleteListener { imageProxy.close() }
