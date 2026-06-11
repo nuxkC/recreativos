@@ -4,6 +4,7 @@ import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
 import javax.inject.Inject
@@ -74,7 +75,7 @@ class RealtimeManager @Inject constructor(
     private fun suscribir(empresaId: String): Job = scope.launch {
         // Idempotente; abre el WebSocket si aún no está conectado.
         supabase.realtime.connect()
-        val canal = supabase.realtime.channel("recre-operacional-$empresaId")
+        val canal = supabase.channel("recre-operacional-$empresaId")
 
         TABLAS_BASELINE.forEach { tabla ->
             canal.postgresChangeFlow<PostgresAction>(schema = "public") { table = tabla }
