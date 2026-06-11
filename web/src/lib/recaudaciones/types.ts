@@ -50,6 +50,11 @@ export interface Recaudacion {
   parteLocal: string;
   parteEmpresa: string;
 
+  /** Auditoría del redondeo (solo presente si la empresa lo tenía activo). */
+  recaudacionBrutaReal: string | null;
+  contadorSalidasLeido: number | null;
+  redondeoAplicado: number | null;
+
   desgloseTotal: DenominacionItem[];
   desgloseLocal: DenominacionItem[];
 
@@ -115,6 +120,9 @@ export interface RecaudacionRow {
   porcentaje_local_aplicado: string;
   parte_local: string;
   parte_empresa: string;
+  recaudacion_bruta_real: string | null;
+  contador_salidas_leido: number | null;
+  redondeo_aplicado: number | null;
   desglose_total: unknown;
   desglose_local: unknown;
   firma_url: string | null;
@@ -197,6 +205,11 @@ export function mapRecaudacionRow(row: RecaudacionRow): Recaudacion {
     porcentajeLocalAplicado: row.porcentaje_local_aplicado,
     parteLocal: row.parte_local,
     parteEmpresa: row.parte_empresa,
+    recaudacionBrutaReal: row.recaudacion_bruta_real,
+    contadorSalidasLeido: row.contador_salidas_leido === null
+      ? null
+      : Number(row.contador_salidas_leido),
+    redondeoAplicado: row.redondeo_aplicado === null ? null : Number(row.redondeo_aplicado),
     desgloseTotal: parseDesglose(row.desglose_total),
     desgloseLocal: parseDesglose(row.desglose_local),
     firmaUrl: row.firma_url,

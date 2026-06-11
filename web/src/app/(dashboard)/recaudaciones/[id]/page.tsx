@@ -58,6 +58,8 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
 
   const puedeAnular = rolCumple(activa.rol, ROLES_ADMIN);
   const puedeResolver = rolCumple(activa.rol, ROLES_ADMIN);
+  const esAdmin = rolCumple(activa.rol, ROLES_ADMIN);
+  const huboRedondeo = (recaudacion.redondeoAplicado ?? 0) > 0;
   const conflictoPendiente = recaudacion.conflicto && recaudacion.revisadoEn === null;
 
   const deltaEntradas = recaudacion.contadorEntradasActual - recaudacion.contadorEntradasAnterior;
@@ -260,6 +262,38 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
           </CardContent>
         </Card>
       </div>
+
+      {esAdmin && huboRedondeo ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{t("seccion.redondeo")}</CardTitle>
+            <CardDescription>
+              {t("seccion.redondeoDescripcion", { unidad: recaudacion.redondeoAplicado ?? 0 })}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-3 sm:grid-cols-2">
+              <InfoRow
+                label={t("campos.brutoReal")}
+                value={formatEur(recaudacion.recaudacionBrutaReal)}
+              />
+              <InfoRow
+                label={t("campos.brutoRedondeado")}
+                value={formatEur(recaudacion.recaudacionBruta)}
+              />
+              <InfoRow
+                label={t("campos.salidasLeido")}
+                value={(recaudacion.contadorSalidasLeido ?? recaudacion.contadorSalidasActual)
+                  .toLocaleString("es-ES")}
+              />
+              <InfoRow
+                label={t("campos.salidasAjustado")}
+                value={recaudacion.contadorSalidasActual.toLocaleString("es-ES")}
+              />
+            </dl>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
