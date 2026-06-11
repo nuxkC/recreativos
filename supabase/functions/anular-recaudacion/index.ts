@@ -85,7 +85,9 @@ Deno.serve(withHandler(async (req: Request) => {
   // UPDATE condicionado a `estado = 'firme'` para cerrar la ventana TOCTOU:
   // entre el SELECT de arriba y este UPDATE otra petición pudo anularla. Así el
   // UPDATE solo afecta una fila si sigue firme; si no, no toca nada.
-  const { data: row, error: updError } = await supabase
+  // La escritura directa a `recaudacion` está revocada para clientes: se
+  // persiste con service_role (RLS bypass). El rol+tenant ya se validó arriba.
+  const { data: row, error: updError } = await getServiceClient()
     .from("recaudacion")
     .update({
       estado: "anulada",

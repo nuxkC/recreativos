@@ -11,6 +11,7 @@
 import { ZodError } from "zod";
 
 import { requireRolEnEmpresa, requireUser } from "../_shared/auth.ts";
+import { getServiceClient } from "../_shared/db.ts";
 import { jsonResponse, makeError } from "../_shared/errors.ts";
 import { withHandler } from "../_shared/handler.ts";
 import { CrearCambioPlacaInputSchema } from "../_shared/schemas.ts";
@@ -72,7 +73,10 @@ Deno.serve(withHandler(async (req: Request) => {
     fotoUrl = path;
   }
 
-  const { data: row, error: insertError } = await supabase
+  // La escritura directa a `cambio_placa` está revocada para clientes: se
+  // persiste con service_role (RLS bypass). El rol+tenant ya se validó arriba
+  // con requireRolEnEmpresa sobre el cliente de usuario.
+  const { data: row, error: insertError } = await getServiceClient()
     .from("cambio_placa")
     .insert({
       id: cambioId,

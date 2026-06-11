@@ -112,7 +112,9 @@ Deno.serve(withHandler(async (req: Request) => {
   // UPDATE condicionado a `revisado_en IS NULL` para cerrar la ventana TOCTOU:
   // dos admins resolviendo a la vez pasan ambos la comprobación previa, pero
   // solo el primer UPDATE afecta una fila; el segundo no toca nada.
-  const { data: row, error: updError } = await supabase
+  // La escritura directa a `recaudacion` está revocada para clientes: se
+  // persiste con service_role (RLS bypass). El rol+tenant ya se validó arriba.
+  const { data: row, error: updError } = await getServiceClient()
     .from("recaudacion")
     .update(update)
     .eq("id", input.recaudacion_id)
