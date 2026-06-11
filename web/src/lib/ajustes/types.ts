@@ -16,6 +16,7 @@ export interface EmpresaAjustes {
   zonaHoraria: string;
   ticketCabecera: string | null;
   ticketPie: string | null;
+  redondeoRecaudacion: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +32,7 @@ export interface EmpresaAjustesRow {
   zona_horaria: string;
   ticket_cabecera: string | null;
   ticket_pie: string | null;
+  redondeo_recaudacion: number;
   created_at: string;
   updated_at: string;
 }
@@ -47,10 +49,18 @@ export function mapEmpresaAjustesRow(row: EmpresaAjustesRow): EmpresaAjustes {
     zonaHoraria: row.zona_horaria,
     ticketCabecera: row.ticket_cabecera,
     ticketPie: row.ticket_pie,
+    redondeoRecaudacion: row.redondeo_recaudacion,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
+
+/**
+ * Opciones de redondeo del bruto de recaudación (unidad en €). 0 = desactivado.
+ * El ajuste lo aplica el servidor sobre el contador de salidas (ver SSOT
+ * `_shared/calculo.ts`); aquí solo se elige la unidad.
+ */
+export const REDONDEO_RECAUDACION_OPCIONES = [0, 10] as const;
 
 /**
  * Lista de zonas horarias razonables para España y latinoamérica. Si
