@@ -96,6 +96,7 @@ class RecaudacionFlowInstrumentedTest {
         zonaHoraria = "Europe/Madrid",
         ticketCabecera = null,
         ticketPie = null,
+        redondeoRecaudacion = 0,
         updatedAt = Instant.now(),
     )
 
