@@ -35,15 +35,17 @@ fun calcularRecaudacion(input: CalcularInput): Cifras {
     val deltaSalidas = input.contadorSalidasActual - input.baselineSalidas
     val creditos = deltaEntradas - deltaSalidas
 
-    val bruto = valorCredito.multiply(BigDecimal(creditos))
+    val brutoReal = valorCredito.multiply(BigDecimal(creditos))
         .setScale(SCALE, RoundingMode.HALF_UP)
     val tasaTotal = tasaSemanal.multiply(BigDecimal(input.semanas))
         .setScale(SCALE, RoundingMode.HALF_UP)
 
-    if (bruto < tasaTotal) {
+    // `procede` se decide con el bruto REAL: el dinero de verdad manda. El
+    // redondeo solo cambia cómo se presenta una recaudación que ya procede.
+    if (brutoReal < tasaTotal) {
         return Cifras(
             procede = false,
-            bruto = bruto,
+            bruto = brutoReal,
             semanas = input.semanas,
             tasaSemanal = tasaSemanal,
             tasaTotal = tasaTotal,
@@ -57,7 +59,31 @@ fun calcularRecaudacion(input: CalcularInput): Cifras {
             deltaEntradas = deltaEntradas,
             deltaSalidas = deltaSalidas,
             creditos = creditos,
+            redondeoAplicado = 0,
+            brutoReal = brutoReal,
         )
+    }
+
+    // Redondeo opcional del bruto (config por empresa). Falsea la lectura de
+    // salidas para que el bruto caiga en el múltiplo de `redondeoUnidad` más
+    // cercano. El servidor persiste el contador ajustado y la diferencia se
+    // arrastra a la siguiente recaudación; aquí solo redondeamos el bruto para
+    // que el preview y el desglose cuadren con el resultado oficial.
+    var bruto = brutoReal
+    var redondeoAplicado = 0
+    if (input.redondeoUnidad > 0) {
+        val unidad = BigDecimal(input.redondeoUnidad)
+        val ratio = brutoReal.divide(unidad, 0, RoundingMode.HALF_UP)
+        var brutoObjetivo = ratio.multiply(unidad)
+        // El redondeo nunca puede dejar el bruto por debajo de la tasa (neto < 0).
+        if (brutoObjetivo < tasaTotal) {
+            brutoObjetivo = brutoReal.divide(unidad, 0, RoundingMode.CEILING).multiply(unidad)
+        }
+        // creditosObjetivo es entero (el contador no admite fracciones); con
+        // valorCredito divisor de la unidad el bruto cae exacto.
+        val creditosObjetivo = brutoObjetivo.divide(valorCredito, 0, RoundingMode.HALF_UP)
+        bruto = creditosObjetivo.multiply(valorCredito).setScale(SCALE, RoundingMode.HALF_UP)
+        redondeoAplicado = input.redondeoUnidad
     }
 
     val neto = bruto.subtract(tasaTotal) // ya en céntimos
@@ -81,6 +107,8 @@ fun calcularRecaudacion(input: CalcularInput): Cifras {
         deltaEntradas = deltaEntradas,
         deltaSalidas = deltaSalidas,
         creditos = creditos,
+        redondeoAplicado = redondeoAplicado,
+        brutoReal = brutoReal,
     )
 }
 
@@ -94,6 +122,8 @@ data class CalcularInput(
     val tasaSemanal: BigDecimal,
     val porcentajeLocal: BigDecimal,
     val semanas: Int,
+    /** Unidad de redondeo del bruto (config por empresa; 0 = sin redondeo). */
+    val redondeoUnidad: Int = 0,
 )
 
 private const val SCALE = 2

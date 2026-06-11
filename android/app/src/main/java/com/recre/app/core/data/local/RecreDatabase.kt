@@ -27,6 +27,9 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * offline. Migración real (no `fallbackToDestructiveMigration`) para no
  * perder recaudaciones pendientes que ya hayan tomado los técnicos.
  *
+ * Versión 4 (T-211): añade `empresa_params.redondeo_recaudacion` para que
+ * el cálculo en local aplique el mismo redondeo que el servidor.
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -41,7 +44,7 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         SyncMetaEntity::class,
         RecaudacionPendienteEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -112,6 +115,16 @@ abstract class RecreDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE UNIQUE INDEX IF NOT EXISTS `idx_recaudacion_pendiente_idempotency` " +
                         "ON `recaudacion_pendiente` (`idempotency_key`)",
+                )
+            }
+        }
+
+        /** v4 (T-211): redondeo del bruto por empresa, espejo en local. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `empresa_params` " +
+                        "ADD COLUMN `redondeo_recaudacion` INTEGER NOT NULL DEFAULT 0",
                 )
             }
         }

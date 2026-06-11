@@ -181,5 +181,86 @@ class CalculoTest {
         assertFalse(importesIguales(BigDecimal("1.00"), BigDecimal("1.01")))
     }
 
+    // -------------------------------------------------------------------------
+    // Redondeo del bruto (T-211). Espejo de los casos de _shared/calculo.test.ts:
+    // garantiza que el preview/offline en Android cuadra con el servidor.
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `redondeo a la baja 234,20 a 230`() {
+        val cifras = calcularRecaudacion(
+            CalcularInput(
+                baselineEntradas = 0, baselineSalidas = 0,
+                contadorEntradasActual = 2000, contadorSalidasActual = 829,
+                valorCredito = bd("0.20"),
+                tasaSemanal = bd("0.00"),
+                porcentajeLocal = bd("50.00"),
+                semanas = 0,
+                redondeoUnidad = 10,
+            ),
+        )
+        // creditos = 1171 -> bruto real 234.20 -> redondeado 230.00
+        assertTrue(cifras.procede)
+        assertEquals(bd("230.00"), cifras.bruto)
+        assertEquals(bd("234.20"), cifras.brutoReal)
+        assertEquals(10, cifras.redondeoAplicado)
+        assertEquals(bd("115.00"), cifras.parteLocal)
+        assertEquals(bd("115.00"), cifras.parteEmpresa)
+    }
+
+    @Test
+    fun `redondeo al alza 237,80 a 240`() {
+        val cifras = calcularRecaudacion(
+            CalcularInput(
+                baselineEntradas = 0, baselineSalidas = 0,
+                contadorEntradasActual = 2000, contadorSalidasActual = 811,
+                valorCredito = bd("0.20"),
+                tasaSemanal = bd("0.00"),
+                porcentajeLocal = bd("50.00"),
+                semanas = 0,
+                redondeoUnidad = 10,
+            ),
+        )
+        // creditos = 1189 -> bruto real 237.80 -> redondeado 240.00
+        assertEquals(bd("240.00"), cifras.bruto)
+        assertEquals(bd("237.80"), cifras.brutoReal)
+        assertEquals(10, cifras.redondeoAplicado)
+    }
+
+    @Test
+    fun `el redondeo nunca deja el neto negativo`() {
+        val cifras = calcularRecaudacion(
+            CalcularInput(
+                baselineEntradas = 1000, baselineSalidas = 1000,
+                contadorEntradasActual = 1365, contadorSalidasActual = 1000,
+                valorCredito = bd("0.20"),
+                tasaSemanal = bd("72.00"),
+                porcentajeLocal = bd("50.00"),
+                semanas = 1,
+                redondeoUnidad = 10,
+            ),
+        )
+        // bruto real 73.00, tasa 72: nearest=70 < 72 -> ceil = 80.
+        assertTrue(cifras.procede)
+        assertEquals(bd("80.00"), cifras.bruto)
+        assertEquals(bd("8.00"), cifras.neto)
+    }
+
+    @Test
+    fun `sin redondeo el bruto no cambia y redondeoAplicado es cero`() {
+        val cifras = calcularRecaudacion(
+            CalcularInput(
+                baselineEntradas = 0, baselineSalidas = 0,
+                contadorEntradasActual = 2000, contadorSalidasActual = 829,
+                valorCredito = bd("0.20"),
+                tasaSemanal = bd("0.00"),
+                porcentajeLocal = bd("50.00"),
+                semanas = 0,
+            ),
+        )
+        assertEquals(bd("234.20"), cifras.bruto)
+        assertEquals(0, cifras.redondeoAplicado)
+    }
+
     private fun bd(value: String): BigDecimal = BigDecimal(value).setScale(2)
 }
