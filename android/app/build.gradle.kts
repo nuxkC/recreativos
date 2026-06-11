@@ -173,8 +173,12 @@ dependencies {
     // Imágenes
     implementation(libs.coil.compose)
 
-    // OCR on-device — foto de contadores (T-100)
+    // OCR on-device — contadores en vivo (T-100): ML Kit sobre el preview de CameraX
     implementation(libs.mlkit.text.recognition)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 
     // Firebase Cloud Messaging — notificaciones push (T-101).
     // El BoM alinea versiones; firebase-messaging compila sin

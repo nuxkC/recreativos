@@ -107,3 +107,7 @@ supabase/.temp/
 # Archivos locales del entorno de desarrollo
 # -----------------------------------------------------------------------------
 headroom_memory.db
+
+# FewWord context plugin
+.fewword/scratch/
+.fewword/index/

@@ -45,8 +45,10 @@ timber = "5.0.1"
 # Imágenes
 coil = "2.7.0"
 
-# OCR (fase 2 — foto de contadores, T-100)
+# OCR (fase 2 — contadores en vivo, T-100)
 mlkit-text-recognition = "16.0.1"
+# CameraX — preview en vivo para el OCR de contadores en directo
+camerax = "1.4.1"
 
 # Firebase Cloud Messaging — notificaciones push (T-101)
 firebase-bom = "33.7.0"
@@ -125,6 +127,10 @@ coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 # OCR on-device (ML Kit Text Recognition, modelo latino empaquetado) — T-100
 mlkit-text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "mlkit-text-recognition" }
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 
 # Firebase Cloud Messaging — notificaciones push (T-101). La versión la fija
 # el BoM de Firebase para mantener coherencia entre artefactos.

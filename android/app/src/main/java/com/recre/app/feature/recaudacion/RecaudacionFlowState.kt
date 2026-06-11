@@ -5,7 +5,6 @@ import com.recre.app.core.calculo.Cifras
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.OcrError
 import com.recre.app.core.printer.PrintResult
 
 /**
@@ -36,24 +35,11 @@ data class RecaudacionFlowState(
     val contadorSalidasInput: String = "",
     val cifras: Cifras? = null,
 
-    /**
-     * OCR de la foto del contador (T-100, HU-14 fase 2). El OCR es una
-     * ayuda: una sola foto detecta **ambos** contadores y pre-rellena los dos
-     * inputs, pero el técnico siempre puede corregirlos.
-     *
-     * - [ocrProcesando]: `true` mientras se reconoce la foto; la UI muestra un
-     *   indicador en el botón de escaneo.
-     * - [ocrError]: último fallo del OCR (sin permiso de cámara, sin texto
-     *   detectable, fallo del motor). La UI lo muestra y deja edición manual.
-     * - [ocrAvisoBajaConfianza]: `true` si la última lectura fue ambigua; la UI
-     *   invita a revisar los valores pre-rellenados.
-     */
-    val ocrProcesando: Boolean = false,
-    val ocrError: OcrError? = null,
-    val ocrAvisoBajaConfianza: Boolean = false,
-
-    /** `true` si el técnico denegó el permiso de cámara al intentar escanear. */
-    val ocrPermisoCamaraDenegado: Boolean = false,
+    // OCR de contadores en vivo (T-100, HU-14 fase 2): el escáner
+    // (`EscanerContadoresOverlay`) detecta ambos contadores sobre el preview de
+    // la cámara y el técnico confirma; los valores caen en los inputs de arriba.
+    // No se guarda estado de OCR en el flujo: el ciclo de vida del escáner vive
+    // en la propia pantalla de contadores.
 
     // Paso 2 — denominaciones (key = denominación como String "0.10", "1.00", …)
     val denominacionesTotal: Map<String, Int> = emptyMap(),

@@ -29,6 +29,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -39,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.OcrError
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
@@ -68,6 +70,12 @@ fun ContadoresScreen(
     val cifras = state.cifras
 
     val lockOcupado = state.lockState is LockState.Ocupado
+
+    // OCR en vivo: el escáner (preview de cámara) se muestra como overlay a
+    // pantalla completa sobre esta pantalla. Su visibilidad es estado local; el
+    // flujo solo recibe los valores confirmados vía `aplicarLecturaOcr`.
+    var mostrarEscaner by remember { mutableStateOf(false) }
+    var permisoCamaraDenegado by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -139,13 +147,12 @@ fun ContadoresScreen(
                         baselineSalidas = maquina.baselineSalidas,
                         onEntradasChange = viewModel::onContadorEntradasChange,
                         onSalidasChange = viewModel::onContadorSalidasChange,
-                        ocrProcesando = state.ocrProcesando,
-                        ocrError = state.ocrError,
-                        ocrAvisoBajaConfianza = state.ocrAvisoBajaConfianza,
-                        ocrPermisoCamaraDenegado = state.ocrPermisoCamaraDenegado,
-                        onFotoCapturada = viewModel::procesarFotoContadores,
-                        onPermisoCamaraDenegado = viewModel::onPermisoCamaraDenegado,
-                        onDescartarAvisoOcr = viewModel::descartarAvisoOcr,
+                        permisoCamaraDenegado = permisoCamaraDenegado,
+                        onEscanear = {
+                            permisoCamaraDenegado = false
+                            mostrarEscaner = true
+                        },
+                        onPermisoCamaraDenegado = { permisoCamaraDenegado = true },
                     )
                     if (cifras != null) {
                         Spacer(Modifier.height(16.dp))
@@ -182,6 +189,18 @@ fun ContadoresScreen(
             },
         )
     }
+
+    if (mostrarEscaner && maquina != null) {
+        EscanerContadoresOverlay(
+            baselineEntradas = maquina.baselineEntradas,
+            baselineSalidas = maquina.baselineSalidas,
+            onUsarLectura = { entradas, salidas ->
+                viewModel.aplicarLecturaOcr(entradas, salidas)
+                mostrarEscaner = false
+            },
+            onCerrar = { mostrarEscaner = false },
+        )
+    }
 }
 
 @Composable
@@ -205,13 +224,9 @@ private fun CamposContadores(
     baselineSalidas: Long,
     onEntradasChange: (String) -> Unit,
     onSalidasChange: (String) -> Unit,
-    ocrProcesando: Boolean,
-    ocrError: OcrError?,
-    ocrAvisoBajaConfianza: Boolean,
-    ocrPermisoCamaraDenegado: Boolean,
-    onFotoCapturada: (android.net.Uri) -> Unit,
+    permisoCamaraDenegado: Boolean,
+    onEscanear: () -> Unit,
     onPermisoCamaraDenegado: () -> Unit,
-    onDescartarAvisoOcr: () -> Unit,
 ) {
     val entradasError = entradas.isNotBlank() &&
         (entradas.toLongOrNull() ?: -1) < baselineEntradas
@@ -225,22 +240,22 @@ private fun CamposContadores(
     )
     Spacer(Modifier.height(8.dp))
 
-    // Un único botón: una foto detecta ambos contadores.
+    // Un único botón abre el escáner en vivo, que detecta ambos contadores.
     ContadorOcrBoton(
-        label = stringResource(R.string.recaudacion_ocr_foto_contadores),
-        testTag = RecaudacionTestTags.OCR_FOTO_CONTADORES,
-        procesando = ocrProcesando,
-        onFotoCapturada = onFotoCapturada,
+        label = stringResource(R.string.recaudacion_ocr_escanear_contadores),
+        testTag = RecaudacionTestTags.OCR_ESCANEAR,
+        onEscanear = onEscanear,
         onPermisoDenegado = onPermisoCamaraDenegado,
     )
+    if (permisoCamaraDenegado) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.recaudacion_ocr_error_permiso_camara),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
     Spacer(Modifier.height(12.dp))
-
-    OcrAvisoBanner(
-        ocrError = ocrError,
-        ocrPermisoCamaraDenegado = ocrPermisoCamaraDenegado,
-        ocrBajaConfianza = ocrAvisoBajaConfianza,
-        onCerrar = onDescartarAvisoOcr,
-    )
 
     OutlinedTextField(
         value = entradas,
@@ -285,55 +300,6 @@ private fun CamposContadores(
             }
         },
     )
-}
-
-/**
- * Banner que muestra el resultado del OCR cuando hay algo que comunicar:
- * error de lectura, permiso de cámara denegado o aviso de baja confianza.
- * Siempre es informativo; la edición manual del contador sigue disponible.
- */
-@Composable
-private fun OcrAvisoBanner(
-    ocrError: OcrError?,
-    ocrPermisoCamaraDenegado: Boolean,
-    ocrBajaConfianza: Boolean,
-    onCerrar: () -> Unit,
-) {
-    val mensaje = when {
-        ocrPermisoCamaraDenegado ->
-            stringResource(R.string.recaudacion_ocr_error_permiso_camara)
-        ocrError is OcrError.SinTextoDetectable ->
-            stringResource(R.string.recaudacion_ocr_error_sin_texto)
-        ocrError is OcrError.ImagenNoAccesible ->
-            stringResource(R.string.recaudacion_ocr_error_imagen)
-        ocrError is OcrError.FalloReconocimiento ->
-            stringResource(R.string.recaudacion_ocr_error_reconocimiento)
-        ocrBajaConfianza ->
-            stringResource(R.string.recaudacion_ocr_aviso_baja_confianza)
-        else -> null
-    } ?: return
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(RecaudacionTestTags.OCR_AVISO),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = mensaje,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(Modifier.height(4.dp))
-            TextButton(onClick = onCerrar, modifier = Modifier.align(Alignment.End)) {
-                Text(stringResource(R.string.recaudacion_ocr_cerrar_aviso))
-            }
-        }
-    }
-    Spacer(Modifier.height(12.dp))
 }
 
 @Composable

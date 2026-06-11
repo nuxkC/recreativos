@@ -1,6 +1,5 @@
 package com.recre.app.feature.recaudacion
 
-import android.net.Uri
 import android.os.Build
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.SavedStateHandle
@@ -23,11 +22,6 @@ import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.core.data.repository.RecaudacionRepository
 import com.recre.app.core.locks.LockManager
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.ContadorOcrParser
-import com.recre.app.core.ocr.ContadorOcrRecognizer
-import com.recre.app.core.ocr.Confianza
-import com.recre.app.core.ocr.OcrError
-import com.recre.app.core.ocr.OcrTextoResult
 import com.recre.app.core.printer.PrintResult
 import com.recre.app.core.printer.PrinterRepository
 import com.recre.app.core.session.SessionRepository
@@ -83,7 +77,6 @@ class RecaudacionFlowViewModel @Inject constructor(
     private val uploadManager: RecaudacionUploadManager,
     private val lockManager: LockManager,
     private val printerRepository: PrinterRepository,
-    private val ocrRecognizer: ContadorOcrRecognizer,
     syncManager: SyncManager,
 ) : ViewModel() {
 
@@ -269,93 +262,23 @@ class RecaudacionFlowViewModel @Inject constructor(
     }
 
     // -------------------------------------------------------------------------
-    // T-100 — OCR de la foto del contador (asistencia, no fuente de verdad)
+    // T-100 — OCR de contadores en vivo (asistencia, no fuente de verdad)
     // -------------------------------------------------------------------------
 
     /**
-     * Reconoce **ambos** contadores (entradas y salidas) en una sola foto
-     * [imagen] y pre-rellena los dos inputs. [ContadorOcrParser.parseAmbos]
-     * decide qué número es cuál aplicando los filtros de dominio (cada contador
-     * ≥ su última lectura; salidas ≥ 70 % de entradas). Los valores detectados
-     * pasan por el mismo saneado y recálculo que la entrada manual, de modo que
-     * el técnico siempre puede corregirlos después.
+     * Aplica la lectura que el técnico ha confirmado en el escáner en vivo
+     * (`EscanerContadoresOverlay`). El escáner ya identificó ambos contadores
+     * con [com.recre.app.core.ocr.ContadorOcrParser.parseAmbos]; aquí solo
+     * volcamos los valores a los inputs, pasando por el mismo saneado y
+     * recálculo que la entrada manual para que el técnico pueda corregirlos.
      *
-     * Estados expuestos en el UiState:
-     *  - `ocrProcesando` mientras dura el reconocimiento.
-     *  - `ocrError` si no se pudo abrir la imagen, no hay número plausible o
-     *    falla el motor (la edición manual sigue disponible en todos los casos).
-     *  - `ocrAvisoBajaConfianza` si la lectura fue ambigua o solo se identificó
-     *    uno de los dos contadores, para invitar a revisar lo pre-rellenado.
-     *
-     * La foto solo se usa localmente para el OCR; no se sube a Storage (ver
-     * nota de alcance de T-100).
+     * El OCR no persiste ninguna imagen: solo se analizan los fotogramas de la
+     * cámara al vuelo (ver nota de alcance de T-100).
      */
-    fun procesarFotoContadores(imagen: Uri) {
-        val maquina = _uiState.value.maquina
-        if (maquina == null) {
-            _uiState.update { it.copy(ocrError = OcrError.SinTextoDetectable) }
-            return
-        }
-        _uiState.update {
-            it.copy(
-                ocrProcesando = true,
-                ocrError = null,
-                ocrAvisoBajaConfianza = false,
-                ocrPermisoCamaraDenegado = false,
-            )
-        }
-        viewModelScope.launch {
-            when (val resultado = ocrRecognizer.reconocerTexto(imagen)) {
-                is OcrTextoResult.Fallo -> {
-                    Timber.w("OCR contadores fallo")
-                    _uiState.update { it.copy(ocrProcesando = false, ocrError = resultado.error) }
-                }
-                is OcrTextoResult.Exito -> {
-                    val parse = ContadorOcrParser.parseAmbos(
-                        textoCrudo = resultado.textoCrudo,
-                        baselineEntradas = maquina.baselineEntradas,
-                        baselineSalidas = maquina.baselineSalidas,
-                    )
-                    if (parse.entradas == null && parse.salidas == null) {
-                        _uiState.update {
-                            it.copy(ocrProcesando = false, ocrError = OcrError.SinTextoDetectable)
-                        }
-                        return@launch
-                    }
-                    parse.entradas?.let { onContadorEntradasChange(it.toString()) }
-                    parse.salidas?.let { onContadorSalidasChange(it.toString()) }
-                    Timber.i("OCR contadores pre-rellenado (confianza=%s)", parse.confianza)
-                    _uiState.update {
-                        it.copy(
-                            ocrProcesando = false,
-                            ocrError = null,
-                            // Baja confianza o detección parcial -> pedir revisión.
-                            ocrAvisoBajaConfianza = parse.confianza == Confianza.BAJA ||
-                                parse.entradas == null || parse.salidas == null,
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    /** Descarta el aviso/error de OCR (al editar manualmente o cerrar el banner). */
-    fun descartarAvisoOcr() {
-        _uiState.update {
-            it.copy(
-                ocrError = null,
-                ocrAvisoBajaConfianza = false,
-                ocrPermisoCamaraDenegado = false,
-            )
-        }
-    }
-
-    /** El técnico denegó el permiso de cámara al intentar escanear los contadores. */
-    fun onPermisoCamaraDenegado() {
-        Timber.i("Permiso de camara denegado para OCR de contadores")
-        _uiState.update {
-            it.copy(ocrProcesando = false, ocrError = null, ocrPermisoCamaraDenegado = true)
-        }
+    fun aplicarLecturaOcr(entradas: Long, salidas: Long) {
+        Timber.i("OCR contadores en vivo aplicado por el técnico")
+        onContadorEntradasChange(entradas.toString())
+        onContadorSalidasChange(salidas.toString())
     }
 
     // -------------------------------------------------------------------------

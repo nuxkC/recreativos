@@ -29,7 +29,6 @@ import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.core.data.repository.RecaudacionRepository
 import com.recre.app.core.locks.LockManager
 import com.recre.app.core.locks.LockState
-import com.recre.app.core.ocr.ContadorOcrRecognizer
 import com.recre.app.core.printer.PrinterRepository
 import com.recre.app.core.session.EmpresaResumen
 import com.recre.app.core.session.Membresia
@@ -176,7 +175,6 @@ class RecaudacionFlowInstrumentedTest {
             uploadManager = mockk<RecaudacionUploadManager>(relaxed = true),
             lockManager = lockManager,
             printerRepository = mockk<PrinterRepository>(relaxed = true),
-            ocrRecognizer = mockk<ContadorOcrRecognizer>(relaxed = true),
             syncManager = syncManager,
         )
     }
