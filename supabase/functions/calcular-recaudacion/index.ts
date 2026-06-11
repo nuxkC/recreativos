@@ -48,7 +48,7 @@ Deno.serve(withHandler(async (req: Request) => {
     .select(
       `id, empresa_id, tasa_semanal, porcentaje_local, estado,
        maquina:maquina_id(valor_credito),
-       empresa:empresa_id(zona_horaria)`,
+       empresa:empresa_id(zona_horaria, redondeo_recaudacion)`,
     )
     .eq("id", input.instalacion_id)
     .maybeSingle();
@@ -100,9 +100,10 @@ Deno.serve(withHandler(async (req: Request) => {
   }
 
   const empresa = (Array.isArray(inst.empresa) ? inst.empresa[0] : inst.empresa) as
-    | { zona_horaria: string }
+    | { zona_horaria: string; redondeo_recaudacion: number }
     | null;
   const zonaHoraria = empresa?.zona_horaria ?? "Europe/Madrid";
+  const redondeoUnidad = empresa?.redondeo_recaudacion ?? 0;
 
   const { data: semanas, error: semError } = await supabase.rpc("semanas_iso_entre", {
     p_desde: baselineRow.fecha_referencia,
@@ -135,6 +136,7 @@ Deno.serve(withHandler(async (req: Request) => {
     tasaSemanal: String(inst.tasa_semanal),
     porcentajeLocal: String(inst.porcentaje_local),
     semanas: Number(semanas),
+    redondeoUnidad,
   });
 
   return jsonResponse(result);
