@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Card
@@ -56,6 +57,7 @@ fun GestionScreen(
     onMaquinasClick: () -> Unit,
     onLocalesClick: () -> Unit,
     onInstalacionesClick: () -> Unit,
+    onDeudasClick: () -> Unit,
     viewModel: GestionViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -123,6 +125,12 @@ fun GestionScreen(
                 titulo = stringResource(R.string.gestion_entrada_instalaciones),
                 subtitulo = stringResource(R.string.gestion_entrada_instalaciones_sub),
                 onClick = onInstalacionesClick,
+            )
+            EntradaCard(
+                icon = Icons.Default.Payments,
+                titulo = stringResource(R.string.gestion_entrada_deudas),
+                subtitulo = stringResource(R.string.gestion_entrada_deudas_sub),
+                onClick = onDeudasClick,
             )
         }
     }

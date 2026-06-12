@@ -41,6 +41,7 @@ import com.recre.app.feature.auth.LoginScreen
 import com.recre.app.feature.auth.LoginViewModel
 import com.recre.app.feature.cambio_placa.CambioPlacaScreen
 import com.recre.app.feature.cambio_placa.CambioPlacaViewModel
+import com.recre.app.feature.deudas.DeudasGestorScreen
 import com.recre.app.feature.deudas.DeudasLocalScreen
 import com.recre.app.feature.deudas.DeudasLocalViewModel
 import com.recre.app.feature.empresa.SeleccionarEmpresaScreen
@@ -317,6 +318,15 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
             onInstalacionesClick = {
                 navController.navigate(Routes.GESTION_INSTALACIONES)
             },
+            onDeudasClick = { navController.navigate(Routes.GESTION_DEUDAS) },
+        )
+    }
+
+    // Deudas: tolva y préstamos (T-219)
+    composable(Routes.GESTION_DEUDAS) {
+        DeudasGestorScreen(
+            onBack = { navController.popBackStack() },
+            onLocalClick = { localId -> navController.navigate(Routes.localDeudas(localId)) },
         )
     }
 
@@ -657,6 +667,7 @@ private object Routes {
     const val GESTION_LOCAL_NUEVO = "gestion/locales/nuevo"
     const val GESTION_LOCAL_EDITAR =
         "gestion/locales/{${LocalFormViewModel.ARG_LOCAL_ID}}"
+    const val GESTION_DEUDAS = "gestion/deudas"
     const val GESTION_INSTALACIONES = "gestion/instalaciones"
     const val GESTION_INSTALACION_NUEVA = "gestion/instalaciones/nueva"
     const val GESTION_INSTALACION_EDITAR =

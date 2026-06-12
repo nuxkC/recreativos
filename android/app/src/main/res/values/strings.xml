@@ -328,6 +328,8 @@
     <string name="gestion_entrada_locales_sub">Establecimientos donde están instaladas las máquinas.</string>
     <string name="gestion_entrada_instalaciones">Instalaciones</string>
     <string name="gestion_entrada_instalaciones_sub">Asignación máquina–local–licencia con tasa y reparto.</string>
+    <string name="gestion_entrada_deudas">Deudas</string>
+    <string name="gestion_entrada_deudas_sub">Tolva y préstamos de los locales.</string>
     <string name="gestion_sin_permiso_titulo">Sin permiso</string>
     <string name="gestion_sin_permiso_descripcion">El CRUD de gestión está reservado a los roles propietario, administrador y gestor.</string>
 
@@ -464,6 +466,11 @@
 
     <!-- Ficha de deudas del local: tolva y préstamos (T-215) -->
     <string name="deudas_titulo">Saldo y deudas</string>
+    <!-- Índice de la sección Deudas en gestión (T-219) -->
+    <string name="deudas_gestor_titulo">Deudas</string>
+    <string name="deudas_gestor_capital">Capital en la calle</string>
+    <string name="deudas_gestor_vacio">No hay locales.</string>
+    <string name="deudas_gestor_desglose">Tolva %1$s · Préstamos %2$s · %3$d deuda(s)</string>
     <string name="deudas_offline">Sin conexión: puedes ver el saldo, pero las operaciones de deuda necesitan red.</string>
     <string name="deudas_saldo_total">Deuda total del local</string>
     <string name="deudas_saldo_tolva">Tolva: %1$s</string>
