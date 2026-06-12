@@ -436,7 +436,8 @@
       "principal": "Importe prestado (€)",
       "principalAyuda": "Acepta coma o punto decimal. Debe ser mayor que 0.",
       "fecha": "Fecha del préstamo",
-      "notas": "Notas",
+      "notas": "Concepto",
+      "notasAyuda": "Obligatorio: el motivo del préstamo (p. ej. \"adelanto para reforma\").",
       "ok": "Préstamo registrado."
     },
     "pago": {
@@ -459,7 +460,8 @@
       "importePositivo": "El importe debe ser mayor que 0.",
       "importeFueraDeRango": "El importe está fuera del rango permitido.",
       "fechaInvalida": "La fecha no tiene un formato válido.",
-      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres."
+      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres.",
+      "conceptoRequerido": "El concepto del préstamo es obligatorio."
     },
     "errores": {
       "validacion": "Hay campos sin completar correctamente.",
