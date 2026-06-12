@@ -295,7 +295,16 @@ class RecaudacionFlowViewModel @Inject constructor(
         } else {
             null
         }
-        return copy(recuperacion = plan)
+        // Si no se entrega nada al local (toda la parte amortiza deuda, o no hay
+        // parte), no hay denominaciones que repartir: limpiamos el desglose para
+        // que suba vacío (cuadra con pagado_local = 0) y el paso pueda continuar
+        // sin pedir inputs.
+        val desgloseLocal = if (plan != null && plan.pagadoLocal.signum() == 0) {
+            emptyMap()
+        } else {
+            denominacionesLocal
+        }
+        return copy(recuperacion = plan, denominacionesLocal = desgloseLocal)
     }
 
     /** Orden efectivo actual (manual reconciliado con las deudas vigentes). */

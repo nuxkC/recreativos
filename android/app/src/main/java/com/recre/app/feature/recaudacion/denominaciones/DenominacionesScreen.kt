@@ -83,6 +83,13 @@ fun DenominacionesScreen(
     val diferencia = target?.subtract(totalActual)?.setScale(2, java.math.RoundingMode.HALF_UP)
     val cuadra = target != null && diferencia != null && importesIguales(diferencia, BigDecimal.ZERO)
 
+    // Si al local no se le entrega nada (toda su parte amortiza deuda, o no hay
+    // parte), no tiene sentido pedir denominaciones: ocultamos los inputs y solo
+    // dejamos continuar. El ViewModel ya dejó el desglose vacío (cuadra con 0).
+    val nadaQueEntregar = modo == ModoDenominaciones.Local &&
+        target != null && importesIguales(target, BigDecimal.ZERO)
+    val huboRecuperacion = (state.recuperacion?.recuperadoTotal?.signum() ?: 0) > 0
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -142,7 +149,24 @@ fun DenominacionesScreen(
                         )
                     }
                 }
-                items(DENOMINACIONES_PERMITIDAS, key = { it.toPlainString() }) { denominacion ->
+                if (nadaQueEntregar) {
+                    item("nada-local") {
+                        Text(
+                            text = stringResource(
+                                if (huboRecuperacion) {
+                                    R.string.recaudacion_local_nada_deuda
+                                } else {
+                                    R.string.recaudacion_local_nada
+                                },
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                        )
+                    }
+                }
+                if (!nadaQueEntregar) {
+                    items(DENOMINACIONES_PERMITIDAS, key = { it.toPlainString() }) { denominacion ->
                     val key = denominacion.toPlainString()
                     DenominacionRow(
                         denominacion = denominacion,
@@ -156,12 +180,13 @@ fun DenominacionesScreen(
                             }
                         },
                     )
+                    }
                 }
             }
             Footer(
-                target = target,
+                target = if (nadaQueEntregar) null else target,
                 totalActual = totalActual,
-                diferencia = diferencia,
+                diferencia = if (nadaQueEntregar) null else diferencia,
                 cuadra = cuadra,
                 onContinuar = onContinuar,
             )
