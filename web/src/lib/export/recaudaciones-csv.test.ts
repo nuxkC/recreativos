@@ -51,6 +51,7 @@ function baseRecaudacion(overrides: Partial<Recaudacion> = {}): Recaudacion {
     parteEmpresa: "607.28",
     recuperadoTotal: "0.00",
     pagadoLocal: "607.28",
+    reposicionTolva: "0.00",
     recaudacionBrutaReal: null,
     contadorSalidasLeido: null,
     redondeoAplicado: null,

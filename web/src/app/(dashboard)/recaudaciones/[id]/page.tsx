@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import { AlertTriangle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -61,6 +62,12 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
   const esAdmin = rolCumple(activa.rol, ROLES_ADMIN);
   const huboRedondeo = (recaudacion.redondeoAplicado ?? 0) > 0;
   const huboRecuperacion = Number(recaudacion.recuperadoTotal) > 0;
+  const huboReposicionTolva = Number(recaudacion.reposicionTolva) > 0;
+  // base_reparto no se persiste: es lo que se reparte tras devolver la tolva,
+  // = parte_local + parte_empresa (exacto, = neto − reposición). Decimal, sin float.
+  const baseReparto = new Decimal(recaudacion.parteLocal)
+    .plus(recaudacion.parteEmpresa)
+    .toFixed(2);
   const conflictoPendiente = recaudacion.conflicto && recaudacion.revisadoEn === null;
 
   const deltaEntradas = recaudacion.contadorEntradasActual - recaudacion.contadorEntradasAnterior;
@@ -202,6 +209,19 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
                 value={formatEur(recaudacion.recaudacionNeta)}
                 emphasis
               />
+              {huboReposicionTolva ? (
+                <>
+                  <InfoRow
+                    label={t("campos.repuestoTolva")}
+                    value={`− ${formatEur(recaudacion.reposicionTolva)}`}
+                  />
+                  <InfoRow
+                    label={t("campos.baseReparto")}
+                    value={formatEur(baseReparto)}
+                    emphasis
+                  />
+                </>
+              ) : null}
               <InfoRow
                 label={t("campos.parteLocal")}
                 value={formatEur(recaudacion.parteLocal)}
