@@ -20,6 +20,8 @@ CREATE TEMP TABLE _tablas_dominio(t text) ON COMMIT DROP;
 INSERT INTO _tablas_dominio(t) VALUES
     ('alerta'),
     ('audit_log'),
+    ('averia'),
+    ('averia_recambio'),
     ('cambio_placa'),
     ('credito_local'),
     ('device_token'),
@@ -36,8 +38,8 @@ INSERT INTO _tablas_dominio(t) VALUES
     ('resumen_mensual_envio'),
     ('usuario');
 
--- 17 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 119
-SELECT plan(119);
+-- 19 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 133
+SELECT plan(133);
 
 -- authenticated CONSERVA lectura.
 SELECT ok(

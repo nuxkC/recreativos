@@ -33,10 +33,16 @@ INSERT INTO _fns(sig) VALUES
     ('crear_prestamo(uuid, uuid, numeric, numeric, date, text)'),
     ('registrar_recuperacion_efectivo(uuid, numeric, text)'),
     ('condonar_credito(uuid, text)'),
-    ('set_porcentaje_recuperacion_local(uuid, smallint)');
+    ('set_porcentaje_recuperacion_local(uuid, smallint)'),
+    -- averías (T-220)
+    ('crear_averia(uuid, uuid, text, text, boolean, text)'),
+    ('actualizar_averia(uuid, text, text, boolean, text)'),
+    ('resolver_averia(uuid, text)'),
+    ('crear_recambio(uuid, text, integer, numeric, text)'),
+    ('eliminar_recambio(uuid)');
 
--- 21 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 42
-SELECT plan(42);
+-- 26 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 52
+SELECT plan(52);
 
 SELECT ok(
     has_function_privilege('authenticated', 'public.' || sig, 'EXECUTE'),
