@@ -22,7 +22,7 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap;
 
-SELECT plan(25);
+SELECT plan(26);
 
 -- --- Datos mínimos -----------------------------------------------------------
 INSERT INTO auth.users (id) VALUES ('c1212000-0000-0000-0000-0000000000a1');
@@ -114,6 +114,12 @@ SELECT throws_ok(
                                     'c1212000-0000-0000-0000-000000000030', 0) $$,
     '22023', NULL, 'crear_prestamo con principal 0 lanza error');
 
+-- --- G2. crear_prestamo sin concepto: rechazo (T-216) ------------------------
+SELECT throws_ok(
+    $$ SELECT public.crear_prestamo('c1212000-0000-0000-0000-000000000001',
+                                    'c1212000-0000-0000-0000-000000000030', 25.00, 0, NULL, '   ') $$,
+    '22023', NULL, 'crear_prestamo sin concepto (notas en blanco) lanza error');
+
 -- --- H. crear_instalacion con tolva ------------------------------------------
 -- 60% de 200 = 120.00 de deuda de tolva, apuntada a la instalación.
 INSERT INTO _ids(k, id) VALUES
@@ -177,7 +183,7 @@ SELECT is(
 -- --- K. condonar deja la deuda fuera del saldo -------------------------------
 INSERT INTO _ids(k, id) VALUES
     ('p2', public.crear_prestamo('c1212000-0000-0000-0000-000000000001',
-                                 'c1212000-0000-0000-0000-000000000030', 50.00));
+                                 'c1212000-0000-0000-0000-000000000030', 50.00, 0, NULL, 'préstamo de prueba'));
 SELECT is(
     (SELECT saldo_prestamo FROM public.v_local_saldo WHERE local_id = 'c1212000-0000-0000-0000-000000000030'),
     50.00::numeric, 'antes de condonar: saldo_prestamo 50');

@@ -38,7 +38,13 @@ const importePositivo = z
 export const PrestamoInputSchema = z.object({
   principal: importePositivo,
   fecha: isoDateOpcional,
-  notas: trimmedString.pipe(z.string().max(2000, { message: "notasMuyLargas" }).nullable()),
+  // El concepto es OBLIGATORIO al dar de alta un préstamo (T-216): sin él
+  // acabábamos con deudas sin saber el porqué. El backend lo exige también.
+  notas: z
+    .string()
+    .trim()
+    .min(1, { message: "conceptoRequerido" })
+    .max(2000, { message: "notasMuyLargas" }),
 });
 
 export type PrestamoInput = z.infer<typeof PrestamoInputSchema>;

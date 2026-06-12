@@ -40,7 +40,7 @@ export function NuevoPrestamo({ localId }: NuevoPrestamoProps) {
   const [principal, setPrincipal] = useState("");
   const [fecha, setFecha] = useState(todayIso());
   const [notas, setNotas] = useState("");
-  const [errors, setErrors] = useState<{ principal?: string }>({});
+  const [errors, setErrors] = useState<{ principal?: string; notas?: string }>({});
 
   function resetForm() {
     setPrincipal("");
@@ -61,9 +61,10 @@ export function NuevoPrestamo({ localId }: NuevoPrestamoProps) {
     startTransition(async () => {
       const result = await crearPrestamo(localId, null, fd);
       if (!result.ok) {
-        const fieldErr = result.error.fieldErrors?.principal?.[0];
-        if (fieldErr) {
-          setErrors({ principal: tValidacion.has(fieldErr) ? tValidacion(fieldErr) : fieldErr });
+        const fe = result.error.fieldErrors;
+        if (fe?.principal || fe?.notas) {
+          const tr = (k?: string) => (k ? (tValidacion.has(k) ? tValidacion(k) : k) : undefined);
+          setErrors({ principal: tr(fe.principal?.[0]), notas: tr(fe.notas?.[0]) });
           return;
         }
         const code = result.error.code;
@@ -139,7 +140,19 @@ export function NuevoPrestamo({ localId }: NuevoPrestamoProps) {
               maxLength={2000}
               value={notas}
               onChange={(event) => setNotas(event.target.value)}
+              required
+              aria-invalid={errors.notas ? "true" : undefined}
+              aria-describedby={errors.notas ? "prestamo-notas-error" : "prestamo-notas-help"}
             />
+            {errors.notas ? (
+              <p id="prestamo-notas-error" className="text-[0.8rem] font-medium text-destructive">
+                {errors.notas}
+              </p>
+            ) : (
+              <p id="prestamo-notas-help" className="text-[0.8rem] text-muted-foreground">
+                {t("prestamo.notasAyuda")}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button
