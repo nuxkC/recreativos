@@ -55,6 +55,18 @@ data class AveriaPendienteEntity(
     val poneMaquinaFueraServicio: Boolean,
     val notas: String?,
 
+    /**
+     * La avería pagó un premio de la tolva (§5.6): la máquina, al averiarse,
+     * soltó dinero de la tolva que luego se repone en la próxima recaudación.
+     * `crear_averia` inserta la `merma` cuando esto es `true` (exige instalación
+     * activa + [importeTolva] > 0). Default `false`: la mayoría no afecta tolva.
+     */
+    @ColumnInfo(name = "afecta_tolva")
+    val afectaTolva: Boolean = false,
+    /** Importe pagado de la tolva (dinero → String, nunca Double). `null` si no aplica. */
+    @ColumnInfo(name = "importe_tolva")
+    val importeTolva: String? = null,
+
     /** JSON serializado de `List<RecambioPendiente>` (mapeado en el repository). */
     @ColumnInfo(name = "recambios_json")
     val recambiosJson: String,

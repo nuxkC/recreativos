@@ -154,6 +154,45 @@ fun ReportarAveriaScreen(
                 )
             }
 
+            // Merma de tolva (§5.6): solo si la máquina está instalada; sin
+            // instalación activa la propia `crear_averia` rechazaría el premio.
+            if (state.maquinaInstalada) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.averia_campo_afecta_tolva),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                stringResource(R.string.averia_campo_afecta_tolva_ayuda),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = state.afectaTolva,
+                            onCheckedChange = viewModel::onToggleAfectaTolva,
+                        )
+                    }
+                    if (state.afectaTolva) {
+                        OutlinedTextField(
+                            value = state.importeTolva,
+                            onValueChange = viewModel::onImporteTolva,
+                            label = { Text(stringResource(R.string.averia_campo_importe_tolva)) },
+                            singleLine = true,
+                            isError = state.importeTolva.isNotBlank() &&
+                                state.importeTolvaNormalizado == null,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+
             RecambiosEditor(
                 recambios = state.recambios,
                 onAdd = viewModel::addRecambio,
@@ -189,7 +228,7 @@ fun ReportarAveriaScreen(
 @Composable
 private fun RecambiosEditor(
     recambios: List<RecambioFormItem>,
-    onAdd: (pieza: String, cantidad: String, coste: String) -> Boolean,
+    onAdd: (pieza: String, cantidad: String) -> Boolean,
     onRemove: (Int) -> Unit,
 ) {
     Card {
@@ -218,8 +257,6 @@ private fun RecambiosEditor(
                             append(r.pieza)
                             append("  ×")
                             append(r.cantidad)
-                            val coste = formatCoste(r.coste)
-                            if (coste.isNotEmpty()) append("  ·  $coste")
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
@@ -239,7 +276,6 @@ private fun RecambiosEditor(
 
             var pieza by remember { mutableStateOf("") }
             var cantidad by remember { mutableStateOf("1") }
-            var coste by remember { mutableStateOf("") }
 
             OutlinedTextField(
                 value = pieza,
@@ -249,32 +285,20 @@ private fun RecambiosEditor(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = cantidad,
-                    onValueChange = { cantidad = it.filter { c -> c.isDigit() }.take(4) },
-                    label = { Text(stringResource(R.string.averia_recambio_cantidad)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(8.dp))
-                OutlinedTextField(
-                    value = coste,
-                    onValueChange = { coste = it.take(10) },
-                    label = { Text(stringResource(R.string.averia_recambio_coste)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            OutlinedTextField(
+                value = cantidad,
+                onValueChange = { cantidad = it.filter { c -> c.isDigit() }.take(4) },
+                label = { Text(stringResource(R.string.averia_recambio_cantidad)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+            )
             Spacer(Modifier.height(8.dp))
             OutlinedButton(
                 onClick = {
-                    if (onAdd(pieza, cantidad, coste)) {
+                    if (onAdd(pieza, cantidad)) {
                         pieza = ""
                         cantidad = "1"
-                        coste = ""
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

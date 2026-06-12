@@ -34,6 +34,14 @@ interface InstalacionDao {
     @Query("SELECT * FROM instalacion WHERE id = :id LIMIT 1")
     suspend fun obtener(id: String): InstalacionEntity?
 
+    /**
+     * Instalación activa de una máquina (0..1). La usa el reporte de avería para
+     * saber si puede registrar merma de tolva: sin instalación activa, el premio
+     * de tolva no aplica (la propia `crear_averia` lo rechaza, §5.6).
+     */
+    @Query("SELECT * FROM instalacion WHERE maquina_id = :maquinaId AND estado = 'activa' LIMIT 1")
+    suspend fun obtenerActivaPorMaquina(maquinaId: String): InstalacionEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(values: List<InstalacionEntity>)
 

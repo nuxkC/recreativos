@@ -63,6 +63,10 @@ data class ReportarAveriaInput(
     val poneMaquinaFueraServicio: Boolean,
     val notas: String?,
     val recambios: List<RecambioInput>,
+    /** §5.6: la avería pagó premio de la tolva (merma). */
+    val afectaTolva: Boolean = false,
+    /** Importe pagado de la tolva (String dinero); `null` si no aplica. */
+    val importeTolva: String? = null,
 )
 
 /** Recambio capturado al reportar. `coste` es dinero → String (nunca Double). */
@@ -114,6 +118,8 @@ class AveriaRepositoryImpl @Inject constructor(
             descripcion = input.descripcion,
             poneMaquinaFueraServicio = input.poneMaquinaFueraServicio,
             notas = input.notas,
+            afectaTolva = input.afectaTolva,
+            importeTolva = input.importeTolva,
             recambiosJson = serializarRecambios(input.recambios),
             estado = EstadoAveriaPendiente.PENDIENTE,
             intentos = 0,
@@ -154,6 +160,8 @@ class AveriaRepositoryImpl @Inject constructor(
                         descripcion = pendiente.descripcion,
                         poneMaquinaFueraServicio = pendiente.poneMaquinaFueraServicio,
                         notas = pendiente.notas,
+                        afectaTolva = pendiente.afectaTolva,
+                        importeTolva = pendiente.importeTolva,
                     ),
                 )
                 dao.marcarAveriaCreada(pendiente.id, nuevoId)

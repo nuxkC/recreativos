@@ -35,6 +35,13 @@ data class CrearAveriaParams(
     val poneMaquinaFueraServicio: Boolean,
     @SerialName("p_notas")
     val notas: String?,
+    /** §5.6: la avería pagó premio de la tolva → la RPC inserta la `merma`. */
+    @SerialName("p_afecta_tolva")
+    val afectaTolva: Boolean,
+    /** Importe pagado de la tolva (numeric); `null` (→ 0 server-side) si no aplica. */
+    @SerialName("p_importe_tolva")
+    @Serializable(with = NumericStringSerializer::class)
+    val importeTolva: String?,
 )
 
 /** Parámetros de `crear_recambio`. Devuelve el id (uuid) del recambio creado. */

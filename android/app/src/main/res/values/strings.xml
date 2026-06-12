@@ -548,12 +548,14 @@
     <string name="averia_campo_descripcion">Descripción</string>
     <string name="averia_campo_fuera_servicio">Deja la máquina fuera de servicio</string>
     <string name="averia_campo_fuera_servicio_ayuda">Mientras la avería siga abierta, la máquina figurará como averiada.</string>
+    <string name="averia_campo_afecta_tolva">La avería pagó premio de la tolva</string>
+    <string name="averia_campo_afecta_tolva_ayuda">Si la máquina soltó dinero de la tolva por el fallo, se descuenta de la tolva teórica y se repone en la próxima recaudación.</string>
+    <string name="averia_campo_importe_tolva">Importe pagado de la tolva (€)</string>
     <string name="averia_campo_notas">Notas</string>
     <string name="averia_recambios_titulo">Recambios</string>
     <string name="averia_recambios_vacio">Sin recambios. Añade los que hayas sustituido.</string>
     <string name="averia_recambio_pieza">Pieza</string>
     <string name="averia_recambio_cantidad">Cantidad</string>
-    <string name="averia_recambio_coste">Coste (€)</string>
     <string name="averia_recambio_anadir">Añadir recambio</string>
     <string name="averia_reportar_guardar">Guardar avería</string>
     <string name="averia_reportar_offline_ayuda">Se guarda en el dispositivo y se sube cuando haya conexión.</string>

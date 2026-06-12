@@ -3,6 +3,7 @@ package com.recre.app.feature.averias
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.MaquinaDao
 import com.recre.app.core.data.repository.AveriaRepository
 import com.recre.app.core.data.repository.RecambioInput
@@ -12,6 +13,7 @@ import com.recre.app.core.session.SessionState
 import com.recre.app.core.sync.AveriaUploadManager
 import com.recre.app.core.util.DomainResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,11 +21,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Un recambio en el formulario de reporte. `coste` ya normalizado o `null`. */
+/** Un recambio en el formulario de reporte (pieza + cantidad). */
 data class RecambioFormItem(
     val pieza: String,
     val cantidad: Int,
-    val coste: String?,
 )
 
 /**
@@ -37,12 +38,26 @@ data class ReportarAveriaUiState(
     val poneFueraServicio: Boolean = false,
     val notas: String = "",
     val recambios: List<RecambioFormItem> = emptyList(),
+    /** La máquina tiene instalación activa: condición para registrar merma de tolva. */
+    val maquinaInstalada: Boolean = false,
+    /** §5.6: la avería pagó premio de la tolva. */
+    val afectaTolva: Boolean = false,
+    /** Importe de tolva tal cual lo teclea el técnico (sin normalizar). */
+    val importeTolva: String = "",
     val guardando: Boolean = false,
     val guardado: Boolean = false,
     /** Código de error i18n para el snackbar; `null` = sin error. */
     val errorCode: String? = null,
 ) {
-    val canGuardar: Boolean get() = !guardando && categoria != null
+    /** Importe de tolva normalizado y > 0, o `null` si vacío/inválido. */
+    val importeTolvaNormalizado: String?
+        get() = normalizeCoste(importeTolva)?.takeIf { BigDecimal(it).signum() > 0 }
+
+    /** Si afecta tolva, exige instalación activa + importe válido > 0. */
+    private val tolvaValida: Boolean
+        get() = !afectaTolva || (maquinaInstalada && importeTolvaNormalizado != null)
+
+    val canGuardar: Boolean get() = !guardando && categoria != null && tolvaValida
 }
 
 @HiltViewModel
@@ -52,6 +67,7 @@ class ReportarAveriaViewModel @Inject constructor(
     private val averiaUploadManager: AveriaUploadManager,
     private val sessionRepository: SessionRepository,
     private val maquinaDao: MaquinaDao,
+    private val instalacionDao: InstalacionDao,
 ) : ViewModel() {
 
     private val maquinaId: String = checkNotNull(savedStateHandle[ARG_MAQUINA_ID]) {
@@ -67,6 +83,9 @@ class ReportarAveriaViewModel @Inject constructor(
             if (maquina != null) {
                 _state.update { it.copy(maquinaNumeroSerie = maquina.numeroSerie) }
             }
+            // Sin instalación activa no se puede registrar merma de tolva (§5.6).
+            val instalada = instalacionDao.obtenerActivaPorMaquina(maquinaId) != null
+            _state.update { it.copy(maquinaInstalada = instalada) }
         }
     }
 
@@ -82,22 +101,26 @@ class ReportarAveriaViewModel @Inject constructor(
     fun onNotas(value: String) =
         _state.update { it.copy(notas = value.take(MAX_TEXTO)) }
 
+    fun onToggleAfectaTolva(value: Boolean) =
+        _state.update { it.copy(afectaTolva = value) }
+
+    fun onImporteTolva(value: String) =
+        _state.update { it.copy(importeTolva = value.take(MAX_IMPORTE)) }
+
     /**
      * Añade un recambio al reporte. Devuelve `false` (sin tocar el estado) si la
-     * entrada no es válida: pieza vacía, cantidad < 1, o coste con formato
-     * inválido. La UI usa el booleano para no limpiar los campos en ese caso.
+     * entrada no es válida: pieza vacía o cantidad < 1. La UI usa el booleano
+     * para no limpiar los campos en ese caso.
      */
-    fun addRecambio(pieza: String, cantidadRaw: String, costeRaw: String): Boolean {
+    fun addRecambio(pieza: String, cantidadRaw: String): Boolean {
         val piezaLimpia = pieza.trim()
         if (piezaLimpia.isEmpty()) return false
         val cantidad = cantidadRaw.trim().toIntOrNull()?.takeIf { it > 0 } ?: return false
-        val coste = if (costeRaw.isBlank()) null else normalizeCoste(costeRaw) ?: return false
         _state.update {
             it.copy(
                 recambios = it.recambios + RecambioFormItem(
                     pieza = piezaLimpia.take(MAX_PIEZA),
                     cantidad = cantidad,
-                    coste = coste,
                 ),
             )
         }
@@ -133,7 +156,14 @@ class ReportarAveriaViewModel @Inject constructor(
                 poneMaquinaFueraServicio = current.poneFueraServicio,
                 notas = current.notas.trim().ifBlank { null },
                 recambios = current.recambios.map {
-                    RecambioInput(pieza = it.pieza, cantidad = it.cantidad, coste = it.coste, notas = null)
+                    RecambioInput(pieza = it.pieza, cantidad = it.cantidad, coste = null, notas = null)
+                },
+                // La merma solo se envía con instalación activa (la RPC la exige).
+                afectaTolva = current.afectaTolva && current.maquinaInstalada,
+                importeTolva = if (current.afectaTolva && current.maquinaInstalada) {
+                    current.importeTolvaNormalizado
+                } else {
+                    null
                 },
             )
             when (val result = averiaRepository.encolar(input)) {
@@ -154,5 +184,6 @@ class ReportarAveriaViewModel @Inject constructor(
         const val ARG_MAQUINA_ID = "maquinaId"
         private const val MAX_TEXTO = 1000
         private const val MAX_PIEZA = 120
+        private const val MAX_IMPORTE = 12
     }
 }

@@ -48,6 +48,11 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * descuente la reposición antes del reparto (§5.6) y el técnico separe el
  * dinero correcto (que cuadre con lo que persiste el servidor).
  *
+ * Versión 8 (T-226): añade `averia_pendiente.afecta_tolva` + `importe_tolva`
+ * para que el técnico registre, al reportar la avería, el premio que la máquina
+ * pagó de la tolva (§5.6). La cola lo sube a `crear_averia`, que inserta la
+ * `merma` atómica; la próxima recaudación la repone antes del reparto.
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -64,7 +69,7 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         CreditoLocalEntity::class,
         AveriaPendienteEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -255,6 +260,24 @@ abstract class RecreDatabase : RoomDatabase() {
                 db.execSQL(
                     "ALTER TABLE `instalacion` ADD COLUMN `pendiente_tolva` " +
                         "TEXT NOT NULL DEFAULT '0'",
+                )
+            }
+        }
+
+        /**
+         * v8 (T-226): el reporte de avería puede registrar el premio que la
+         * máquina pagó de la tolva (§5.6). `afecta_tolva` (default 0) e
+         * `importe_tolva` (dinero como TEXT, nullable). La cola los sube a
+         * `crear_averia`, que inserta la `merma`.
+         */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `averia_pendiente` ADD COLUMN `afecta_tolva` " +
+                        "INTEGER NOT NULL DEFAULT 0",
+                )
+                db.execSQL(
+                    "ALTER TABLE `averia_pendiente` ADD COLUMN `importe_tolva` TEXT",
                 )
             }
         }

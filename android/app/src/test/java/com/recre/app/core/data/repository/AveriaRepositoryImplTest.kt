@@ -39,6 +39,8 @@ class AveriaRepositoryImplTest {
         recambiosJson: String = "[]",
         averiaIdRemoto: String? = null,
         recambiosSubidos: Int = 0,
+        afectaTolva: Boolean = false,
+        importeTolva: String? = null,
     ) = AveriaPendienteEntity(
         id = "p-1",
         empresaId = "emp-1",
@@ -48,6 +50,8 @@ class AveriaRepositoryImplTest {
         descripcion = "se traga el billete",
         poneMaquinaFueraServicio = true,
         notas = null,
+        afectaTolva = afectaTolva,
+        importeTolva = importeTolva,
         recambiosJson = recambiosJson,
         estado = EstadoAveriaPendiente.PENDIENTE,
         intentos = 0,
@@ -108,6 +112,47 @@ class AveriaRepositoryImplTest {
         coVerify(exactly = 1) { dao.marcarAveriaCreada("p-1", "av-9") }
         coVerify(exactly = 1) { dao.marcarRecambiosSubidos("p-1", 1) }
         coVerify(exactly = 1) { dao.marcarEnviada("p-1", any()) }
+    }
+
+    @Test
+    fun `subirSiguiente envía la merma de tolva a crear_averia`() = runTest {
+        // §5.6: si la avería pagó premio de la tolva, afecta_tolva + importe_tolva
+        // viajan a la RPC, que inserta la merma. El importe es dinero → String.
+        val capturado = slot<CrearAveriaParams>()
+        coEvery { dao.siguientePendiente("emp-1") } returns
+            pendiente(afectaTolva = true, importeTolva = "15.00")
+        coEvery { remote.crearAveria(capture(capturado)) } returns "av-9"
+
+        val result = repo().subirSiguiente("emp-1")
+
+        assertTrue(result is DomainResult.Success)
+        assertTrue(capturado.captured.afectaTolva)
+        assertEquals("15.00", capturado.captured.importeTolva)
+    }
+
+    @Test
+    fun `encolar persiste la merma de tolva`() = runTest {
+        coEvery { dao.insert(any()) } just Runs
+        val capturado = slot<AveriaPendienteEntity>()
+
+        repo().encolar(
+            ReportarAveriaInput(
+                empresaId = "emp-1",
+                maquinaId = "maq-1",
+                maquinaNumeroSerie = "SN-1",
+                categoria = "premio_atascado",
+                descripcion = null,
+                poneMaquinaFueraServicio = false,
+                notas = null,
+                recambios = emptyList(),
+                afectaTolva = true,
+                importeTolva = "15.00",
+            ),
+        )
+
+        coVerify(exactly = 1) { dao.insert(capture(capturado)) }
+        assertTrue(capturado.captured.afectaTolva)
+        assertEquals("15.00", capturado.captured.importeTolva)
     }
 
     @Test
