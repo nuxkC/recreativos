@@ -29,6 +29,10 @@ interface PdfInput {
   contadoresAnterior: { entradas: number; salidas: number };
   contadoresActual: { entradas: number; salidas: number };
   resultado: CalculoRecaudacionResult;
+  /** Importe retenido de la parte_local para amortizar deuda (T-214); "0.00" si nada. */
+  recuperado?: string;
+  /** Lo que se lleva el local tras la recuperación (= parte_local − recuperado). */
+  pagadoLocal?: string;
   desgloseTotal: readonly DenominacionItem[];
   desgloseLocal: readonly DenominacionItem[];
   firmaPng?: Uint8Array;
@@ -83,6 +87,11 @@ export async function generarPdfTicket(input: PdfInput): Promise<Uint8Array> {
   w.kv("Neto:", `${input.resultado.neto} €`);
   w.kv("% Local:", `${input.resultado.porcentaje_local} %`);
   w.kv("Parte Local:", `${input.resultado.parte_local} €`);
+  const recuperado = input.recuperado ?? "0.00";
+  if (Number(recuperado) > 0) {
+    w.kv("Recuperado deuda:", `-${recuperado} €`);
+    w.kv("Entregado al local:", `${input.pagadoLocal ?? input.resultado.parte_local} €`);
+  }
   w.kv("Parte Empresa:", `${input.resultado.parte_empresa} €`);
   w.separator();
 

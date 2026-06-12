@@ -47,6 +47,11 @@ export const CrearRecaudacionInputSchema = z.object({
   desglose_total: DesgloseSchema,
   desglose_local: DesgloseSchema,
 
+  // Orden manual de imputación de la recuperación de deuda (T-214): lista de
+  // credito_id. Opcional; si falta, el servidor imputa tolva primero y luego
+  // FIFO. El desglose_local debe cuadrar con pagado_local (parte_local − retenido).
+  orden_recuperacion: z.array(Uuid).optional(),
+
   // Evidencia (firma obligatoria, fotos opcionales).
   firma_base64: z.string().min(1, "Falta la firma del titular"),
   foto_entradas_base64: z.string().optional(),

@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 
 import { requireRolEnEmpresa, requireUser } from "../_shared/auth.ts";
 import { calcularRecaudacion, importesIguales, sumarDesglose } from "../_shared/calculo.ts";
+import { type CreditoAbierto, planificarRecuperacion } from "../_shared/recuperacion.ts";
 import { getServiceClient } from "../_shared/db.ts";
 import { jsonResponse, makeError } from "../_shared/errors.ts";
 import { withHandler } from "../_shared/handler.ts";
@@ -179,7 +180,23 @@ Deno.serve(withHandler(async (req: Request) => {
     );
   }
 
-  validarDesglosesContraResultado(input, resultado);
+  // Recuperación de deuda (T-214): se retiene un % de la parte_local del local
+  // para amortizar sus deudas (tolva/préstamo). pct = override del local o, si no,
+  // el de la empresa. No cambia parte_empresa; solo reparte la parte_local.
+  const pctRecuperacion = ctx.instalacion.local.porcentaje_recuperacion ??
+    ctx.empresa.porcentaje_recuperacion;
+  const creditosAbiertos = await fetchCreditosAbiertos(supabase, ctx.instalacion.local_id);
+  const planRecuperacion = planificarRecuperacion({
+    parteLocal: resultado.parte_local,
+    porcentajeRecuperacion: pctRecuperacion,
+    creditos: creditosAbiertos,
+    orden: input.orden_recuperacion,
+  });
+
+  // El desglose físico que se entrega al local debe cuadrar con pagado_local
+  // (parte_local − recuperado). Con pct=0 o sin deuda, pagado_local = parte_local
+  // y el comportamiento es idéntico al histórico.
+  validarDesglosesContraResultado(input, resultado, planRecuperacion.pagado_local);
 
   // Generamos el id ahora para construir paths antes de insertar.
   const recaudacionId = crypto.randomUUID();
@@ -224,6 +241,8 @@ Deno.serve(withHandler(async (req: Request) => {
       salidas: resultado.contador_salidas_ajustado,
     },
     resultado,
+    recuperado: planRecuperacion.recuperado_total,
+    pagadoLocal: planRecuperacion.pagado_local,
     desgloseTotal: input.desglose_total,
     desgloseLocal: input.desglose_local,
     firmaPng: await fetchPng(supabase, "firmas", firmaUrl),
@@ -251,16 +270,20 @@ Deno.serve(withHandler(async (req: Request) => {
     fotoSalidasUrl,
     pdfPath,
     conflicto,
+    recuperadoTotal: planRecuperacion.recuperado_total,
   });
 
-  // La inserción va con service_role: el rol `authenticated` no tiene GRANT
-  // INSERT sobre `recaudacion` (las escrituras solo se hacen server-side). El
-  // acceso al tenant ya se validó arriba con el cliente de usuario (RLS) y
-  // `requireRolEnEmpresa`.
+  // La inserción va con service_role vía RPC atómica `persistir_recaudacion`:
+  // inserta la recaudación + las recuperaciones (amortización de deuda) + salda
+  // los créditos que llegan a 0, en una sola transacción. Así nunca queda dinero
+  // retenido sin reflejar en la deuda. El rol `authenticated` no tiene GRANT de
+  // escritura; el acceso al tenant ya se validó arriba (RLS + requireRolEnEmpresa).
   const { data: row, error: insertError } = await service
-    .from("recaudacion")
-    .insert(insertPayload)
-    .select()
+    .rpc("persistir_recaudacion", {
+      p_recaudacion: insertPayload,
+      p_recuperaciones: planRecuperacion.asignaciones,
+      p_usuario_id: userId,
+    })
     .single();
 
   if (insertError) {
@@ -329,9 +352,9 @@ async function loadInstalacionContext(
       `id, empresa_id, maquina_id, licencia_id, local_id, fecha_inicio,
        tasa_semanal, porcentaje_local, contador_entradas_base, contador_salidas_base, estado,
        maquina:maquina_id(numero_serie, modelo, valor_credito),
-       local:local_id(nombre, direccion, titular_nombre),
+       local:local_id(nombre, direccion, titular_nombre, porcentaje_recuperacion),
        licencia:licencia_id(numero),
-       empresa:empresa_id(id, nombre, zona_horaria, cif, ticket_cabecera, ticket_pie, logo_url, redondeo_recaudacion)`,
+       empresa:empresa_id(id, nombre, zona_horaria, cif, ticket_cabecera, ticket_pie, logo_url, redondeo_recaudacion, porcentaje_recuperacion)`,
     )
     .eq("id", instalacionId)
     .maybeSingle();
@@ -421,9 +444,35 @@ async function fetchFechaReferenciaCliente(
   return data as string;
 }
 
+/**
+ * Deudas abiertas del local (tolva/préstamo) con su saldo vivo, para calcular la
+ * recuperación. Lee la vista security_invoker con el cliente del usuario: la RLS
+ * deja ver las deudas de la empresa a la que pertenece el técnico.
+ */
+async function fetchCreditosAbiertos(
+  supabase: ReturnType<typeof getServiceClient>,
+  localId: string,
+): Promise<CreditoAbierto[]> {
+  const { data, error } = await supabase
+    .from("v_credito_local_saldo")
+    .select("credito_id, tipo, saldo, fecha, estado")
+    .eq("local_id", localId)
+    .eq("estado", "abierto");
+  if (error) {
+    throw makeError("internal_error", "No se pudieron cargar las deudas del local", error.message);
+  }
+  return (data ?? []).map((r) => ({
+    id: r.credito_id as string,
+    tipo: r.tipo as "tolva" | "prestamo",
+    saldo: String(r.saldo),
+    fecha: r.fecha as string,
+  }));
+}
+
 function validarDesglosesContraResultado(
   input: CrearRecaudacionInput,
   resultado: CalculoRecaudacionResult,
+  pagadoLocal: string,
 ): void {
   const sumaTotal = sumarDesglose(input.desglose_total);
   if (!importesIguales(sumaTotal, resultado.bruto)) {
@@ -433,12 +482,15 @@ function validarDesglosesContraResultado(
       { suma_desglose: sumaTotal, bruto_calculado: resultado.bruto },
     );
   }
+  // El desglose de la parte local debe cuadrar con lo que se ENTREGA al local
+  // (pagado_local = parte_local − recuperado). Sin recuperación coincide con
+  // parte_local.
   const sumaLocal = sumarDesglose(input.desglose_local);
-  if (!importesIguales(sumaLocal, resultado.parte_local)) {
+  if (!importesIguales(sumaLocal, pagadoLocal)) {
     throw makeError(
       "validation_error",
-      "El desglose de la parte local no coincide con la parte_local calculada",
-      { suma_desglose: sumaLocal, parte_local_calculada: resultado.parte_local },
+      "El desglose de la parte local no coincide con lo que se entrega al local",
+      { suma_desglose: sumaLocal, pagado_local_calculado: pagadoLocal },
     );
   }
 }
@@ -512,6 +564,7 @@ interface InsertParams {
   fotoSalidasUrl: string | null;
   pdfPath: string;
   conflicto: boolean;
+  recuperadoTotal: string;
 }
 
 function construirInsertPayload(p: InsertParams) {
@@ -555,6 +608,7 @@ function construirInsertPayload(p: InsertParams) {
     baseline_id: p.input.baseline_id,
     estado: "firme" as const,
     conflicto: p.conflicto,
+    recuperado_total: p.recuperadoTotal,
   };
 
   // Si hay conflicto, las columnas oficiales (en `base`) llevan el reparto del
