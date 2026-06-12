@@ -107,6 +107,8 @@
     <string name="recaudacion_label_redondeado">(redondeado)</string>
     <string name="recaudacion_label_tasa_total">Tasa (%1$d sem.)</string>
     <string name="recaudacion_label_neto">Neto</string>
+    <string name="recaudacion_label_repuesto_tolva">Repuesto a tolva</string>
+    <string name="recaudacion_label_base_reparto">Base de reparto</string>
     <string name="recaudacion_label_parte_local">Parte local (%1$s)</string>
     <string name="recaudacion_label_parte_empresa">Parte empresa</string>
 

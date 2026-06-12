@@ -108,6 +108,22 @@ fun CifrasResumenCard(
                     bold = true,
                 )
                 Spacer(Modifier.height(8.dp))
+                // T-225: si la recaudación repone merma de tolva (§5.6), se
+                // devuelve a la máquina ANTES del reparto; local y empresa
+                // reparten sobre la base, no sobre el neto.
+                if (cifras.reposicionTolva.signum() > 0) {
+                    FilaCifra(
+                        label = stringResource(R.string.recaudacion_label_repuesto_tolva),
+                        value = "− " + formatEur(cifras.reposicionTolva.toPlainString()),
+                        muted = false,
+                    )
+                    FilaCifra(
+                        label = stringResource(R.string.recaudacion_label_base_reparto),
+                        value = formatEur(cifras.baseReparto.toPlainString()),
+                        muted = false,
+                        bold = true,
+                    )
+                }
                 FilaCifra(
                     label = stringResource(
                         R.string.recaudacion_label_parte_local,

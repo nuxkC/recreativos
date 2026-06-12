@@ -136,6 +136,7 @@ class RecaudacionHistoricaRemoteDataSource @Inject constructor(
             "porcentaje_local_aplicado," +
             "parte_local," +
             "parte_empresa," +
+            "reposicion_tolva," +
             "desglose_total," +
             "desglose_local," +
             "firma_url," +

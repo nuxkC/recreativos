@@ -172,11 +172,10 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
             tasaTotal = BigDecimal(row.tasaTotalAplicada),
             neto = BigDecimal(row.recaudacionNeta),
             porcentajeLocal = BigDecimal(row.porcentajeLocalAplicado),
-            // El reparto histórico ya está en parteLocal/parteEmpresa; la
-            // reposición de tolva (T-224) se sincronizará a Room en T-225. Hasta
-            // entonces 0 → baseReparto = neto (no afecta al ticket reimpreso).
-            reposicionTolva = BigDecimal.ZERO,
-            baseReparto = BigDecimal(row.recaudacionNeta),
+            // Reposición de tolva del servidor (T-225); base_reparto no se persiste:
+            // = parte_local + parte_empresa (exacto, = neto − reposición).
+            reposicionTolva = BigDecimal(row.reposicionTolva),
+            baseReparto = BigDecimal(row.parteLocal).add(BigDecimal(row.parteEmpresa)),
             parteLocal = BigDecimal(row.parteLocal),
             parteEmpresa = BigDecimal(row.parteEmpresa),
             valorCredito = BigDecimal(row.valorCreditoAplicado),

@@ -57,6 +57,9 @@ data class RecaudacionHistoricaRow(
     @SerialName("parte_empresa")
     @Serializable(with = NumericStringSerializer::class)
     val parteEmpresa: String,
+    @SerialName("reposicion_tolva")
+    @Serializable(with = NumericStringSerializer::class)
+    val reposicionTolva: String = "0.00",
     @SerialName("desglose_total")
     val desgloseTotal: List<DenominacionItemDto>,
     @SerialName("desglose_local")
