@@ -27,6 +27,10 @@ interface CreditoLocalDao {
     )
     fun observarPorLocal(localId: String): Flow<List<CreditoLocalEntity>>
 
+    /** Todas las deudas abiertas cacheadas de la empresa (para el índice de Deudas). */
+    @Query("SELECT * FROM `credito_local` WHERE empresa_id = :empresaId")
+    fun observarPorEmpresa(empresaId: String): Flow<List<CreditoLocalEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(values: List<CreditoLocalEntity>)
 
