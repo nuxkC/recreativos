@@ -122,6 +122,15 @@ Deno.serve(withHandler(async (req: Request) => {
     throw makeError("internal_error", "La instalación no tiene máquina asociada");
   }
 
+  // Merma de tolva pendiente: se recupera antes del reparto (§5.6). La vista es
+  // security_invoker, así que la RLS limita al tenant del técnico.
+  const { data: tolva } = await supabase
+    .from("v_instalacion_tolva")
+    .select("pendiente")
+    .eq("instalacion_id", input.instalacion_id)
+    .maybeSingle();
+  const pendienteTolva = tolva ? String(tolva.pendiente) : "0";
+
   const result = calcularRecaudacion({
     baseline: {
       entradas: Number(baselineRow.entradas),
@@ -137,6 +146,7 @@ Deno.serve(withHandler(async (req: Request) => {
     porcentajeLocal: String(inst.porcentaje_local),
     semanas: Number(semanas),
     redondeoUnidad,
+    pendienteTolva,
   });
 
   return jsonResponse(result);

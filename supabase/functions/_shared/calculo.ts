@@ -11,8 +11,12 @@
  *   3. tasa_total = semanas_iso × tasa_semanal
  *   4. si bruto < tasa_total → no procede
  *   5. neto = bruto − tasa_total
- *   6. parte_local = round_half_up(neto × % / 100, 2)
- *   7. parte_empresa = neto − parte_local  (la empresa absorbe el redondeo)
+ *   6. reposicion_tolva = min(neto, pendiente_tolva)   (premio devuelto, §5.6)
+ *   7. base_reparto = neto − reposicion_tolva
+ *   8. parte_local = round_half_up(base_reparto × % / 100, 2)
+ *   9. parte_empresa = base_reparto − parte_local  (la empresa absorbe el redondeo)
+ *
+ * Invariante: reposicion_tolva + parte_local + parte_empresa = neto.
  */
 
 import { Decimal } from "decimal.js";
@@ -40,6 +44,14 @@ export interface CalcularInput {
    * real y la diferencia rueda a la siguiente recaudación vía baseline.
    */
   redondeoUnidad?: number;
+  /**
+   * Merma de tolva pendiente de reponer en esta instalación (string para
+   * preservar precisión; viene de `v_instalacion_tolva.pendiente`). Si > 0, se
+   * recupera ANTES del reparto: `reposicion = min(neto, pendiente)` se devuelve
+   * a la tolva y el reparto se hace sobre `base_reparto = neto − reposicion`
+   * (design.md §5.6). 0 / ausente = comportamiento histórico (sin tolva).
+   */
+  pendienteTolva?: string;
 }
 
 /**
@@ -71,6 +83,8 @@ export function calcularRecaudacion(input: CalcularInput): CalculoRecaudacionRes
       tasa_total: tasaTotal.toFixed(CENTIMOS),
       neto: "0.00",
       porcentaje_local: porcentajeLocal.toFixed(CENTIMOS),
+      reposicion_tolva: "0.00",
+      base_reparto: "0.00",
       parte_local: "0.00",
       parte_empresa: "0.00",
       valor_credito: valorCredito.toFixed(CENTIMOS),
@@ -114,8 +128,16 @@ export function calcularRecaudacion(input: CalcularInput): CalculoRecaudacionRes
   }
 
   const neto = bruto.minus(tasaTotal); // ya truncado a céntimos
-  const parteLocal = neto.times(porcentajeLocal).dividedBy(100).toDecimalPlaces(CENTIMOS);
-  const parteEmpresa = neto.minus(parteLocal); // absorbe el redondeo de céntimos
+
+  // Recuperación de avería de tolva ANTES del reparto (§5.6): el premio pagado
+  // de la tolva se devuelve físicamente a la máquina y, por tanto, lo asumen
+  // local y empresa según su %. `reposicion` se topa al neto (nunca se repone
+  // más de lo recaudado) y al pendiente; el reparto se hace sobre lo que queda.
+  const pendienteTolva = Decimal.max(new Decimal(input.pendienteTolva ?? "0"), 0);
+  const reposicion = Decimal.min(neto, pendienteTolva).toDecimalPlaces(CENTIMOS);
+  const baseReparto = neto.minus(reposicion);
+  const parteLocal = baseReparto.times(porcentajeLocal).dividedBy(100).toDecimalPlaces(CENTIMOS);
+  const parteEmpresa = baseReparto.minus(parteLocal); // absorbe el redondeo de céntimos
 
   return {
     procede: true,
@@ -125,6 +147,8 @@ export function calcularRecaudacion(input: CalcularInput): CalculoRecaudacionRes
     tasa_total: tasaTotal.toFixed(CENTIMOS),
     neto: neto.toFixed(CENTIMOS),
     porcentaje_local: porcentajeLocal.toFixed(CENTIMOS),
+    reposicion_tolva: reposicion.toFixed(CENTIMOS),
+    base_reparto: baseReparto.toFixed(CENTIMOS),
     parte_local: parteLocal.toFixed(CENTIMOS),
     parte_empresa: parteEmpresa.toFixed(CENTIMOS),
     valor_credito: valorCredito.toFixed(CENTIMOS),

@@ -47,6 +47,10 @@ export interface CalculoRecaudacionResult {
   tasa_total: string;
   neto: string;
   porcentaje_local: string;
+  /** Premio de tolva repuesto antes del reparto: min(neto, pendiente) (§5.6). "0.00" si no hay merma. */
+  reposicion_tolva: string;
+  /** Base sobre la que se reparte: neto − reposicion_tolva. */
+  base_reparto: string;
   parte_local: string;
   parte_empresa: string;
   valor_credito: string;

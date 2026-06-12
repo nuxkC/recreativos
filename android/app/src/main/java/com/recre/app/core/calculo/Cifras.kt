@@ -22,6 +22,10 @@ data class Cifras(
     val tasaTotal: BigDecimal,
     val neto: BigDecimal,
     val porcentajeLocal: BigDecimal,
+    /** Premio de tolva repuesto antes del reparto: min(neto, pendiente) (§5.6). 0 si no hay merma. */
+    val reposicionTolva: BigDecimal,
+    /** Base sobre la que se reparte: neto − reposicionTolva. */
+    val baseReparto: BigDecimal,
     val parteLocal: BigDecimal,
     val parteEmpresa: BigDecimal,
     val valorCredito: BigDecimal,

@@ -13,8 +13,10 @@ import java.math.RoundingMode
  *   3. tasa_total = semanas × tasa_semanal  → setScale(2, HALF_UP)
  *   4. si bruto < tasa_total → procede=false (no se recauda)
  *   5. neto = bruto − tasa_total  (sin redondear; ya en céntimos)
- *   6. parte_local = neto × % / 100  → setScale(2, HALF_UP)
- *   7. parte_empresa = neto − parte_local  (la empresa absorbe el redondeo)
+ *   6. reposicion_tolva = min(neto, pendiente_tolva)  (premio devuelto, §5.6)
+ *   7. base_reparto = neto − reposicion_tolva
+ *   8. parte_local = base_reparto × % / 100  → setScale(2, HALF_UP)
+ *   9. parte_empresa = base_reparto − parte_local  (la empresa absorbe el redondeo)
  *
  * El servidor recalcula todo igualmente al persistir (T-21) — esta
  * implementación se usa para:
@@ -51,6 +53,8 @@ fun calcularRecaudacion(input: CalcularInput): Cifras {
             tasaTotal = tasaTotal,
             neto = ZERO,
             porcentajeLocal = porcentajeLocal,
+            reposicionTolva = ZERO,
+            baseReparto = ZERO,
             parteLocal = ZERO,
             parteEmpresa = ZERO,
             valorCredito = valorCredito,
@@ -87,9 +91,17 @@ fun calcularRecaudacion(input: CalcularInput): Cifras {
     }
 
     val neto = bruto.subtract(tasaTotal) // ya en céntimos
-    val parteLocal = neto.multiply(porcentajeLocal)
+
+    // Recuperación de avería de tolva ANTES del reparto (§5.6): el premio pagado
+    // de la tolva se devuelve a la máquina, así que lo asumen local y empresa
+    // según su %. La reposición se topa al neto y al pendiente; el reparto se
+    // hace sobre lo que queda. Espejo bit-a-bit de calculo.ts.
+    val pendienteTolva = input.pendienteTolva.max(BigDecimal.ZERO)
+    val reposicionTolva = neto.min(pendienteTolva).setScale(SCALE, RoundingMode.HALF_UP)
+    val baseReparto = neto.subtract(reposicionTolva)
+    val parteLocal = baseReparto.multiply(porcentajeLocal)
         .divide(BigDecimal(100), SCALE, RoundingMode.HALF_UP)
-    val parteEmpresa = neto.subtract(parteLocal) // absorbe el centavo
+    val parteEmpresa = baseReparto.subtract(parteLocal) // absorbe el centavo
 
     return Cifras(
         procede = true,
@@ -99,6 +111,8 @@ fun calcularRecaudacion(input: CalcularInput): Cifras {
         tasaTotal = tasaTotal,
         neto = neto,
         porcentajeLocal = porcentajeLocal,
+        reposicionTolva = reposicionTolva,
+        baseReparto = baseReparto,
         parteLocal = parteLocal,
         parteEmpresa = parteEmpresa,
         valorCredito = valorCredito,
@@ -124,6 +138,12 @@ data class CalcularInput(
     val semanas: Int,
     /** Unidad de redondeo del bruto (config por empresa; 0 = sin redondeo). */
     val redondeoUnidad: Int = 0,
+    /**
+     * Merma de tolva pendiente de reponer en la instalación (de
+     * `v_instalacion_tolva.pendiente`). Si > 0 se recupera antes del reparto
+     * (§5.6). 0 = comportamiento histórico. Espejo de `pendienteTolva` en TS.
+     */
+    val pendienteTolva: BigDecimal = BigDecimal.ZERO,
 )
 
 private const val SCALE = 2

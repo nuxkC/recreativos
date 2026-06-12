@@ -90,6 +90,11 @@ Deno.serve(withHandler(async (req: Request) => {
     ctx.empresa.zona_horaria,
   );
 
+  // Merma de tolva pendiente: se recupera ANTES del reparto (§5.6). Es estado del
+  // servidor (ledger tolva_movimiento); el mismo valor alimenta ambos cálculos
+  // (servidor y, si hay conflicto, el del cliente).
+  const pendienteTolva = await fetchPendienteTolva(supabase, input.instalacion_id);
+
   // Cálculo server-side con la baseline REAL (la del servidor ahora mismo).
   const resultadoServidor = calcularRecaudacion({
     baseline: baselineActual,
@@ -100,6 +105,7 @@ Deno.serve(withHandler(async (req: Request) => {
     porcentajeLocal: ctx.instalacion.porcentaje_local,
     semanas,
     redondeoUnidad: ctx.empresa.redondeo_recaudacion,
+    pendienteTolva,
   });
 
   // Detectar conflicto ANTES de validar: la baseline que vio el cliente vs la
@@ -160,6 +166,7 @@ Deno.serve(withHandler(async (req: Request) => {
       porcentajeLocal: ctx.instalacion.porcentaje_local,
       semanas: semanasCliente,
       redondeoUnidad: ctx.empresa.redondeo_recaudacion,
+      pendienteTolva,
     });
     if (!resultadoCliente.procede) {
       throw makeError(
@@ -469,6 +476,26 @@ async function fetchCreditosAbiertos(
   }));
 }
 
+/**
+ * Merma de tolva pendiente de reponer en la instalación (de v_instalacion_tolva).
+ * Se recupera antes del reparto (§5.6). 0 si no hay merma. La vista es
+ * security_invoker; la RLS limita al tenant del técnico.
+ */
+async function fetchPendienteTolva(
+  supabase: ReturnType<typeof getServiceClient>,
+  instalacionId: string,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("v_instalacion_tolva")
+    .select("pendiente")
+    .eq("instalacion_id", instalacionId)
+    .maybeSingle();
+  if (error) {
+    throw makeError("internal_error", "No se pudo cargar el pendiente de tolva", error.message);
+  }
+  return data ? String(data.pendiente) : "0";
+}
+
 function validarDesglosesContraResultado(
   input: CrearRecaudacionInput,
   resultado: CalculoRecaudacionResult,
@@ -593,6 +620,7 @@ function construirInsertPayload(p: InsertParams) {
     porcentaje_local_aplicado: p.resultado.porcentaje_local,
     parte_local: p.resultado.parte_local,
     parte_empresa: p.resultado.parte_empresa,
+    reposicion_tolva: p.resultado.reposicion_tolva,
     desglose_total: p.input.desglose_total,
     desglose_local: p.input.desglose_local,
     firma_url: p.firmaUrl,

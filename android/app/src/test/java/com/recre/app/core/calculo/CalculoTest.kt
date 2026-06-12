@@ -262,5 +262,85 @@ class CalculoTest {
         assertEquals(0, cifras.redondeoAplicado)
     }
 
+    // -------------------------------------------------------------------------
+    // Reposición de tolva por avería ANTES del reparto (T-224, §5.6). Espejo
+    // bit-a-bit de los casos de _shared/calculo.test.ts.
+    // -------------------------------------------------------------------------
+
+    /** Entrada base: bruto 100, tasa 0, neto 100, % local 50 (varía pendienteTolva). */
+    private fun inputNeto100(pendienteTolva: BigDecimal) = CalcularInput(
+        baselineEntradas = 0, baselineSalidas = 0,
+        contadorEntradasActual = 500, contadorSalidasActual = 0,
+        valorCredito = bd("0.20"),
+        tasaSemanal = bd("0.00"),
+        porcentajeLocal = bd("50.00"),
+        semanas = 0,
+        pendienteTolva = pendienteTolva,
+    )
+
+    @Test
+    fun `tolva repone min(neto,pendiente) antes del reparto`() {
+        // neto 100, pendiente 50 → reposicion 50, base 50, mitad 25/25.
+        val cifras = calcularRecaudacion(inputNeto100(bd("50.00")))
+        assertTrue(cifras.procede)
+        assertEquals(bd("100.00"), cifras.neto)
+        assertEquals(bd("50.00"), cifras.reposicionTolva)
+        assertEquals(bd("50.00"), cifras.baseReparto)
+        assertEquals(bd("25.00"), cifras.parteLocal)
+        assertEquals(bd("25.00"), cifras.parteEmpresa)
+        // Invariante: reposicion + parte_local + parte_empresa = neto.
+        assertEquals(cifras.neto, cifras.reposicionTolva.add(cifras.parteLocal).add(cifras.parteEmpresa))
+    }
+
+    @Test
+    fun `tolva se topa al neto cuando el pendiente lo supera`() {
+        // pendiente 200 > neto 100 → reposicion 100, base 0, reparto 0/0.
+        val cifras = calcularRecaudacion(inputNeto100(bd("200.00")))
+        assertTrue(cifras.procede)
+        assertEquals(bd("100.00"), cifras.reposicionTolva)
+        assertEquals(bd("0.00"), cifras.baseReparto)
+        assertEquals(bd("0.00"), cifras.parteLocal)
+        assertEquals(bd("0.00"), cifras.parteEmpresa)
+    }
+
+    @Test
+    fun `tolva parcial reparte el resto`() {
+        // pendiente 30, neto 100 → reposicion 30, base 70, mitad 35/35.
+        val cifras = calcularRecaudacion(inputNeto100(bd("30.00")))
+        assertEquals(bd("30.00"), cifras.reposicionTolva)
+        assertEquals(bd("70.00"), cifras.baseReparto)
+        assertEquals(bd("35.00"), cifras.parteLocal)
+        assertEquals(bd("35.00"), cifras.parteEmpresa)
+    }
+
+    @Test
+    fun `sin pendiente de tolva el reparto es el historico`() {
+        // pendiente 0 (default) → reposicion 0, base = neto, reparto 50/50.
+        val cifras = calcularRecaudacion(inputNeto100(BigDecimal.ZERO))
+        assertEquals(bd("0.00"), cifras.reposicionTolva)
+        assertEquals(bd("100.00"), cifras.baseReparto)
+        assertEquals(bd("50.00"), cifras.parteLocal)
+        assertEquals(bd("50.00"), cifras.parteEmpresa)
+    }
+
+    @Test
+    fun `tolva no procede arrastra reposicion cero`() {
+        // bruto < tasa → procede=false, reposicion 0 aunque haya pendiente.
+        val cifras = calcularRecaudacion(
+            CalcularInput(
+                baselineEntradas = 0, baselineSalidas = 0,
+                contadorEntradasActual = 10, contadorSalidasActual = 0,
+                valorCredito = bd("0.20"),
+                tasaSemanal = bd("5.00"),
+                porcentajeLocal = bd("50.00"),
+                semanas = 2,
+                pendienteTolva = bd("50.00"),
+            ),
+        )
+        assertFalse(cifras.procede)
+        assertEquals(bd("0.00"), cifras.reposicionTolva)
+        assertEquals(bd("0.00"), cifras.baseReparto)
+    }
+
     private fun bd(value: String): BigDecimal = BigDecimal(value).setScale(2)
 }

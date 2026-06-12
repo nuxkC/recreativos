@@ -250,6 +250,79 @@ Deno.test("el redondeo se arrastra exacto a la siguiente recaudación", () => {
   assertEquals(p2.bruto, "270.00");
 });
 
+// -----------------------------------------------------------------------------
+// Reposición de tolva por avería ANTES del reparto (T-224, §5.6). Espejo
+// bit-a-bit de los casos de android CalculoTest.kt.
+// -----------------------------------------------------------------------------
+
+// Entrada base: bruto 100, tasa 0, neto 100, % local 50 (varía pendienteTolva).
+const inputNeto100 = (pendienteTolva: string) => ({
+  baseline: baseline(0, 0),
+  contadorEntradasActual: 500,
+  contadorSalidasActual: 0,
+  valorCredito: "0.20",
+  tasaSemanal: "0.00",
+  porcentajeLocal: "50.00",
+  semanas: 0,
+  pendienteTolva,
+});
+
+Deno.test("tolva repone min(neto, pendiente) antes del reparto", () => {
+  // neto 100, pendiente 50 -> reposicion 50, base 50, mitad 25/25.
+  const r = calcularRecaudacion(inputNeto100("50.00"));
+  assertEquals(r.procede, true);
+  assertEquals(r.neto, "100.00");
+  assertEquals(r.reposicion_tolva, "50.00");
+  assertEquals(r.base_reparto, "50.00");
+  assertEquals(r.parte_local, "25.00");
+  assertEquals(r.parte_empresa, "25.00");
+  // Invariante: reposicion + parte_local + parte_empresa = neto.
+  assert(importesIguales(r.reposicion_tolva, "50.00"));
+});
+
+Deno.test("tolva se topa al neto cuando el pendiente lo supera", () => {
+  // pendiente 200 > neto 100 -> reposicion 100, base 0, reparto 0/0.
+  const r = calcularRecaudacion(inputNeto100("200.00"));
+  assertEquals(r.reposicion_tolva, "100.00");
+  assertEquals(r.base_reparto, "0.00");
+  assertEquals(r.parte_local, "0.00");
+  assertEquals(r.parte_empresa, "0.00");
+});
+
+Deno.test("tolva parcial reparte el resto", () => {
+  // pendiente 30, neto 100 -> reposicion 30, base 70, mitad 35/35.
+  const r = calcularRecaudacion(inputNeto100("30.00"));
+  assertEquals(r.reposicion_tolva, "30.00");
+  assertEquals(r.base_reparto, "70.00");
+  assertEquals(r.parte_local, "35.00");
+  assertEquals(r.parte_empresa, "35.00");
+});
+
+Deno.test("sin pendiente de tolva el reparto es el histórico", () => {
+  // pendiente 0 -> reposicion 0, base = neto, reparto 50/50.
+  const r = calcularRecaudacion(inputNeto100("0"));
+  assertEquals(r.reposicion_tolva, "0.00");
+  assertEquals(r.base_reparto, "100.00");
+  assertEquals(r.parte_local, "50.00");
+  assertEquals(r.parte_empresa, "50.00");
+});
+
+Deno.test("tolva: si no procede, reposicion 0 aunque haya pendiente", () => {
+  const r = calcularRecaudacion({
+    baseline: baseline(0, 0),
+    contadorEntradasActual: 10,
+    contadorSalidasActual: 0,
+    valorCredito: "0.20",
+    tasaSemanal: "5.00",
+    porcentajeLocal: "50.00",
+    semanas: 2,
+    pendienteTolva: "50.00",
+  });
+  assertEquals(r.procede, false);
+  assertEquals(r.reposicion_tolva, "0.00");
+  assertEquals(r.base_reparto, "0.00");
+});
+
 Deno.test("sumarDesglose suma con precisión", () => {
   assertEquals(
     sumarDesglose([
