@@ -116,6 +116,26 @@ Plan dividido en fases. Cada tarea está pensada para ser un PR pequeño y verif
 - [x] **T-218** Web: sección **Deudas** como centro de mando (sidebar, `ROLES_GESTION`): índice de locales con saldo (`v_local_saldo`) + capital en la calle; `/deudas/[localId]` reutiliza `DeudasLocal` (gestión completa). El detalle de local deja de gestionar deuda inline y **redirige** a `/deudas/[id]`. Query `listarLocalesConSaldo`. *(PR #19)*
 - [x] **T-219** Android: sección **Deudas** en el hub de Gestión: índice de locales con su saldo (agrega `credito_local` offline) + capital en la calle; cada local abre su ficha de deudas existente (centro de mando). `CreditoLocalDao.observarPorEmpresa` + `DeudasGestor` (VM+screen) + ruta `GESTION_DEUDAS`. *(PR #20)*
 
+## Averías y trazabilidad
+
+Sistema de averías con **historial por máquina** (qué falla, qué se cambió) en dos
+fases. **Fase 1** (T-220…T-222) es solo trazabilidad: no toca dinero ni el SSOT.
+**Fase 2** (T-223…T-225) añade tolva teórica/efectiva y la recuperación compartida
+del premio pagado de la tolva, que **modifica el SSOT del cálculo**. Ver design.md
+§3.16–§3.18 y §5.6.
+
+### Fase 1 — trazabilidad (no toca dinero ni SSOT)
+
+- [x] **T-220** Modelo backend de averías: tablas `averia` (sin columnas de tolva todavía) y `averia_recambio` (design.md §3.16/§3.17); RPCs `SECURITY DEFINER` `crear_averia` (deriva el snapshot instalacion/local de la instalación activa), `actualizar_averia`, `resolver_averia`, `crear_recambio`, `eliminar_recambio`; helper interno `recalcular_estado_maquina` (pone/quita `maquina.estado='averiada'` según `pone_maquina_fuera_servicio`, devolviendo a instalada/almacén; no toca `baja`); índice `idx_averia_maquina` + vista `v_averia` (historial por máquina); RLS solo-lectura + REVOKE (escritura solo vía RPC); guardarraíles 07/08 al día; tests pgTAP `11_averias_modelo` (historial atraviesa instalaciones, transición de estado de máquina, recambios, cross-tenant, permisos). *(this PR)*
+- [ ] **T-221** Web: gestión de averías. Alta/edición/resolución + recambios; **historial de averías en el detalle de máquina** (`/maquinas/[id]`, hoja de vida que atraviesa instalaciones, con su `local` snapshot); badge de avería abierta en el listado de máquinas. Feature `lib/averias` + `components/averias`.
+- [ ] **T-222** Android: reporte de averías por el técnico desde el detalle de local/máquina (offline → sync, como la recaudación); listado/historial por máquina en Gestión; categoría + descripción + recambios. Migración Room (entidad `averia` + DAO + sync).
+
+### Fase 2 — tolva teórica/efectiva + recuperación compartida (**modifica el SSOT**)
+
+- [ ] **T-223** Backend tolva por avería: migración aditiva que añade `averia.afecta_tolva` + `importe_tolva`; tabla `tolva_movimiento` (merma/reposición) + vista `v_instalacion_tolva` (efectiva derivada, design.md §3.18); `crear_averia` con tolva inserta la `merma`; columna `recaudacion.reposicion_tolva`; RPC de admin para saldar/condonar la merma pendiente si la máquina se da de baja (edge case §5.6); tests pgTAP.
+- [ ] **T-224** SSOT — recuperación de avería **antes del reparto**: `_shared/calculo.ts` + espejo `core/calculo/Calculo.kt` (reposición = `min(neto, pendiente_tolva)`, `base_reparto = neto − reposición`, mismos casos en test TS y Kotlin); integración en `calcular-recaudacion`/`crear-recaudacion` (inserta la `reposicion` en `tolva_movimiento` de forma atómica con la recaudación); `anular-recaudacion` revierte la reposición; orden vs. recuperación de deuda §5.5. *La tarea de más riesgo: SSOT espejo bit-a-bit.*
+- [ ] **T-225** Web + Android: la reposición de tolva por avería se muestra en el detalle/resumen de la recaudación (repuesto a tolva + base de reparto) y en la ficha de tolva de la instalación (teórica/efectiva/pendiente); ticket PDF con la línea de reposición.
+
 ## Convenciones
 
 - Migraciones SQL en orden con timestamp `YYYYMMDDhhmmss_descripcion.sql`.

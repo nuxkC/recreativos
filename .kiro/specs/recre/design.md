@@ -343,6 +343,102 @@ Libro mayor (append-only) de abonos a una deuda. El saldo vivo se deriva en
 `v_credito_local_saldo`. Da la trazabilidad de cuánto se quitó, de dónde y en qué
 recaudaciones.
 
+### 3.16 `averia` (T-220 · columnas de tolva en T-223)
+```sql
+averia (
+  id uuid PK,
+  empresa_id uuid REFERENCES empresa(id) ON DELETE RESTRICT,
+  maquina_id uuid NOT NULL REFERENCES maquina(id) ON DELETE RESTRICT,   -- identidad estable: el historial sigue a la MÁQUINA
+  instalacion_id uuid REFERENCES instalacion(id) ON DELETE SET NULL,    -- snapshot de dónde estaba al ocurrir (NULL si en almacén)
+  local_id uuid REFERENCES local(id) ON DELETE SET NULL,                -- snapshot del local (se conserva aunque cambie/cierre la instalación)
+  categoria text NOT NULL CHECK (categoria IN
+    ('atasco_billete','atasco_moneda','error','falta_pago','no_enciende','otro')),
+  descripcion text,
+  estado text NOT NULL DEFAULT 'abierta' CHECK (estado IN ('abierta','en_reparacion','resuelta')),
+  pone_maquina_fuera_servicio boolean NOT NULL DEFAULT false,  -- si true, la máquina pasa a 'averiada' mientras la avería siga abierta
+  reportada_por uuid REFERENCES usuario(id),
+  resuelta_por uuid REFERENCES usuario(id),
+  fecha_reporte timestamptz NOT NULL DEFAULT now(),
+  fecha_resolucion timestamptz,
+  notas text,
+  -- Fase 2 (T-223, migración aditiva): merma de tolva por premio pagado.
+  afecta_tolva boolean NOT NULL DEFAULT false,
+  importe_tolva numeric(10,2) NOT NULL DEFAULT 0 CHECK (importe_tolva >= 0),
+  CONSTRAINT chk_averia_resuelta      CHECK (estado <> 'resuelta' OR fecha_resolucion IS NOT NULL),
+  CONSTRAINT chk_averia_tolva_importe CHECK (afecta_tolva OR importe_tolva = 0),
+  CONSTRAINT chk_averia_tolva_inst    CHECK (NOT afecta_tolva OR instalacion_id IS NOT NULL)  -- solo se recupera estando instalada
+);
+
+CREATE INDEX idx_averia_maquina ON averia(maquina_id, fecha_reporte DESC);  -- historial por máquina
+```
+
+**Historial por máquina (hoja de vida).** La avería cuelga de `maquina_id`, no de
+`instalacion_id`: una máquina pasa por varios locales/instalaciones a lo largo de
+su vida y su historial de averías debe atravesarlos todos. `instalacion_id` y
+`local_id` se guardan como **snapshot** del momento (re-apuntar la máquina o
+cerrar la instalación no reescribe averías pasadas). Consultar por `maquina_id`
+(orden `fecha_reporte DESC`) da la trazabilidad completa de *qué falló* y *qué se
+cambió* (vía §3.17).
+
+**Estado de la máquina.** `maquina.estado` es single-valued; `'averiada'` es
+**consecuencia derivada** de tener ≥1 avería abierta con
+`pone_maquina_fuera_servicio = true`, no una edición suelta. La RPC que abre/resuelve
+averías transiciona `maquina.estado`: al abrir → `'averiada'`; al resolver la última
+así → vuelve a `'instalada'` si tiene instalación activa, si no a `'almacen'` (se
+deriva, no se almacena el estado anterior). Un atasco leve (`pone_maquina_fuera_servicio = false`)
+no saca la máquina de servicio.
+
+### 3.17 `averia_recambio` (T-220)
+```sql
+averia_recambio (
+  id uuid PK,
+  empresa_id uuid REFERENCES empresa(id) ON DELETE RESTRICT,
+  averia_id uuid NOT NULL REFERENCES averia(id) ON DELETE CASCADE,  -- subordinado a la avería
+  pieza text NOT NULL,
+  cantidad integer NOT NULL DEFAULT 1 CHECK (cantidad > 0),
+  coste numeric(10,2) CHECK (coste >= 0),  -- INFORMATIVO (gasto de la empresa); NO se recupera de la recaudación
+  notas text
+);
+```
+
+Piezas cambiadas al reparar una avería (1 avería → N recambios). El `coste` es
+informativo para control de mantenimiento; **no** entra en el reparto ni se
+recupera (solo el premio de tolva, §5.6).
+
+### 3.18 `tolva_movimiento` + tolva efectiva (T-223)
+```sql
+tolva_movimiento (
+  id uuid PK,
+  empresa_id uuid REFERENCES empresa(id) ON DELETE RESTRICT,
+  instalacion_id uuid NOT NULL REFERENCES instalacion(id) ON DELETE RESTRICT,
+  tipo text NOT NULL CHECK (tipo IN ('merma','reposicion')),
+  importe numeric(10,2) NOT NULL CHECK (importe > 0),
+  averia_id uuid REFERENCES averia(id),            -- merma: qué avería la causó
+  recaudacion_id uuid REFERENCES recaudacion(id),  -- reposición: en qué recaudación se repuso
+  fecha timestamptz NOT NULL DEFAULT now(),
+  usuario_id uuid REFERENCES usuario(id),
+  notas text
+);
+```
+
+`instalacion.tolva` (§3.7) pasa a interpretarse como **tolva teórica** (nivel
+objetivo cargado al instalar). La **tolva efectiva se DERIVA** de un ledger
+append-only (mismo patrón que `v_credito_local_saldo`), nunca se almacena mutable:
+
+```sql
+-- v_instalacion_tolva
+teorica   = instalacion.tolva
+merma      = Σ importe WHERE tipo = 'merma'
+repuesto   = Σ importe WHERE tipo = 'reposicion'
+efectiva   = teorica - merma + repuesto
+pendiente  = teorica - efectiva   -- = merma - repuesto; lo que falta por reponer
+```
+
+Una avería con `afecta_tolva = true` inserta una `merma`; la recaudación que repone
+inserta una `reposicion` (§5.6). `pendiente` es lo que se recuperará en la siguiente
+recaudación. La merma por avería **no toca** la deuda de tolva de §3.14 (esa es la
+parte del *cebado* que debe el local; esto es un premio compartido).
+
 ## 4. Row Level Security (RLS)
 
 - Todas las tablas con `empresa_id` activan RLS.
@@ -463,6 +559,44 @@ recaudación persistirá recaudación + recuperaciones atómicamente,
 neto = 200 → parte_local 100, parte_empresa 100. recuperado = min(100, 100) = 100
 → el local se lleva 0; la empresa recibe 60 (tasa) + 100 (su parte) y además
 amortiza 100 de deuda. Saldo de deuda → 0.
+
+### 5.6 Recuperación de avería de tolva (T-224 · **modifica el SSOT**)
+
+Cuando una avería paga un premio de la tolva **sin que el contador de salidas lo
+registre**, el reparto queda inflado y la empresa se come el agujero en silencio.
+La recuperación lo corrige haciendo que ese premio *no contado* se comporte como
+uno contado: se repone **del neto, tras la tasa y ANTES del reparto**, de modo que
+local y empresa lo asumen según su %. A diferencia de §5.5, esto **sí cambia
+`parte_empresa` y `parte_local`**, por lo que vive DENTRO de `calculo.ts` (y su
+espejo `Calculo.kt`), no aparte.
+
+Por cada recaudación con `pendiente_tolva > 0` (de `v_instalacion_tolva`, §3.18):
+
+```
+neto         = bruto - tasa_total                       # §5.3, sin cambios hasta aquí
+pendiente    = max(0, tolva_teorica - tolva_efectiva)   # lo que falta por reponer
+reposicion   = min(neto, pendiente)                     # arrastrable: el resto va a la siguiente
+base_reparto = neto - reposicion
+parte_local  = round(base_reparto * pct_local / 100, 2)
+parte_empresa = base_reparto - parte_local              # absorbe el redondeo de céntimos
+# la reposición se devuelve FÍSICAMENTE a la tolva: tolva_movimiento(tipo='reposicion')
+# → tolva_efectiva sube; pendiente baja.
+```
+
+**Orden cuando coinciden las dos recuperaciones** en una misma recaudación: primero
+la de avería (§5.6, pre-reparto, baja `base_reparto`), luego sobre la `parte_local`
+resultante la de deuda (§5.5, post-reparto). Invariante:
+`parte_local + parte_empresa = neto - reposicion`. La migración rectifica cualquier
+constraint que ate el reparto a `neto` (como T-214 rectificó `chk_desglose_local_suma`).
+
+**Ejemplo** (bruto 100, tasa 0, % local 50, pendiente_tolva 50):
+neto = 100 → reposición = min(100, 50) = 50 → base_reparto = 50 → parte_local 25,
+parte_empresa 25. La tolva efectiva vuelve a la teórica. El premio de 50 € queda
+repartido 25/25, igual que si el contador lo hubiera registrado.
+
+**Edge case (a resolver en T-223):** si la máquina se da de **baja/se retira** con
+`pendiente_tolva > 0` y no hay recaudación futura de la que reponer, la merma
+pendiente se salda en efectivo o se condona (RPC de admin), análogo a `credito_local`.
 
 ## 6. Edge Functions
 
