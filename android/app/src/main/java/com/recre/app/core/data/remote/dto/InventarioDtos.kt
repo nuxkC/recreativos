@@ -176,3 +176,17 @@ data class InstalacionActivaDto(
     @SerialName("baseline_referencia_id")
     val baselineReferenciaId: String? = null,
 )
+
+/**
+ * Fila de la vista `public.v_instalacion_tolva` (T-223): la merma de tolva
+ * pendiente de reponer por instalación. La app la usa para descontar la
+ * reposición en la previa de recaudación (§5.6), igual que la deuda.
+ */
+@Serializable
+data class TolvaPendienteDto(
+    @SerialName("instalacion_id")
+    val instalacionId: String,
+    @SerialName("pendiente")
+    @Serializable(with = NumericStringSerializer::class)
+    val pendiente: String,
+)

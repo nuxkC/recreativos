@@ -1,0 +1,1067 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "16b99f04cdc1b77383e68df3fd975ebc",
+    "entities": [
+      {
+        "tableName": "empresa_params",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`empresa_id` TEXT NOT NULL, `nombre` TEXT NOT NULL, `cif` TEXT, `direccion` TEXT, `telefono` TEXT, `email` TEXT, `logo_url` TEXT, `zona_horaria` TEXT NOT NULL, `ticket_cabecera` TEXT, `ticket_pie` TEXT, `redondeo_recaudacion` INTEGER NOT NULL, `porcentaje_recuperacion` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`empresa_id`))",
+        "fields": [
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cif",
+            "columnName": "cif",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "direccion",
+            "columnName": "direccion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "telefono",
+            "columnName": "telefono",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "logoUrl",
+            "columnName": "logo_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "zonaHoraria",
+            "columnName": "zona_horaria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ticketCabecera",
+            "columnName": "ticket_cabecera",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ticketPie",
+            "columnName": "ticket_pie",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "redondeoRecaudacion",
+            "columnName": "redondeo_recaudacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "porcentajeRecuperacion",
+            "columnName": "porcentaje_recuperacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "empresa_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `nombre` TEXT NOT NULL, `direccion` TEXT, `cif_o_nif` TEXT, `titular_nombre` TEXT, `telefono` TEXT, `email` TEXT, `notas` TEXT, `porcentaje_recuperacion` INTEGER, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "direccion",
+            "columnName": "direccion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cifONif",
+            "columnName": "cif_o_nif",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "titularNombre",
+            "columnName": "titular_nombre",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "telefono",
+            "columnName": "telefono",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "porcentajeRecuperacion",
+            "columnName": "porcentaje_recuperacion",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_local_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_local_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "maquina",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `numero_serie` TEXT NOT NULL, `modelo` TEXT, `fabricante` TEXT, `valor_credito` TEXT NOT NULL, `contador_entradas_inicial` INTEGER NOT NULL, `contador_salidas_inicial` INTEGER NOT NULL, `estado` TEXT NOT NULL, `notas` TEXT, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "numeroSerie",
+            "columnName": "numero_serie",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modelo",
+            "columnName": "modelo",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fabricante",
+            "columnName": "fabricante",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "valorCredito",
+            "columnName": "valor_credito",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contadorEntradasInicial",
+            "columnName": "contador_entradas_inicial",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contadorSalidasInicial",
+            "columnName": "contador_salidas_inicial",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_maquina_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_maquina_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          },
+          {
+            "name": "idx_maquina_numero_serie",
+            "unique": true,
+            "columnNames": [
+              "empresa_id",
+              "numero_serie"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `idx_maquina_numero_serie` ON `${TABLE_NAME}` (`empresa_id`, `numero_serie`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "licencia",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `numero` TEXT NOT NULL, `tipo` TEXT, `fecha_expedicion` TEXT, `fecha_caducidad` TEXT, `comunidad_autonoma` TEXT, `estado` TEXT NOT NULL, `notas` TEXT, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "numero",
+            "columnName": "numero",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fechaExpedicion",
+            "columnName": "fecha_expedicion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fechaCaducidad",
+            "columnName": "fecha_caducidad",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "comunidadAutonoma",
+            "columnName": "comunidad_autonoma",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_licencia_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_licencia_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          },
+          {
+            "name": "idx_licencia_numero",
+            "unique": true,
+            "columnNames": [
+              "empresa_id",
+              "numero"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `idx_licencia_numero` ON `${TABLE_NAME}` (`empresa_id`, `numero`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "instalacion",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `maquina_id` TEXT NOT NULL, `licencia_id` TEXT NOT NULL, `local_id` TEXT NOT NULL, `fecha_inicio` TEXT NOT NULL, `tasa_semanal` TEXT NOT NULL, `porcentaje_local` TEXT NOT NULL, `contador_entradas_base` INTEGER NOT NULL, `contador_salidas_base` INTEGER NOT NULL, `estado` TEXT NOT NULL, `baseline_entradas` INTEGER NOT NULL, `baseline_salidas` INTEGER NOT NULL, `baseline_fecha` INTEGER NOT NULL, `baseline_origen` TEXT NOT NULL, `baseline_referencia_id` TEXT, `pendiente_tolva` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maquinaId",
+            "columnName": "maquina_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "licenciaId",
+            "columnName": "licencia_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localId",
+            "columnName": "local_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaInicio",
+            "columnName": "fecha_inicio",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tasaSemanal",
+            "columnName": "tasa_semanal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "porcentajeLocal",
+            "columnName": "porcentaje_local",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contadorEntradasBase",
+            "columnName": "contador_entradas_base",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contadorSalidasBase",
+            "columnName": "contador_salidas_base",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineEntradas",
+            "columnName": "baseline_entradas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineSalidas",
+            "columnName": "baseline_salidas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineFecha",
+            "columnName": "baseline_fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineOrigen",
+            "columnName": "baseline_origen",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineReferenciaId",
+            "columnName": "baseline_referencia_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pendienteTolva",
+            "columnName": "pendiente_tolva",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_instalacion_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_instalacion_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          },
+          {
+            "name": "idx_instalacion_local",
+            "unique": false,
+            "columnNames": [
+              "local_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_instalacion_local` ON `${TABLE_NAME}` (`local_id`)"
+          },
+          {
+            "name": "idx_instalacion_maquina",
+            "unique": false,
+            "columnNames": [
+              "maquina_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_instalacion_maquina` ON `${TABLE_NAME}` (`maquina_id`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "sync_meta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`empresa_id` TEXT NOT NULL, `last_synced_at` INTEGER NOT NULL, `last_result` TEXT NOT NULL, PRIMARY KEY(`empresa_id`))",
+        "fields": [
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAt",
+            "columnName": "last_synced_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastResult",
+            "columnName": "last_result",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "empresa_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "recaudacion_pendiente",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `instalacion_id` TEXT NOT NULL, `tecnico_id` TEXT NOT NULL, `fecha` INTEGER NOT NULL, `contador_entradas_actual` INTEGER NOT NULL, `contador_salidas_actual` INTEGER NOT NULL, `baseline_entradas` INTEGER NOT NULL, `baseline_salidas` INTEGER NOT NULL, `baseline_origen` TEXT NOT NULL, `baseline_referencia_id` TEXT, `valor_credito` TEXT NOT NULL, `tasa_semanal` TEXT NOT NULL, `semanas` INTEGER NOT NULL, `tasa_total` TEXT NOT NULL, `bruto` TEXT NOT NULL, `neto` TEXT NOT NULL, `porcentaje_local` TEXT NOT NULL, `parte_local` TEXT NOT NULL, `parte_empresa` TEXT NOT NULL, `desglose_total_json` TEXT NOT NULL, `desglose_local_json` TEXT NOT NULL, `orden_recuperacion_json` TEXT, `firma_png` BLOB NOT NULL, `observaciones` TEXT, `dispositivo_id` TEXT, `idempotency_key` TEXT NOT NULL, `estado` TEXT NOT NULL, `intentos` INTEGER NOT NULL, `ultimo_error` TEXT, `ultimo_intento_at` INTEGER, `created_at` INTEGER NOT NULL, `subida_at` INTEGER, `recaudacion_id_remoto` TEXT, `conflicto` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "instalacionId",
+            "columnName": "instalacion_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tecnicoId",
+            "columnName": "tecnico_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contadorEntradasActual",
+            "columnName": "contador_entradas_actual",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contadorSalidasActual",
+            "columnName": "contador_salidas_actual",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineEntradas",
+            "columnName": "baseline_entradas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineSalidas",
+            "columnName": "baseline_salidas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineOrigen",
+            "columnName": "baseline_origen",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineReferenciaId",
+            "columnName": "baseline_referencia_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "valorCredito",
+            "columnName": "valor_credito",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tasaSemanal",
+            "columnName": "tasa_semanal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "semanas",
+            "columnName": "semanas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tasaTotal",
+            "columnName": "tasa_total",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bruto",
+            "columnName": "bruto",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "neto",
+            "columnName": "neto",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "porcentajeLocal",
+            "columnName": "porcentaje_local",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parteLocal",
+            "columnName": "parte_local",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parteEmpresa",
+            "columnName": "parte_empresa",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "desgloseTotalJson",
+            "columnName": "desglose_total_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "desgloseLocalJson",
+            "columnName": "desglose_local_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ordenRecuperacionJson",
+            "columnName": "orden_recuperacion_json",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "firmaPng",
+            "columnName": "firma_png",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observaciones",
+            "columnName": "observaciones",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "dispositivoId",
+            "columnName": "dispositivo_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentos",
+            "columnName": "intentos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ultimoError",
+            "columnName": "ultimo_error",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ultimoIntentoAt",
+            "columnName": "ultimo_intento_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subidaAt",
+            "columnName": "subida_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recaudacionIdRemoto",
+            "columnName": "recaudacion_id_remoto",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "conflicto",
+            "columnName": "conflicto",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_recaudacion_pendiente_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_recaudacion_pendiente_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          },
+          {
+            "name": "idx_recaudacion_pendiente_estado",
+            "unique": false,
+            "columnNames": [
+              "estado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_recaudacion_pendiente_estado` ON `${TABLE_NAME}` (`estado`)"
+          },
+          {
+            "name": "idx_recaudacion_pendiente_idempotency",
+            "unique": true,
+            "columnNames": [
+              "idempotency_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `idx_recaudacion_pendiente_idempotency` ON `${TABLE_NAME}` (`idempotency_key`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "credito_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`credito_id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `local_id` TEXT NOT NULL, `tipo` TEXT NOT NULL, `instalacion_id` TEXT, `principal` TEXT NOT NULL, `tipo_interes` TEXT NOT NULL, `fecha` TEXT NOT NULL, `estado` TEXT NOT NULL, `notas` TEXT, `recuperado` TEXT NOT NULL, `saldo` TEXT NOT NULL, PRIMARY KEY(`credito_id`))",
+        "fields": [
+          {
+            "fieldPath": "creditoId",
+            "columnName": "credito_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localId",
+            "columnName": "local_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "instalacionId",
+            "columnName": "instalacion_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "principal",
+            "columnName": "principal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoInteres",
+            "columnName": "tipo_interes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recuperado",
+            "columnName": "recuperado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "saldo",
+            "columnName": "saldo",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "credito_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_credito_local_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_credito_local_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          },
+          {
+            "name": "idx_credito_local_local",
+            "unique": false,
+            "columnNames": [
+              "local_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_credito_local_local` ON `${TABLE_NAME}` (`local_id`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "averia_pendiente",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `empresa_id` TEXT NOT NULL, `maquina_id` TEXT NOT NULL, `maquina_numero_serie` TEXT NOT NULL, `categoria` TEXT NOT NULL, `descripcion` TEXT, `pone_maquina_fuera_servicio` INTEGER NOT NULL, `notas` TEXT, `recambios_json` TEXT NOT NULL, `estado` TEXT NOT NULL, `intentos` INTEGER NOT NULL, `ultimo_error` TEXT, `ultimo_intento_at` INTEGER, `created_at` INTEGER NOT NULL, `subida_at` INTEGER, `averia_id_remoto` TEXT, `recambios_subidos` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "empresaId",
+            "columnName": "empresa_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maquinaId",
+            "columnName": "maquina_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maquinaNumeroSerie",
+            "columnName": "maquina_numero_serie",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoria",
+            "columnName": "categoria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "poneMaquinaFueraServicio",
+            "columnName": "pone_maquina_fuera_servicio",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recambiosJson",
+            "columnName": "recambios_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentos",
+            "columnName": "intentos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ultimoError",
+            "columnName": "ultimo_error",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ultimoIntentoAt",
+            "columnName": "ultimo_intento_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subidaAt",
+            "columnName": "subida_at",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "averiaIdRemoto",
+            "columnName": "averia_id_remoto",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recambiosSubidos",
+            "columnName": "recambios_subidos",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_averia_pendiente_empresa",
+            "unique": false,
+            "columnNames": [
+              "empresa_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_empresa` ON `${TABLE_NAME}` (`empresa_id`)"
+          },
+          {
+            "name": "idx_averia_pendiente_estado",
+            "unique": false,
+            "columnNames": [
+              "estado"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_estado` ON `${TABLE_NAME}` (`estado`)"
+          },
+          {
+            "name": "idx_averia_pendiente_maquina",
+            "unique": false,
+            "columnNames": [
+              "maquina_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_maquina` ON `${TABLE_NAME}` (`maquina_id`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '16b99f04cdc1b77383e68df3fd975ebc')"
+    ]
+  }
+}

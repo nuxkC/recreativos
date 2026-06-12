@@ -67,6 +67,12 @@ data class MaquinaConInstalacion(
     val localId: String,
     val localNombre: String,
     val localDireccion: String?,
+    /**
+     * Merma de tolva pendiente de reponer (de la instalación sincronizada, §5.6).
+     * Default "0": solo el flujo de recaudación la necesita; otros usos
+     * (p.ej. reimpresión de ticket) no recalculan, así que 0 es inocuo.
+     */
+    val pendienteTolva: String = "0",
 )
 
 /**

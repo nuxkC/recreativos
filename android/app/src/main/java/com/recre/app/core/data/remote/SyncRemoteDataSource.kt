@@ -6,6 +6,7 @@ import com.recre.app.core.data.remote.dto.InstalacionActivaDto
 import com.recre.app.core.data.remote.dto.LicenciaDto
 import com.recre.app.core.data.remote.dto.LocalDto
 import com.recre.app.core.data.remote.dto.MaquinaDto
+import com.recre.app.core.data.remote.dto.TolvaPendienteDto
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import javax.inject.Inject
@@ -85,6 +86,18 @@ class SyncRemoteDataSource @Inject constructor(
                 filter {
                     eq("empresa_id", empresaId)
                     eq("estado", "abierto")
+                }
+            }
+            .decodeList()
+
+    /** Merma de tolva pendiente por instalación activa (v_instalacion_tolva, §5.6). */
+    suspend fun fetchTolvaPendientes(empresaId: String): List<TolvaPendienteDto> =
+        supabase
+            .from("v_instalacion_tolva")
+            .select {
+                filter {
+                    eq("empresa_id", empresaId)
+                    eq("estado", "activa")
                 }
             }
             .decodeList()

@@ -169,6 +169,7 @@ class InventoryRepositoryImpl @Inject constructor(
         localId = local.id,
         localNombre = local.nombre,
         localDireccion = local.direccion,
+        pendienteTolva = inst.pendienteTolva,
     )
 
     private fun empresaActivaIdFlow(): Flow<String?> =

@@ -38,6 +38,7 @@ object DatabaseModule {
                 RecreDatabase.MIGRATION_3_4,
                 RecreDatabase.MIGRATION_4_5,
                 RecreDatabase.MIGRATION_5_6,
+                RecreDatabase.MIGRATION_6_7,
             )
             // Solo como red de seguridad para builds antiguos (alpha) que
             // hubiera v=1; los técnicos en producción nunca pasarán por ahí.

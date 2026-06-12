@@ -66,4 +66,9 @@ data class InstalacionEntity(
     val baselineOrigen: String,
     @ColumnInfo(name = "baseline_referencia_id")
     val baselineReferenciaId: String?,
+    // Merma de tolva pendiente de reponer (de v_instalacion_tolva). La previa de
+    // recaudación la descuenta antes del reparto (§5.6) para que las cifras que ve
+    // el técnico —y el desglose que separa— cuadren con lo que persiste el servidor.
+    @ColumnInfo(name = "pendiente_tolva")
+    val pendienteTolva: String = "0",
 )

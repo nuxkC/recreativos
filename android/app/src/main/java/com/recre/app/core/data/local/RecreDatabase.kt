@@ -43,6 +43,11 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * reportadas por el técnico (mismo criterio que `recaudacion_pendiente`: el
  * reporte se persiste siempre y se sube cuando hay red).
  *
+ * Versión 7 (T-225): añade `instalacion.pendiente_tolva` (merma de tolva
+ * pendiente, de `v_instalacion_tolva`) para que la previa de recaudación
+ * descuente la reposición antes del reparto (§5.6) y el técnico separe el
+ * dinero correcto (que cuadre con lo que persiste el servidor).
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -59,7 +64,7 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         CreditoLocalEntity::class,
         AveriaPendienteEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -238,6 +243,18 @@ abstract class RecreDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_maquina` " +
                         "ON `averia_pendiente` (`maquina_id`)",
+                )
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Merma de tolva pendiente por instalación (de v_instalacion_tolva).
+                // La previa la descuenta antes del reparto (§5.6). DEFAULT '0' para
+                // las filas ya sincronizadas; la próxima sync trae el valor real.
+                db.execSQL(
+                    "ALTER TABLE `instalacion` ADD COLUMN `pendiente_tolva` " +
+                        "TEXT NOT NULL DEFAULT '0'",
                 )
             }
         }

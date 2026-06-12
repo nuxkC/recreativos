@@ -23,6 +23,7 @@ import com.recre.app.core.data.remote.dto.InstalacionActivaDto
 import com.recre.app.core.data.remote.dto.LicenciaDto
 import com.recre.app.core.data.remote.dto.LocalDto
 import com.recre.app.core.data.remote.dto.MaquinaDto
+import com.recre.app.core.data.remote.dto.TolvaPendienteDto
 import com.recre.app.core.sync.SyncSummary
 import com.recre.app.core.util.DomainError
 import com.recre.app.core.util.DomainResult
@@ -85,6 +86,7 @@ class SyncRepositoryImpl @Inject constructor(
                 val licenciasJob = async { remote.fetchLicencias(empresaId) }
                 val instalacionesJob = async { remote.fetchInstalacionesActivas(empresaId) }
                 val creditosJob = async { remote.fetchCreditosAbiertos(empresaId) }
+                val tolvaPendientesJob = async { remote.fetchTolvaPendientes(empresaId) }
                 Descarga(
                     empresa = empresaJob.await(),
                     locales = localesJob.await(),
@@ -92,6 +94,7 @@ class SyncRepositoryImpl @Inject constructor(
                     licencias = licenciasJob.await(),
                     instalaciones = instalacionesJob.await(),
                     creditos = creditosJob.await(),
+                    tolvaPendientes = tolvaPendientesJob.await(),
                 )
             }
         }
@@ -119,8 +122,14 @@ class SyncRepositoryImpl @Inject constructor(
                 licenciaDao.borrarPorEmpresa(empresaId)
                 licenciaDao.upsertAll(descarga.licencias.map { it.toEntity() })
 
+                val pendientesPorInstalacion =
+                    descarga.tolvaPendientes.associate { it.instalacionId to it.pendiente }
                 instalacionDao.borrarPorEmpresa(empresaId)
-                instalacionDao.upsertAll(descarga.instalaciones.map { it.toEntity() })
+                instalacionDao.upsertAll(
+                    descarga.instalaciones.map {
+                        it.toEntity(pendientesPorInstalacion[it.instalacionId] ?: "0")
+                    },
+                )
 
                 creditoLocalDao.borrarPorEmpresa(empresaId)
                 creditoLocalDao.upsertAll(descarga.creditos.map { it.toEntity() })
@@ -234,7 +243,7 @@ class SyncRepositoryImpl @Inject constructor(
         updatedAt = parseTimestamp(updatedAt),
     )
 
-    private fun InstalacionActivaDto.toEntity(): InstalacionEntity = InstalacionEntity(
+    private fun InstalacionActivaDto.toEntity(pendienteTolva: String): InstalacionEntity = InstalacionEntity(
         id = instalacionId,
         empresaId = empresaId,
         maquinaId = maquinaId,
@@ -251,6 +260,7 @@ class SyncRepositoryImpl @Inject constructor(
         baselineFecha = parseTimestamp(baselineFecha),
         baselineOrigen = baselineOrigen,
         baselineReferenciaId = baselineReferenciaId,
+        pendienteTolva = pendienteTolva,
     )
 
     /**
@@ -283,5 +293,6 @@ class SyncRepositoryImpl @Inject constructor(
         val licencias: List<LicenciaDto>,
         val instalaciones: List<InstalacionActivaDto>,
         val creditos: List<CreditoLocalSaldoDto>,
+        val tolvaPendientes: List<TolvaPendienteDto>,
     )
 }

@@ -143,6 +143,7 @@ class RecaudacionFlowInstrumentedTest {
         localId = "local-1",
         localNombre = "Bar Pepe",
         localDireccion = "Calle Mayor 1",
+        pendienteTolva = "0",
     )
 
     // -------------------------------------------------------------------------

@@ -363,6 +363,10 @@ class RecaudacionFlowViewModel @Inject constructor(
                 porcentajeLocal = BigDecimal(maquina.porcentajeLocal),
                 semanas = semanas,
                 redondeoUnidad = empresa.redondeoRecaudacion,
+                // Reposición de tolva (§5.6): se descuenta antes del reparto para
+                // que la previa y el desglose que separa el técnico cuadren con lo
+                // que persiste el servidor. Dato sincronizado (como la deuda).
+                pendienteTolva = BigDecimal(maquina.pendienteTolva),
             ),
         )
     }
