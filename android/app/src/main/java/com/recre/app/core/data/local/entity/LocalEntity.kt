@@ -33,6 +33,13 @@ data class LocalEntity(
     val telefono: String?,
     val email: String?,
     val notas: String?,
+    /**
+     * Override del % de recuperación de deuda del local (T-215). `null` =
+     * hereda el de la empresa ([EmpresaParamsEntity.porcentajeRecuperacion]).
+     * Espejo de `local.porcentaje_recuperacion` (smallint nullable).
+     */
+    @ColumnInfo(name = "porcentaje_recuperacion")
+    val porcentajeRecuperacion: Int?,
     @ColumnInfo(name = "updated_at")
     val updatedAt: Instant,
 )

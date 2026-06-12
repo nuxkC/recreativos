@@ -2,12 +2,14 @@ package com.recre.app.core.data.repository
 
 import androidx.room.withTransaction
 import com.recre.app.core.data.local.RecreDatabase
+import com.recre.app.core.data.local.dao.CreditoLocalDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.LicenciaDao
 import com.recre.app.core.data.local.dao.LocalDao
 import com.recre.app.core.data.local.dao.MaquinaDao
 import com.recre.app.core.data.local.dao.SyncMetaDao
+import com.recre.app.core.data.local.entity.CreditoLocalEntity
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.local.entity.InstalacionEntity
 import com.recre.app.core.data.local.entity.LicenciaEntity
@@ -15,6 +17,7 @@ import com.recre.app.core.data.local.entity.LocalEntity
 import com.recre.app.core.data.local.entity.MaquinaEntity
 import com.recre.app.core.data.local.entity.SyncMetaEntity
 import com.recre.app.core.data.remote.SyncRemoteDataSource
+import com.recre.app.core.data.remote.dto.CreditoLocalSaldoDto
 import com.recre.app.core.data.remote.dto.EmpresaFullDto
 import com.recre.app.core.data.remote.dto.InstalacionActivaDto
 import com.recre.app.core.data.remote.dto.LicenciaDto
@@ -70,6 +73,7 @@ class SyncRepositoryImpl @Inject constructor(
     private val licenciaDao: LicenciaDao,
     private val instalacionDao: InstalacionDao,
     private val syncMetaDao: SyncMetaDao,
+    private val creditoLocalDao: CreditoLocalDao,
 ) : SyncRepository {
 
     override suspend fun sincronizar(empresaId: String): DomainResult<SyncSummary> {
@@ -80,12 +84,14 @@ class SyncRepositoryImpl @Inject constructor(
                 val maquinasJob = async { remote.fetchMaquinas(empresaId) }
                 val licenciasJob = async { remote.fetchLicencias(empresaId) }
                 val instalacionesJob = async { remote.fetchInstalacionesActivas(empresaId) }
+                val creditosJob = async { remote.fetchCreditosAbiertos(empresaId) }
                 Descarga(
                     empresa = empresaJob.await(),
                     locales = localesJob.await(),
                     maquinas = maquinasJob.await(),
                     licencias = licenciasJob.await(),
                     instalaciones = instalacionesJob.await(),
+                    creditos = creditosJob.await(),
                 )
             }
         }
@@ -115,6 +121,9 @@ class SyncRepositoryImpl @Inject constructor(
 
                 instalacionDao.borrarPorEmpresa(empresaId)
                 instalacionDao.upsertAll(descarga.instalaciones.map { it.toEntity() })
+
+                creditoLocalDao.borrarPorEmpresa(empresaId)
+                creditoLocalDao.upsertAll(descarga.creditos.map { it.toEntity() })
 
                 syncMetaDao.upsert(
                     SyncMetaEntity(
@@ -165,6 +174,7 @@ class SyncRepositoryImpl @Inject constructor(
         ticketCabecera = ticketCabecera,
         ticketPie = ticketPie,
         redondeoRecaudacion = redondeoRecaudacion,
+        porcentajeRecuperacion = porcentajeRecuperacion,
         updatedAt = parseTimestamp(updatedAt),
     )
 
@@ -178,7 +188,23 @@ class SyncRepositoryImpl @Inject constructor(
         telefono = telefono,
         email = email,
         notas = notas,
+        porcentajeRecuperacion = porcentajeRecuperacion,
         updatedAt = parseTimestamp(updatedAt),
+    )
+
+    private fun CreditoLocalSaldoDto.toEntity(): CreditoLocalEntity = CreditoLocalEntity(
+        creditoId = creditoId,
+        empresaId = empresaId,
+        localId = localId,
+        tipo = tipo,
+        instalacionId = instalacionId,
+        principal = principal,
+        tipoInteres = tipoInteres,
+        fecha = fecha,
+        estado = estado,
+        notas = notas,
+        recuperado = recuperado,
+        saldo = saldo,
     )
 
     private fun MaquinaDto.toEntity(): MaquinaEntity = MaquinaEntity(
@@ -256,5 +282,6 @@ class SyncRepositoryImpl @Inject constructor(
         val maquinas: List<MaquinaDto>,
         val licencias: List<LicenciaDto>,
         val instalaciones: List<InstalacionActivaDto>,
+        val creditos: List<CreditoLocalSaldoDto>,
     )
 }

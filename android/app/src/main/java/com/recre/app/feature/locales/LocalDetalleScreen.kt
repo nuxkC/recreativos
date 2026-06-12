@@ -20,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +48,7 @@ fun LocalDetalleScreen(
     onRecaudarMaquina: (String) -> Unit,
     onCambioPlaca: (String) -> Unit,
     onRecaudarTodas: (String) -> Unit,
+    onVerDeudas: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pullState = rememberPullToRefreshState()
@@ -90,6 +92,7 @@ fun LocalDetalleScreen(
                     onCambioPlaca = onCambioPlaca,
                     onSincronizar = viewModel::refrescar,
                     onRecaudarTodas = onRecaudarTodas,
+                    onVerDeudas = onVerDeudas,
                 )
             }
         }
@@ -138,6 +141,7 @@ private fun Contenido(
     onCambioPlaca: (String) -> Unit,
     onSincronizar: () -> Unit,
     onRecaudarTodas: (String) -> Unit,
+    onVerDeudas: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -151,6 +155,14 @@ private fun Contenido(
         }
         item("cabecera") {
             CabeceraLocal(detalle = detalle)
+        }
+        item("deudas") {
+            OutlinedButton(
+                onClick = onVerDeudas,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.local_detalle_ver_deudas))
+            }
         }
         if (detalle.maquinas.isNotEmpty() && !syncStale) {
             // Botón "Recaudar todas" disponible cuando hay máquinas activas y

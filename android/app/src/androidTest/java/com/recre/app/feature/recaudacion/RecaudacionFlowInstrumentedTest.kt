@@ -21,7 +21,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.recre.app.R
 import com.recre.app.core.auth.Rol
+import com.recre.app.core.data.local.dao.CreditoLocalDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
+import com.recre.app.core.data.local.dao.LocalDao
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.repository.AuthRepository
 import com.recre.app.core.data.repository.InventoryRepository
@@ -97,6 +99,7 @@ class RecaudacionFlowInstrumentedTest {
         ticketCabecera = null,
         ticketPie = null,
         redondeoRecaudacion = 0,
+        porcentajeRecuperacion = 0,
         updatedAt = Instant.now(),
     )
 
@@ -155,6 +158,12 @@ class RecaudacionFlowInstrumentedTest {
         val empresaParamsDao = mockk<EmpresaParamsDao>(relaxed = true)
         every { empresaParamsDao.observe(any()) } returns flowOf(empresaParams)
 
+        // T-215: el flujo observa deudas + % del local; sin deudas en el test.
+        val creditoLocalDao = mockk<CreditoLocalDao>(relaxed = true)
+        every { creditoLocalDao.observarPorLocal(any()) } returns flowOf(emptyList())
+        val localDao = mockk<LocalDao>(relaxed = true)
+        every { localDao.observe(any()) } returns flowOf(null)
+
         val inventoryRepository = mockk<InventoryRepository>(relaxed = true)
         every { inventoryRepository.observarMaquinaPorInstalacion(any()) } returns flowOf(maquina)
 
@@ -170,6 +179,8 @@ class RecaudacionFlowInstrumentedTest {
             ),
             inventoryRepository = inventoryRepository,
             empresaParamsDao = empresaParamsDao,
+            creditoLocalDao = creditoLocalDao,
+            localDao = localDao,
             sessionRepository = sessionRepository,
             authRepository = mockk<AuthRepository>(relaxed = true),
             recaudacionRepository = mockk<RecaudacionRepository>(relaxed = true),

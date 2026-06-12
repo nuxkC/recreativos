@@ -48,6 +48,9 @@ data class InstalacionFormUiState(
     val fechaInicio: String = LocalDate.now().toString(),
     val tasaSemanal: String = "",
     val porcentajeLocal: String = "",
+    // Tolva inicial del local en la máquina (T-215). Solo se teclea en el alta;
+    // por defecto 0 (la mayoría de instalaciones no arrancan con tolva).
+    val tolva: String = "0",
     val notas: String = "",
     // Validación + estado de envío
     val errores: Map<String, String> = emptyMap(),
@@ -183,6 +186,7 @@ class InstalacionFormViewModel @Inject constructor(
     fun onFechaInicioChange(v: String) = _state.update { it.copy(fechaInicio = v) }
     fun onTasaChange(v: String) = _state.update { it.copy(tasaSemanal = v) }
     fun onPorcentajeChange(v: String) = _state.update { it.copy(porcentajeLocal = v) }
+    fun onTolvaChange(v: String) = _state.update { it.copy(tolva = v) }
     fun onNotasChange(v: String) = _state.update { it.copy(notas = v) }
     fun consumirError() = _state.update { it.copy(errorCode = null) }
 
@@ -210,6 +214,13 @@ class InstalacionFormViewModel @Inject constructor(
         if (tasa == null) errores["tasaSemanal"] = "tasa_invalida"
         val pct = normalizarDecimal(s.porcentajeLocal, BigDecimal.ZERO, MAX_PCT, 2)
         if (pct == null) errores["porcentajeLocal"] = "porcentaje_invalido"
+        // La tolva solo se teclea en el alta; vacío = 0.
+        val tolva = if (s.esEdicion) {
+            BigDecimal.ZERO
+        } else {
+            normalizarDecimal(s.tolva.ifBlank { "0" }, BigDecimal.ZERO, MAX_TOLVA, 2)
+                ?: run { errores["tolva"] = "tolva_invalida"; null }
+        }
 
         if (errores.isNotEmpty()) {
             _state.update { it.copy(errores = errores) }
@@ -238,6 +249,7 @@ class InstalacionFormViewModel @Inject constructor(
                         tasaSemanal = tasa!!.toPlainString(),
                         porcentajeLocal = pct!!.toPlainString(),
                         notas = s.notas.normalizarOpcional(),
+                        tolva = tolva!!.toPlainString(),
                     ),
                 )
             }
@@ -284,5 +296,6 @@ class InstalacionFormViewModel @Inject constructor(
         const val ARG_INSTALACION_ID = "instalacionGestorId"
         private val MAX_TASA = BigDecimal("999999.99")
         private val MAX_PCT = BigDecimal("100.00")
+        private val MAX_TOLVA = BigDecimal("99999999.99")
     }
 }

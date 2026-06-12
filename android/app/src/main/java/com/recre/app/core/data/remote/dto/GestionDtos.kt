@@ -198,6 +198,15 @@ data class CrearInstalacionParams(
     val porcentajeLocal: String,
     @SerialName("p_notas")
     val notas: String? = null,
+    /**
+     * Tolva inicial del local en esta máquina (T-215). La RPC crea/continúa la
+     * deuda de tolva. Sin valor por defecto en Kotlin para que kotlinx lo
+     * serialice SIEMPRE (la función tiene DEFAULT 0, pero queremos enviar el
+     * valor que teclea el gestor, incluido 0 explícito).
+     */
+    @SerialName("p_tolva")
+    @Serializable(with = NumericStringSerializer::class)
+    val tolva: String,
 )
 
 /**

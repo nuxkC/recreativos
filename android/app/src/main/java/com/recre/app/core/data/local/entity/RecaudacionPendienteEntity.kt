@@ -88,6 +88,15 @@ data class RecaudacionPendienteEntity(
     @ColumnInfo(name = "desglose_local_json")
     val desgloseLocalJson: String,
 
+    /**
+     * Orden manual de imputación de la recuperación (T-215): JSON con una lista
+     * de `credito_id`. `null` = orden por defecto (tolva → FIFO). El servidor
+     * recalcula el plan de recuperación como SSOT respetando este orden; solo
+     * afecta a QUÉ deuda se amortiza primero, no al total entregado al local.
+     */
+    @ColumnInfo(name = "orden_recuperacion_json")
+    val ordenRecuperacionJson: String?,
+
     /** PNG ya rasterizado de la firma. Se codifica a base64 al subir. */
     @ColumnInfo(name = "firma_png", typeAffinity = ColumnInfo.BLOB)
     val firmaPng: ByteArray,

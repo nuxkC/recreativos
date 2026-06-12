@@ -169,6 +169,23 @@ fun InstalacionFormScreen(
                     modifier = Modifier.weight(1f),
                 )
             }
+            if (!state.esEdicion) {
+                GestionTextField(
+                    label = stringResource(R.string.gestion_instalacion_tolva),
+                    value = state.tolva,
+                    onValueChange = viewModel::onTolvaChange,
+                    placeholder = "0.00",
+                    keyboardType = KeyboardType.Decimal,
+                    error = state.errores["tolva"]?.let {
+                        stringResource(R.string.gestion_validacion_tolva)
+                    },
+                )
+                Text(
+                    text = stringResource(R.string.gestion_instalacion_tolva_ayuda),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             GestionTextField(
                 label = stringResource(R.string.gestion_instalacion_notas),
                 value = state.notas,

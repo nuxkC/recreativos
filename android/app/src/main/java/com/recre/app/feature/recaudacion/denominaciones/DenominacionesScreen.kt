@@ -38,6 +38,7 @@ import com.recre.app.core.calculo.DENOMINACIONES_PERMITIDAS
 import com.recre.app.core.calculo.importesIguales
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
+import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.formatEur
 import java.math.BigDecimal
 
@@ -46,7 +47,9 @@ import java.math.BigDecimal
  *
  * Reutilizada dos veces dentro del flujo:
  *   - Modo `Total`: la suma debe coincidir con `cifras.bruto`.
- *   - Modo `Local`: la suma debe coincidir con `cifras.parteLocal`.
+ *   - Modo `Local`: la suma debe coincidir con `pagado_local` (parte_local
+ *     menos lo recuperado de la deuda del local, T-215). Sin deuda o con
+ *     pct=0, `pagado_local == parte_local` y el comportamiento es el de antes.
  *
  * Componente reutilizable: solo cambia el target esperado y el valor
  * inicial del map. La validación de "suma exacta" usa
@@ -68,7 +71,9 @@ fun DenominacionesScreen(
     val cifras = state.cifras
     val target: BigDecimal? = when (modo) {
         ModoDenominaciones.Total -> cifras?.bruto
-        ModoDenominaciones.Local -> cifras?.parteLocal
+        // En modo Local el objetivo es lo que se entrega al local (pagado_local
+        // = parte_local − recuperado). Si no hay plan, cae a parte_local.
+        ModoDenominaciones.Local -> state.recuperacion?.pagadoLocal ?: cifras?.parteLocal
     }
     val map = when (modo) {
         ModoDenominaciones.Total -> state.denominacionesTotal
@@ -120,6 +125,23 @@ fun DenominacionesScreen(
                 contentPadding = PaddingValuesAll(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // Resumen de recuperación (solo modo Local y cuando hay deuda
+                // que se amortiza con esta recaudación).
+                val plan = state.recuperacion
+                if (modo == ModoDenominaciones.Local && plan != null &&
+                    plan.recuperadoTotal.signum() > 0
+                ) {
+                    item("recuperacion") {
+                        RecuperacionResumenCard(
+                            creditos = state.creditosAbiertos,
+                            plan = plan,
+                            ordenManual = state.ordenManual,
+                            reordenable = true,
+                            onSubir = viewModel::moverCreditoArriba,
+                            onBajar = viewModel::moverCreditoAbajo,
+                        )
+                    }
+                }
                 items(DENOMINACIONES_PERMITIDAS, key = { it.toPlainString() }) { denominacion ->
                     val key = denominacion.toPlainString()
                     DenominacionRow(

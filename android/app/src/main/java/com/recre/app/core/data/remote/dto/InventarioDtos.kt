@@ -36,6 +36,8 @@ data class EmpresaFullDto(
     val ticketPie: String? = null,
     @SerialName("redondeo_recaudacion")
     val redondeoRecaudacion: Int = 0,
+    @SerialName("porcentaje_recuperacion")
+    val porcentajeRecuperacion: Int = 0,
     @SerialName("updated_at")
     val updatedAt: String,
 )
@@ -54,8 +56,41 @@ data class LocalDto(
     val telefono: String? = null,
     val email: String? = null,
     val notas: String? = null,
+    @SerialName("porcentaje_recuperacion")
+    val porcentajeRecuperacion: Int? = null,
     @SerialName("updated_at")
     val updatedAt: String,
+)
+
+/**
+ * Fila de la vista `public.v_credito_local_saldo` (T-215). Solo se descargan
+ * las deudas con `estado = 'abierto'`: las que necesita el preview offline de
+ * recuperación y la ficha de deudas. Importes como `String` (precisión
+ * `numeric(10,2)`); `fecha` ISO `YYYY-MM-DD`.
+ */
+@Serializable
+data class CreditoLocalSaldoDto(
+    @SerialName("credito_id")
+    val creditoId: String,
+    @SerialName("empresa_id")
+    val empresaId: String,
+    @SerialName("local_id")
+    val localId: String,
+    val tipo: String,
+    @SerialName("instalacion_id")
+    val instalacionId: String? = null,
+    @Serializable(with = NumericStringSerializer::class)
+    val principal: String,
+    @SerialName("tipo_interes")
+    @Serializable(with = NumericStringSerializer::class)
+    val tipoInteres: String,
+    val fecha: String,
+    val estado: String,
+    val notas: String? = null,
+    @Serializable(with = NumericStringSerializer::class)
+    val recuperado: String,
+    @Serializable(with = NumericStringSerializer::class)
+    val saldo: String,
 )
 
 @Serializable

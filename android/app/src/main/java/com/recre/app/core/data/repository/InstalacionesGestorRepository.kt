@@ -51,6 +51,8 @@ data class InstalacionInputData(
     val tasaSemanal: String,
     val porcentajeLocal: String,
     val notas: String?,
+    /** Tolva inicial del local en la máquina (T-215). "0" si no aplica. */
+    val tolva: String,
 )
 
 /** Datos editables después del alta (FKs y estado son inmutables). */
@@ -83,6 +85,7 @@ class InstalacionesGestorRepositoryImpl @Inject constructor(
                     tasaSemanal = input.tasaSemanal,
                     porcentajeLocal = input.porcentajeLocal,
                     notas = input.notas,
+                    tolva = input.tolva,
                 ),
             )
         }.fold(

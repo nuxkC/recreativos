@@ -19,6 +19,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 
@@ -64,6 +65,8 @@ data class EncolarRecaudacionInput(
     val firmaPng: ByteArray,
     val observaciones: String?,
     val dispositivoId: String?,
+    /** Orden manual de imputación de la recuperación (T-215). `null` = defecto. */
+    val ordenRecuperacion: List<String>? = null,
 )
 
 @Singleton
@@ -101,6 +104,9 @@ class RecaudacionRepositoryImpl @Inject constructor(
             parteEmpresa = input.cifras.parteEmpresa.toPlainString(),
             desgloseTotalJson = serializarDesglose(input.desgloseTotal),
             desgloseLocalJson = serializarDesglose(input.desgloseLocal),
+            ordenRecuperacionJson = input.ordenRecuperacion
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { json.encodeToString(ListSerializer(String.serializer()), it) },
             firmaPng = input.firmaPng,
             observaciones = input.observaciones,
             dispositivoId = input.dispositivoId,
@@ -170,6 +176,9 @@ class RecaudacionRepositoryImpl @Inject constructor(
     private fun mapToRequest(entity: RecaudacionPendienteEntity): CrearRecaudacionRequest {
         val desgloseTotal = deserializarDesglose(entity.desgloseTotalJson)
         val desgloseLocal = deserializarDesglose(entity.desgloseLocalJson)
+        val orden = entity.ordenRecuperacionJson?.let {
+            json.decodeFromString(ListSerializer(String.serializer()), it)
+        }
         val fechaIso = OffsetDateTime.ofInstant(entity.fecha, ZoneOffset.UTC).toString()
         return CrearRecaudacionRequest(
             instalacionId = entity.instalacionId,
@@ -186,6 +195,7 @@ class RecaudacionRepositoryImpl @Inject constructor(
             baselineId = entity.baselineReferenciaId,
             baselineEntradas = entity.baselineEntradas,
             baselineSalidas = entity.baselineSalidas,
+            ordenRecuperacion = orden,
         )
     }
 

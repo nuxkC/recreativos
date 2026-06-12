@@ -8,12 +8,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import com.recre.app.core.calculo.CalcularInput
 import com.recre.app.core.calculo.Cifras
+import com.recre.app.core.calculo.CreditoAbierto
 import com.recre.app.core.calculo.DenominacionItem
 import com.recre.app.core.calculo.FirmaRenderer
 import com.recre.app.core.calculo.calcularRecaudacion
+import com.recre.app.core.calculo.planificarRecuperacion
 import com.recre.app.core.calculo.semanasIsoEntre
 import com.recre.app.core.calculo.sumarDesglose
+import com.recre.app.core.data.local.dao.CreditoLocalDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
+import com.recre.app.core.data.local.dao.LocalDao
+import com.recre.app.core.data.local.entity.CreditoLocalEntity
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.repository.AuthRepository
 import com.recre.app.core.data.repository.EncolarRecaudacionInput
@@ -39,9 +44,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -71,6 +78,8 @@ class RecaudacionFlowViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val inventoryRepository: InventoryRepository,
     empresaParamsDao: EmpresaParamsDao,
+    creditoLocalDao: CreditoLocalDao,
+    localDao: LocalDao,
     private val sessionRepository: SessionRepository,
     private val authRepository: AuthRepository,
     private val recaudacionRepository: RecaudacionRepository,
@@ -103,6 +112,30 @@ class RecaudacionFlowViewModel @Inject constructor(
             if (id == null) flowOf(false) else syncManager.observarSyncStale(id)
         }
 
+        // T-215 — deudas abiertas del local de esta instalación + % resuelto.
+        // El localId sale de la máquina cargada; flatMapLatest re-suscribe si
+        // cambia (no debería durante el flujo, pero mantiene la cache fresca).
+        val localIdFlow = inventoryRepository.observarMaquinaPorInstalacion(instalacionId)
+            .map { it?.localId }
+            .distinctUntilChanged()
+        val creditosFlow = localIdFlow.flatMapLatest { localId ->
+            if (localId == null) {
+                flowOf(emptyList())
+            } else {
+                creditoLocalDao.observarPorLocal(localId)
+                    .map { filas -> filas.map { it.toCreditoAbierto() } }
+            }
+        }
+        val porcentajeFlow = combine(
+            localIdFlow.flatMapLatest { id ->
+                if (id == null) flowOf(null) else localDao.observe(id)
+            },
+            empresaParamsFlow,
+        ) { local, empresa ->
+            // COALESCE(local.override, empresa.default): igual que el servidor.
+            local?.porcentajeRecuperacion ?: empresa?.porcentajeRecuperacion ?: 0
+        }
+
         // Carga reactiva: máquina + empresa + stale flag.
         viewModelScope.launch {
             combine(
@@ -126,7 +159,20 @@ class RecaudacionFlowViewModel @Inject constructor(
                                     empresa,
                                 )
                             } else current.cifras,
-                        )
+                        ).conRecuperacion()
+                    }
+                }
+        }
+
+        // Recuperación: deudas + % del local. Recalcula el plan al llegar.
+        viewModelScope.launch {
+            combine(creditosFlow, porcentajeFlow) { creditos, pct -> creditos to pct }
+                .collect { (creditos, pct) ->
+                    _uiState.update { current ->
+                        current.copy(
+                            creditosAbiertos = creditos,
+                            porcentajeRecuperacion = pct,
+                        ).conRecuperacion()
                     }
                 }
         }
@@ -215,7 +261,7 @@ class RecaudacionFlowViewModel @Inject constructor(
                 current.maquina,
                 current.empresa,
             )
-            current.copy(contadorEntradasInput = sanitized, cifras = cifras)
+            current.copy(contadorEntradasInput = sanitized, cifras = cifras).conRecuperacion()
         }
     }
 
@@ -228,9 +274,59 @@ class RecaudacionFlowViewModel @Inject constructor(
                 current.maquina,
                 current.empresa,
             )
-            current.copy(contadorSalidasInput = sanitized, cifras = cifras)
+            current.copy(contadorSalidasInput = sanitized, cifras = cifras).conRecuperacion()
         }
     }
+
+    // -------------------------------------------------------------------------
+    // T-215 — recuperación de deuda (preview offline)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Recalcula el plan de recuperación a partir de las cifras actuales, las
+     * deudas del local, el % resuelto y el orden manual. Se aplica en cada
+     * `update` que toque alguno de esos inputs para que `recuperacion` (y por
+     * tanto el objetivo del desglose entregado al local) esté siempre al día.
+     */
+    private fun RecaudacionFlowState.conRecuperacion(): RecaudacionFlowState {
+        val c = cifras
+        val plan = if (c != null && c.procede) {
+            planificarRecuperacion(c.parteLocal, porcentajeRecuperacion, creditosAbiertos, ordenManual)
+        } else {
+            null
+        }
+        return copy(recuperacion = plan)
+    }
+
+    /** Orden efectivo actual (manual reconciliado con las deudas vigentes). */
+    private fun RecaudacionFlowState.ordenEfectivo(): List<String> {
+        val ids = creditosAbiertos.map { it.id }
+        val manual = ordenManual ?: return ids
+        val enManual = manual.filter { it in ids }
+        return enManual + ids.filter { it !in enManual }
+    }
+
+    /** Sube/baja una deuda en el orden de imputación (T-215). */
+    fun moverCreditoArriba(creditoId: String) = reordenarCredito(creditoId, -1)
+    fun moverCreditoAbajo(creditoId: String) = reordenarCredito(creditoId, +1)
+
+    private fun reordenarCredito(creditoId: String, delta: Int) {
+        _uiState.update { current ->
+            val orden = current.ordenEfectivo().toMutableList()
+            val i = orden.indexOf(creditoId)
+            val j = i + delta
+            if (i < 0 || j < 0 || j >= orden.size) return@update current
+            orden[i] = orden[j].also { orden[j] = orden[i] }
+            current.copy(ordenManual = orden).conRecuperacion()
+        }
+    }
+
+    private fun CreditoLocalEntity.toCreditoAbierto(): CreditoAbierto = CreditoAbierto(
+        id = creditoId,
+        tipo = tipo,
+        saldo = BigDecimal(saldo),
+        fecha = fecha,
+    )
 
     private fun calcularSiInputsValidos(
         entradasInput: String,
@@ -382,6 +478,9 @@ class RecaudacionFlowViewModel @Inject constructor(
                     firmaPng = firmaPng,
                     observaciones = null,
                     dispositivoId = Build.MODEL,
+                    // Orden manual de imputación (null = tolva → FIFO). El
+                    // servidor recalcula el plan como SSOT respetándolo.
+                    ordenRecuperacion = state.ordenManual?.takeIf { it.isNotEmpty() },
                 ),
             )
 

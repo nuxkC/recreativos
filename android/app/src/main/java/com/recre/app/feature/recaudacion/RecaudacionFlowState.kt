@@ -2,6 +2,8 @@ package com.recre.app.feature.recaudacion
 
 import androidx.compose.ui.geometry.Offset
 import com.recre.app.core.calculo.Cifras
+import com.recre.app.core.calculo.CreditoAbierto
+import com.recre.app.core.calculo.PlanRecuperacion
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.core.locks.LockState
@@ -34,6 +36,24 @@ data class RecaudacionFlowState(
     val contadorEntradasInput: String = "",
     val contadorSalidasInput: String = "",
     val cifras: Cifras? = null,
+
+    // T-215 — recuperación de deuda (espejo offline del SSOT)
+    /** Deudas abiertas del local (cacheadas en sync), orden tolva → FIFO. */
+    val creditosAbiertos: List<CreditoAbierto> = emptyList(),
+    /** % resuelto a aplicar = COALESCE(local.override, empresa.default). */
+    val porcentajeRecuperacion: Int = 0,
+    /**
+     * Orden manual de imputación elegido por el técnico (lista de credito_id).
+     * `null` = orden por defecto (tolva → FIFO). Solo cambia a qué deuda se
+     * imputa primero, no el total entregado al local.
+     */
+    val ordenManual: List<String>? = null,
+    /**
+     * Plan de recuperación calculado sobre [cifras]+[creditosAbiertos]. `null`
+     * mientras no hay cifras válidas. Cuando existe, el desglose entregado al
+     * local debe cuadrar con `recuperacion.pagadoLocal` (no con parte_local).
+     */
+    val recuperacion: PlanRecuperacion? = null,
 
     // OCR de contadores en vivo (T-100, HU-14 fase 2): el escáner
     // (`EscanerContadoresOverlay`) detecta ambos contadores sobre el preview de

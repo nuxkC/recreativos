@@ -54,6 +54,7 @@
     <string name="local_detalle_titular">Titular: %1$s</string>
     <string name="local_detalle_telefono">Teléfono: %1$s</string>
     <string name="local_detalle_seccion_maquinas">Máquinas activas</string>
+    <string name="local_detalle_ver_deudas">Ver saldo y deudas del local</string>
     <string name="local_detalle_sin_maquinas">No hay máquinas activas en este local.</string>
     <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d máquinas)</string>
     <string name="action_back">Volver</string>
@@ -121,6 +122,17 @@
     <string name="recaudacion_label_cantidad">Cantidad</string>
     <string name="recaudacion_denominaciones_total">Total</string>
     <string name="recaudacion_denominaciones_diferencia">Diferencia</string>
+
+    <!-- Recuperación de deuda durante la recaudación (T-215) -->
+    <string name="recaudacion_recuperacion_titulo">Recuperación de deuda</string>
+    <string name="recaudacion_recuperacion_retenido">Retenido de la parte del local</string>
+    <string name="recaudacion_recuperacion_entregado">Se entrega al local</string>
+    <string name="recaudacion_recuperacion_imputacion">Imputación (orden de pago)</string>
+    <string name="recaudacion_recuperacion_tipo_tolva">Tolva</string>
+    <string name="recaudacion_recuperacion_tipo_prestamo">Préstamo</string>
+    <string name="recaudacion_recuperacion_saldo">Saldo: %1$s</string>
+    <string name="recaudacion_recuperacion_subir">Subir prioridad</string>
+    <string name="recaudacion_recuperacion_bajar">Bajar prioridad</string>
 
     <string name="recaudacion_firma_titulo">Firma del local</string>
     <string name="recaudacion_firma_descripcion">Pide al titular del local que firme con el dedo en el recuadro.</string>
@@ -351,6 +363,7 @@
     <string name="gestion_validacion_contador">Entero ≥ 0.</string>
     <string name="gestion_validacion_tasa">Tasa entre 0 y 999999,99 con dos decimales.</string>
     <string name="gestion_validacion_porcentaje">Porcentaje entre 0 y 100 con dos decimales.</string>
+    <string name="gestion_validacion_tolva">Importe de tolva inválido (0 o mayor, dos decimales).</string>
 
     <!-- Gestión: Licencias (T-66) -->
     <string name="gestion_licencias_titulo">Licencias</string>
@@ -411,6 +424,8 @@
     <string name="gestion_instalacion_tasa_semanal">Tasa semanal (€)</string>
     <string name="gestion_instalacion_porcentaje_local">% local</string>
     <string name="gestion_instalacion_notas">Notas</string>
+    <string name="gestion_instalacion_tolva">Tolva inicial (€)</string>
+    <string name="gestion_instalacion_tolva_ayuda">Dinero que el local ya debe por la tolva al instalar. Crea una deuda que se recupera en las recaudaciones. Déjalo en 0 si no aplica.</string>
     <string name="gestion_instalacion_tasa_pct">Tasa: %1$s € · Local: %2$s %%</string>
     <string name="gestion_instalacion_sin_maquinas_disponibles">No quedan máquinas libres. Da de alta una máquina nueva o cierra una instalación existente.</string>
     <string name="gestion_instalacion_sin_licencias_disponibles">No quedan licencias libres. Da de alta una licencia nueva o cierra una instalación existente.</string>
@@ -446,4 +461,57 @@
     <string name="push_canal_conflictos_descripcion">Avisos cuando un administrador resuelve un conflicto de una recaudación tuya.</string>
     <string name="push_permiso_titulo">Activa las notificaciones</string>
     <string name="push_permiso_descripcion">Recibe un aviso cuando se resuelva un conflicto de tus recaudaciones.</string>
+
+    <!-- Ficha de deudas del local: tolva y préstamos (T-215) -->
+    <string name="deudas_titulo">Saldo y deudas</string>
+    <string name="deudas_offline">Sin conexión: puedes ver el saldo, pero las operaciones de deuda necesitan red.</string>
+    <string name="deudas_saldo_total">Deuda total del local</string>
+    <string name="deudas_saldo_tolva">Tolva: %1$s</string>
+    <string name="deudas_saldo_prestamo">Préstamos: %1$s</string>
+    <string name="deudas_num_deudas">%1$d deuda(s) abierta(s)</string>
+    <string name="deudas_seccion_deudas">Deudas abiertas</string>
+    <string name="deudas_sin_deudas">El local no tiene deudas abiertas.</string>
+    <string name="deudas_tipo_tolva">Tolva</string>
+    <string name="deudas_tipo_prestamo">Préstamo</string>
+    <string name="deudas_deuda_saldo">Saldo: %1$s</string>
+    <string name="deudas_deuda_fecha">Desde: %1$s</string>
+    <!-- % de recuperación -->
+    <string name="deudas_porcentaje_titulo">Recuperación en recaudaciones</string>
+    <string name="deudas_porcentaje_efectivo">Se retiene el %1$d%% de la parte del local</string>
+    <string name="deudas_porcentaje_heredado">Heredado de la empresa (%1$d%%)</string>
+    <string name="deudas_porcentaje_override">Valor propio del local</string>
+    <string name="deudas_porcentaje_editar">Editar</string>
+    <string name="deudas_porcentaje_heredar">Heredar de la empresa (%1$d%%)</string>
+    <string name="deudas_porcentaje_valor">Porcentaje (0–100)</string>
+    <string name="deudas_porcentaje_ok">Porcentaje de recuperación actualizado.</string>
+    <!-- Nuevo préstamo -->
+    <string name="deudas_nuevo_prestamo">Nuevo préstamo</string>
+    <string name="deudas_prestamo_principal">Importe del préstamo (€)</string>
+    <string name="deudas_prestamo_notas">Notas (opcional)</string>
+    <string name="deudas_prestamo_ok">Préstamo registrado.</string>
+    <!-- Pago en efectivo -->
+    <string name="deudas_pago_accion">Registrar pago</string>
+    <string name="deudas_pago_titulo">Pago en efectivo</string>
+    <string name="deudas_pago_saldo">Saldo pendiente: %1$s</string>
+    <string name="deudas_pago_importe">Importe del abono (€)</string>
+    <string name="deudas_pago_notas">Notas (opcional)</string>
+    <string name="deudas_pago_ok">Abono registrado.</string>
+    <!-- Condonar -->
+    <string name="deudas_condonar_accion">Condonar</string>
+    <string name="deudas_condonar_titulo">Condonar deuda</string>
+    <string name="deudas_condonar_descripcion">Se perdonará el saldo pendiente (%1$s). Esta acción no se puede deshacer.</string>
+    <string name="deudas_condonar_confirmar">Condonar</string>
+    <string name="deudas_condonar_ok">Deuda condonada.</string>
+    <!-- Libro mayor de abonos -->
+    <string name="deudas_ledger_titulo">Histórico de abonos</string>
+    <string name="deudas_ledger_vacio">Aún no hay abonos registrados.</string>
+    <string name="deudas_ledger_origen_efectivo">Pago en efectivo</string>
+    <string name="deudas_ledger_origen_recaudacion">Recuperado en recaudación</string>
+    <!-- Errores -->
+    <string name="deudas_error_sin_permiso">No tienes permiso para esta operación.</string>
+    <string name="deudas_error_importe_supera_saldo">El importe supera el saldo pendiente de la deuda.</string>
+    <string name="deudas_error_operacion_invalida">Operación no válida (revisa el importe o el estado de la deuda).</string>
+    <string name="deudas_error_no_encontrada">La deuda o el local ya no existe.</string>
+    <string name="deudas_error_network">Sin conexión. Inténtalo cuando vuelvas a tener red.</string>
+    <string name="deudas_error_generic">No se pudo completar la operación.</string>
 </resources>
