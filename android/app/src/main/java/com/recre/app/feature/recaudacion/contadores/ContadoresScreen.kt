@@ -158,6 +158,7 @@ fun ContadoresScreen(
                         Spacer(Modifier.height(16.dp))
                         CifrasResumenCard(
                             cifras = cifras,
+                            recuperacion = state.recuperacion,
                             modifier = Modifier.testTag(RecaudacionTestTags.CIFRAS_RESUMEN),
                         )
                     }
