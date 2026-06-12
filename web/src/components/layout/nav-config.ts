@@ -3,6 +3,7 @@ import {
   BarChart3,
   Coins,
   Gamepad2,
+  HandCoins,
   History,
   LayoutDashboard,
   Replace,
@@ -70,6 +71,12 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         i18nKey: "recaudaciones",
         icon: Coins,
         roles: ROLES,
+      },
+      {
+        href: "/deudas",
+        i18nKey: "deudas",
+        icon: HandCoins,
+        roles: ROLES_GESTION,
       },
       {
         href: "/cambios-placa",

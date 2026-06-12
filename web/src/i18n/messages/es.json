@@ -69,8 +69,10 @@
       "equipo": "Usuarios de la empresa, roles y estado.",
       "ajustes": "Datos fiscales, logo, configuración del ticket y preferencias.",
       "informes": "Gráficas históricas de recaudación por mes, local y máquina.",
-      "auditoria": "Bitácora de eventos del sistema por empresa."
-    }
+      "auditoria": "Bitácora de eventos del sistema por empresa.",
+      "deudas": "Tolva y préstamos de los locales"
+    },
+    "deudas": "Deudas"
   },
   "layout": {
     "sidebarLabel": "Navegación principal",
@@ -377,6 +379,10 @@
       "localEnUso": "El local tiene instalaciones asociadas. Ciérralas antes de borrar.",
       "idInvalido": "Solicitud inválida.",
       "desconocido": "Ha ocurrido un error inesperado."
+    },
+    "deudas": {
+      "titulo": "Deudas y saldo del local",
+      "descripcion": "Tolva, préstamos, abonos y % de recuperación de este local."
     }
   },
   "deudas": {
@@ -473,6 +479,15 @@
       "idInvalido": "Solicitud inválida.",
       "porcentajeRecuperacionRango": "El porcentaje debe estar entre 0 y 100.",
       "desconocido": "Ha ocurrido un error inesperado."
+    },
+    "seccion": {
+      "titulo": "Deudas",
+      "descripcion": "Tolva y préstamos de los locales. Entra en un local para gestionar su deuda.",
+      "capital": "Capital en la calle",
+      "capitalDesglose": "Tolva {tolva} · Préstamos {prestamo}",
+      "localDesglose": "Tolva {tolva} · Préstamos {prestamo} · {n} deuda(s) abierta(s)",
+      "vacio": "No hay locales.",
+      "volver": "Volver a Deudas"
     }
   },
   "instalaciones": {
