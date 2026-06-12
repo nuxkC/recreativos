@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.recre.app.R
 import com.recre.app.core.calculo.Cifras
+import com.recre.app.core.calculo.PlanRecuperacion
 
 /**
  * Resumen visual de las cifras calculadas. Reutilizada por la pantalla de
@@ -31,6 +32,7 @@ import com.recre.app.core.calculo.Cifras
 @Composable
 fun CifrasResumenCard(
     cifras: Cifras,
+    recuperacion: PlanRecuperacion? = null,
     modifier: Modifier = Modifier,
 ) {
     val esWarning = !cifras.procede
@@ -114,6 +116,21 @@ fun CifrasResumenCard(
                     value = formatEur(cifras.parteLocal.toPlainString()),
                     muted = false,
                 )
+                // T-217: si esta recaudación amortiza deuda del local, mostramos
+                // cuánto se retiene y cuánto se le entrega (pagado_local).
+                if (recuperacion != null && recuperacion.recuperadoTotal.signum() > 0) {
+                    FilaCifra(
+                        label = stringResource(R.string.recaudacion_recuperacion_retenido),
+                        value = "− " + formatEur(recuperacion.recuperadoTotal.toPlainString()),
+                        muted = false,
+                    )
+                    FilaCifra(
+                        label = stringResource(R.string.recaudacion_recuperacion_entregado),
+                        value = formatEur(recuperacion.pagadoLocal.toPlainString()),
+                        muted = false,
+                        bold = true,
+                    )
+                }
                 FilaCifra(
                     label = stringResource(R.string.recaudacion_label_parte_empresa),
                     value = formatEur(cifras.parteEmpresa.toPlainString()),
