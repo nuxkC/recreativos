@@ -357,6 +357,10 @@
       "descripcionPlaceholder": "Qué le pasa a la máquina",
       "fueraServicio": "Sacar la máquina de servicio",
       "fueraServicioAyuda": "Mientras la avería esté abierta, la máquina figurará como averiada.",
+      "afectaTolva": "La avería pagó premio de la tolva",
+      "afectaTolvaAyuda": "Si la máquina soltó dinero de la tolva por el fallo, se descuenta de la tolva teórica y se repone en la próxima recaudación.",
+      "importeTolva": "Importe pagado de la tolva (€)",
+      "importeTolvaPlaceholder": "0,00",
       "notas": "Notas"
     },
     "nueva": {
@@ -403,7 +407,8 @@
       "costeInvalido": "El coste no es un número válido.",
       "costeNegativo": "El coste no puede ser negativo.",
       "costeMaximo": "El coste no puede ser mayor que 99.999,99 €.",
-      "costeDecimales": "El coste admite como máximo dos decimales."
+      "costeDecimales": "El coste admite como máximo dos decimales.",
+      "importeTolvaRequerido": "Indica el importe pagado de la tolva (mayor que 0)."
     },
     "errores": {
       "validacion": "Hay campos sin completar correctamente.",

@@ -60,6 +60,30 @@ export const AveriaInputSchema = z.object({
 
 export type AveriaInput = z.infer<typeof AveriaInputSchema>;
 
+/**
+ * Alta de avería con el bloque de tolva (§5.6): si la avería hizo que la
+ * máquina pagara premio de la tolva, `afectaTolva` lo marca e `importeTolva`
+ * (mismo tratamiento `Decimal` que el coste) recoge cuánto. Solo aplica al
+ * alta — `crear_averia` inserta la `merma`; la edición no toca la tolva.
+ */
+export const CrearAveriaInputSchema = AveriaInputSchema.extend({
+  afectaTolva: z.coerce.boolean(),
+  importeTolva: costeSchema,
+}).superRefine((val, ctx) => {
+  if (
+    val.afectaTolva &&
+    (val.importeTolva === null || new Decimal(val.importeTolva).lessThanOrEqualTo(0))
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["importeTolva"],
+      message: "importeTolvaRequerido",
+    });
+  }
+});
+
+export type CrearAveriaInput = z.infer<typeof CrearAveriaInputSchema>;
+
 export const RecambioInputSchema = z.object({
   pieza: z
     .string()

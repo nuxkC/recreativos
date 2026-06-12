@@ -10,7 +10,7 @@ import { EliminarMaquina } from "@/components/maquinas/eliminar-maquina";
 import { EstadoMaquinaBadge } from "@/components/maquinas/estado-badge";
 import { MaquinaForm } from "@/components/maquinas/maquina-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { listarAveriasMaquina } from "@/lib/averias/queries";
+import { listarAveriasMaquina, maquinaTieneInstalacionActiva } from "@/lib/averias/queries";
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerMaquina } from "@/lib/maquinas/queries";
@@ -44,7 +44,10 @@ export default async function MaquinaDetallePage({ params }: MaquinaDetallePageP
     notFound();
   }
 
-  const averias = await listarAveriasMaquina(activa.empresa.id, maquina.id);
+  const [averias, maquinaInstalada] = await Promise.all([
+    listarAveriasMaquina(activa.empresa.id, maquina.id),
+    maquinaTieneInstalacionActiva(activa.empresa.id, maquina.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -81,7 +84,11 @@ export default async function MaquinaDetallePage({ params }: MaquinaDetallePageP
           <MaquinaForm mode="edit" maquina={maquina} />
         </CardContent>
       </Card>
-      <HistorialAverias maquinaId={maquina.id} averias={averias} />
+      <HistorialAverias
+        maquinaId={maquina.id}
+        averias={averias}
+        maquinaInstalada={maquinaInstalada}
+      />
     </div>
   );
 }

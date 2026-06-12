@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -32,9 +33,11 @@ interface AveriaDialogProps {
   maquinaId: string;
   /** En modo edición, la avería a editar. */
   averia?: Averia;
+  /** La máquina tiene instalación activa: habilita la merma de tolva (solo alta). */
+  maquinaInstalada?: boolean;
 }
 
-export function AveriaDialog({ maquinaId, averia }: AveriaDialogProps) {
+export function AveriaDialog({ maquinaId, averia, maquinaInstalada = false }: AveriaDialogProps) {
   const isEdit = Boolean(averia);
   const t = useTranslations("averias");
   const tCategoria = useTranslations("averias.categoria");
@@ -48,13 +51,25 @@ export function AveriaDialog({ maquinaId, averia }: AveriaDialogProps) {
   const [descripcion, setDescripcion] = useState(averia?.descripcion ?? "");
   const [fueraServicio, setFueraServicio] = useState(averia?.poneMaquinaFueraServicio ?? false);
   const [notas, setNotas] = useState(averia?.notas ?? "");
-  const [errors, setErrors] = useState<{ categoria?: string; descripcion?: string }>({});
+  const [afectaTolva, setAfectaTolva] = useState(false);
+  const [importeTolva, setImporteTolva] = useState("");
+  const [errors, setErrors] = useState<{
+    categoria?: string;
+    descripcion?: string;
+    importeTolva?: string;
+  }>({});
+
+  // La merma de tolva solo se ofrece al dar de alta y con instalación activa
+  // (la propia `crear_averia` la exige). En edición no se toca la tolva.
+  const mostrarTolva = !isEdit && maquinaInstalada;
 
   function resetForm() {
     setCategoria(averia?.categoria ?? "");
     setDescripcion(averia?.descripcion ?? "");
     setFueraServicio(averia?.poneMaquinaFueraServicio ?? false);
     setNotas(averia?.notas ?? "");
+    setAfectaTolva(false);
+    setImporteTolva("");
     setErrors({});
   }
 
@@ -68,6 +83,9 @@ export function AveriaDialog({ maquinaId, averia }: AveriaDialogProps) {
     // z.coerce.boolean: "" → false, cualquier no-vacío → true. Nunca enviar "false".
     fd.set("poneMaquinaFueraServicio", fueraServicio ? "true" : "");
     fd.set("notas", notas);
+    // Merma de tolva (§5.6): solo en alta con instalación activa.
+    fd.set("afectaTolva", mostrarTolva && afectaTolva ? "true" : "");
+    fd.set("importeTolva", mostrarTolva && afectaTolva ? importeTolva : "");
 
     startTransition(async () => {
       const result = isEdit
@@ -76,9 +94,13 @@ export function AveriaDialog({ maquinaId, averia }: AveriaDialogProps) {
 
       if (!result.ok) {
         const fe = result.error.fieldErrors;
-        if (fe?.categoria || fe?.descripcion) {
+        if (fe?.categoria || fe?.descripcion || fe?.importeTolva) {
           const tr = (k?: string) => (k ? (tValidacion.has(k) ? tValidacion(k) : k) : undefined);
-          setErrors({ categoria: tr(fe.categoria?.[0]), descripcion: tr(fe.descripcion?.[0]) });
+          setErrors({
+            categoria: tr(fe.categoria?.[0]),
+            descripcion: tr(fe.descripcion?.[0]),
+            importeTolva: tr(fe.importeTolva?.[0]),
+          });
           return;
         }
         const code = result.error.code;
@@ -174,6 +196,43 @@ export function AveriaDialog({ maquinaId, averia }: AveriaDialogProps) {
             </span>
           </label>
 
+          {mostrarTolva ? (
+            <div className="space-y-3 rounded-md border border-input p-3">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 size-4 accent-primary"
+                  checked={afectaTolva}
+                  onChange={(event) => setAfectaTolva(event.target.checked)}
+                />
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-medium">{t("campos.afectaTolva")}</span>
+                  <span className="block text-[0.8rem] text-muted-foreground">
+                    {t("campos.afectaTolvaAyuda")}
+                  </span>
+                </span>
+              </label>
+              {afectaTolva ? (
+                <div className="space-y-2">
+                  <Label htmlFor="averia-importe-tolva">{t("campos.importeTolva")}</Label>
+                  <Input
+                    id="averia-importe-tolva"
+                    inputMode="decimal"
+                    value={importeTolva}
+                    onChange={(event) => setImporteTolva(event.target.value)}
+                    placeholder={t("campos.importeTolvaPlaceholder")}
+                    aria-invalid={errors.importeTolva ? "true" : undefined}
+                  />
+                  {errors.importeTolva ? (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {errors.importeTolva}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="space-y-2">
             <Label htmlFor="averia-notas">{t("campos.notas")}</Label>
             <Textarea
@@ -186,7 +245,12 @@ export function AveriaDialog({ maquinaId, averia }: AveriaDialogProps) {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
               {t("accion.cancelar")}
             </Button>
             <Button type="submit" disabled={pending}>

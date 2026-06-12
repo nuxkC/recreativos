@@ -13,6 +13,8 @@ import { type Averia, averiaAbierta } from "@/lib/averias/types";
 interface HistorialAveriasProps {
   maquinaId: string;
   averias: Averia[];
+  /** La máquina tiene instalación activa: habilita registrar merma de tolva. */
+  maquinaInstalada: boolean;
 }
 
 function formatFecha(iso: string | null): string {
@@ -24,7 +26,7 @@ function formatFecha(iso: string | null): string {
   }
 }
 
-export function HistorialAverias({ maquinaId, averias }: HistorialAveriasProps) {
+export function HistorialAverias({ maquinaId, averias, maquinaInstalada }: HistorialAveriasProps) {
   const t = useTranslations("averias");
   const tCategoria = useTranslations("averias.categoria");
 
@@ -35,7 +37,7 @@ export function HistorialAverias({ maquinaId, averias }: HistorialAveriasProps) 
           <CardTitle className="text-lg">{t("historial.titulo")}</CardTitle>
           <p className="text-sm text-muted-foreground">{t("historial.descripcion")}</p>
         </div>
-        <AveriaDialog maquinaId={maquinaId} />
+        <AveriaDialog maquinaId={maquinaId} maquinaInstalada={maquinaInstalada} />
       </CardHeader>
       <CardContent>
         {averias.length === 0 ? (
@@ -59,9 +61,7 @@ export function HistorialAverias({ maquinaId, averias }: HistorialAveriasProps) 
                     </span>
                   </div>
 
-                  {averia.descripcion ? (
-                    <p className="mt-2 text-sm">{averia.descripcion}</p>
-                  ) : null}
+                  {averia.descripcion ? <p className="mt-2 text-sm">{averia.descripcion}</p> : null}
 
                   <p className="mt-2 text-xs text-muted-foreground">
                     {averia.localNombre

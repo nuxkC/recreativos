@@ -56,3 +56,29 @@ export async function contarAveriasAbiertasPorMaquina(
   }
   return conteo;
 }
+
+/**
+ * ¿Tiene la máquina una instalación activa? Es la condición para registrar
+ * una merma de tolva al reportar la avería (§5.6): sin instalación activa, la
+ * propia `crear_averia` rechaza el premio de tolva, así que el formulario
+ * oculta el bloque. RLS restringe al tenant; sumamos `empresa_id` por claridad.
+ */
+export async function maquinaTieneInstalacionActiva(
+  empresaId: string,
+  maquinaId: string,
+): Promise<boolean> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("instalacion")
+    .select("id")
+    .eq("empresa_id", empresaId)
+    .eq("maquina_id", maquinaId)
+    .eq("estado", "activa")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`No se pudo comprobar la instalación: ${error.message}`);
+  }
+  return data !== null;
+}

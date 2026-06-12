@@ -7,7 +7,12 @@ import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
-import { AveriaInputSchema, RecambioInputSchema, ResolucionInputSchema } from "./schemas";
+import {
+  AveriaInputSchema,
+  CrearAveriaInputSchema,
+  RecambioInputSchema,
+  ResolucionInputSchema,
+} from "./schemas";
 
 /** Mismo contrato serializable que el resto de Server Actions de CRUDs. */
 export type ActionResult<T = void> =
@@ -47,11 +52,13 @@ export async function crearAveria(
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const parsed = AveriaInputSchema.safeParse({
+  const parsed = CrearAveriaInputSchema.safeParse({
     categoria: formData.get("categoria") ?? "",
     descripcion: formData.get("descripcion") ?? "",
     poneMaquinaFueraServicio: formData.get("poneMaquinaFueraServicio") ?? "",
     notas: formData.get("notas") ?? "",
+    afectaTolva: formData.get("afectaTolva") ?? "",
+    importeTolva: formData.get("importeTolva") ?? "",
   });
   if (!parsed.success) {
     return {
@@ -68,6 +75,9 @@ export async function crearAveria(
     p_descripcion: parsed.data.descripcion ?? null,
     p_pone_maquina_fuera_servicio: parsed.data.poneMaquinaFueraServicio,
     p_notas: parsed.data.notas ?? null,
+    // §5.6: dinero como string (numeric server-side); null si no afecta tolva.
+    p_afecta_tolva: parsed.data.afectaTolva,
+    p_importe_tolva: parsed.data.afectaTolva ? parsed.data.importeTolva : null,
   });
 
   if (error) {

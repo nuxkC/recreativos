@@ -140,7 +140,7 @@ class AveriaRepositoryImplTest {
                 empresaId = "emp-1",
                 maquinaId = "maq-1",
                 maquinaNumeroSerie = "SN-1",
-                categoria = "premio_atascado",
+                categoria = "error",
                 descripcion = null,
                 poneMaquinaFueraServicio = false,
                 notas = null,
