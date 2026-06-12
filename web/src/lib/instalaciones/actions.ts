@@ -34,6 +34,7 @@ function parseInstalacionForm(formData: FormData): Record<string, unknown> {
     fechaInicio: formData.get("fechaInicio") ?? "",
     tasaSemanal: formData.get("tasaSemanal") ?? "",
     porcentajeLocal: formData.get("porcentajeLocal") ?? "",
+    tolva: formData.get("tolva") ?? "",
     estado: formData.get("estado") ?? "activa",
     notas: formData.get("notas") ?? "",
   };
@@ -161,6 +162,9 @@ export async function crearInstalacion(
     p_tasa_semanal: input.tasaSemanal,
     p_porcentaje_local: input.porcentajeLocal,
     p_notas: input.notas ?? null,
+    // La tolva (dinero físico dejado en la máquina) viaja como string numérico.
+    // El servidor crea la deuda del local por la tolva = porcentaje_local × tolva.
+    p_tolva: input.tolva,
   });
 
   if (error) {

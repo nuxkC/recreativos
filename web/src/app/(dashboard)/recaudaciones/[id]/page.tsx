@@ -60,6 +60,7 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
   const puedeResolver = rolCumple(activa.rol, ROLES_ADMIN);
   const esAdmin = rolCumple(activa.rol, ROLES_ADMIN);
   const huboRedondeo = (recaudacion.redondeoAplicado ?? 0) > 0;
+  const huboRecuperacion = Number(recaudacion.recuperadoTotal) > 0;
   const conflictoPendiente = recaudacion.conflicto && recaudacion.revisadoEn === null;
 
   const deltaEntradas = recaudacion.contadorEntradasActual - recaudacion.contadorEntradasAnterior;
@@ -206,6 +207,19 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
                 value={formatEur(recaudacion.parteLocal)}
                 hint={formatPercent(recaudacion.porcentajeLocalAplicado)}
               />
+              {huboRecuperacion ? (
+                <>
+                  <InfoRow
+                    label={t("campos.recuperado")}
+                    value={`− ${formatEur(recaudacion.recuperadoTotal)}`}
+                  />
+                  <InfoRow
+                    label={t("campos.entregadoLocal")}
+                    value={formatEur(recaudacion.pagadoLocal)}
+                    emphasis
+                  />
+                </>
+              ) : null}
               <InfoRow
                 label={t("campos.parteEmpresa")}
                 value={formatEur(recaudacion.parteEmpresa)}
@@ -283,8 +297,9 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
               />
               <InfoRow
                 label={t("campos.salidasLeido")}
-                value={(recaudacion.contadorSalidasLeido ?? recaudacion.contadorSalidasActual)
-                  .toLocaleString("es-ES")}
+                value={(
+                  recaudacion.contadorSalidasLeido ?? recaudacion.contadorSalidasActual
+                ).toLocaleString("es-ES")}
               />
               <InfoRow
                 label={t("campos.salidasAjustado")}

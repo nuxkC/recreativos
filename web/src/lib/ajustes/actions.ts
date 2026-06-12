@@ -35,6 +35,7 @@ function parseAjustesForm(formData: FormData): Record<string, unknown> {
     ticketCabecera: formData.get("ticketCabecera") ?? "",
     ticketPie: formData.get("ticketPie") ?? "",
     redondeoRecaudacion: formData.get("redondeoRecaudacion") ?? "0",
+    porcentajeRecuperacion: formData.get("porcentajeRecuperacion") ?? "0",
   };
 }
 
@@ -67,6 +68,7 @@ export async function actualizarAjustesEmpresa(
     p_ticket_cabecera: parsed.data.ticketCabecera,
     p_ticket_pie: parsed.data.ticketPie,
     p_redondeo_recaudacion: parsed.data.redondeoRecaudacion,
+    p_porcentaje_recuperacion: parsed.data.porcentajeRecuperacion,
   });
 
   if (error) {

@@ -52,6 +52,21 @@ const decimalPorcentaje = z
   .refine((d) => d.gte(0) && d.lte(100), { message: "porcentajeFueraDeRango" })
   .transform((d) => d.toFixed(2));
 
+/**
+ * Tolva (dinero físico dejado en la máquina al instalarla). Opcional: vacío =
+ * 0. Solo se usa en el alta (`crear_instalacion`); la deuda del local por la
+ * tolva = porcentaje_local × tolva la crea el servidor. Cabe en numeric(10,2).
+ */
+const decimalTolvaOpcional = z
+  .string()
+  .trim()
+  .transform((v) => (v.length === 0 ? "0" : v.replace(",", ".")))
+  .pipe(z.string().refine((v) => /^\d+(\.\d{1,2})?$/.test(v), { message: "tolvaInvalida" }))
+  .transform((v) => new Decimal(v))
+  .refine((d) => d.gte(0), { message: "tolvaInvalida" })
+  .refine((d) => d.lte(99999999.99), { message: "tolvaFueraDeRango" })
+  .transform((d) => d.toFixed(2));
+
 export const InstalacionInputSchema = z.object({
   maquinaId: Uuid,
   licenciaId: Uuid,
@@ -59,6 +74,7 @@ export const InstalacionInputSchema = z.object({
   fechaInicio: isoDateRequired,
   tasaSemanal: decimalNoNegativo,
   porcentajeLocal: decimalPorcentaje,
+  tolva: decimalTolvaOpcional,
   estado: z.enum(ESTADOS_INSTALACION).default("activa"),
   notas: trimmedString.pipe(z.string().max(2000, { message: "notasMuyLargas" }).nullable()),
 });

@@ -50,6 +50,11 @@ export interface Recaudacion {
   parteLocal: string;
   parteEmpresa: string;
 
+  /** Deuda recuperada (retenida de la parte del local) en esta recaudación. */
+  recuperadoTotal: string;
+  /** Lo realmente entregado al local: parteLocal − recuperadoTotal (generada). */
+  pagadoLocal: string;
+
   /** Auditoría del redondeo (solo presente si la empresa lo tenía activo). */
   recaudacionBrutaReal: string | null;
   contadorSalidasLeido: number | null;
@@ -120,6 +125,8 @@ export interface RecaudacionRow {
   porcentaje_local_aplicado: string;
   parte_local: string;
   parte_empresa: string;
+  recuperado_total: string;
+  pagado_local: string;
   recaudacion_bruta_real: string | null;
   contador_salidas_leido: number | null;
   redondeo_aplicado: number | null;
@@ -205,10 +212,11 @@ export function mapRecaudacionRow(row: RecaudacionRow): Recaudacion {
     porcentajeLocalAplicado: row.porcentaje_local_aplicado,
     parteLocal: row.parte_local,
     parteEmpresa: row.parte_empresa,
+    recuperadoTotal: row.recuperado_total,
+    pagadoLocal: row.pagado_local,
     recaudacionBrutaReal: row.recaudacion_bruta_real,
-    contadorSalidasLeido: row.contador_salidas_leido === null
-      ? null
-      : Number(row.contador_salidas_leido),
+    contadorSalidasLeido:
+      row.contador_salidas_leido === null ? null : Number(row.contador_salidas_leido),
     redondeoAplicado: row.redondeo_aplicado === null ? null : Number(row.redondeo_aplicado),
     desgloseTotal: parseDesglose(row.desglose_total),
     desgloseLocal: parseDesglose(row.desglose_local),
