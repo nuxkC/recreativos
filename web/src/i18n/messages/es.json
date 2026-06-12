@@ -695,6 +695,13 @@
       "desconocido": "Ha ocurrido un error inesperado."
     }
   },
+  "tolva": {
+    "titulo": "Tolva de las máquinas",
+    "descripcion": "Nivel de tolva por máquina instalada. La pendiente es la merma de avería que se repondrá en la próxima recaudación.",
+    "teorica": "Teórica",
+    "efectiva": "Efectiva",
+    "pendiente": "Pendiente"
+  },
   "recaudaciones": {
     "vacio": "No hay recaudaciones que coincidan con los filtros.",
     "anularOk": "Recaudación anulada.",

@@ -8,10 +8,12 @@ import { z } from "zod";
 
 import { EliminarLocal } from "@/components/locales/eliminar-local";
 import { LocalForm } from "@/components/locales/local-form";
+import { TolvaInstalaciones } from "@/components/tolva/tolva-instalaciones";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerLocal } from "@/lib/locales/queries";
+import { obtenerTolvaInstalaciones } from "@/lib/tolva/queries";
 
 const IdSchema = z.string().uuid();
 
@@ -42,6 +44,8 @@ export default async function LocalDetallePage({ params }: LocalDetallePageProps
     notFound();
   }
 
+  const tolvaInstalaciones = await obtenerTolvaInstalaciones(local.id);
+
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="space-y-1">
@@ -70,6 +74,8 @@ export default async function LocalDetallePage({ params }: LocalDetallePageProps
           <LocalForm mode="edit" local={local} />
         </CardContent>
       </Card>
+
+      <TolvaInstalaciones instalaciones={tolvaInstalaciones} />
 
       {/* La gestión de deuda vive en la sección Deudas (centro de mando, T-218):
           desde aquí solo se redirige a la página del local en esa sección. */}
