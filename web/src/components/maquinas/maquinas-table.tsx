@@ -1,8 +1,9 @@
 import Decimal from "decimal.js";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -17,6 +18,8 @@ import { EstadoMaquinaBadge } from "./estado-badge";
 
 interface MaquinasTableProps {
   maquinas: Maquina[];
+  /** Nº de averías abiertas por máquina (maquinaId → conteo). */
+  averiasAbiertas?: Record<string, number>;
 }
 
 /**
@@ -34,8 +37,9 @@ function formatValorCredito(valorCredito: string): string {
   }
 }
 
-export function MaquinasTable({ maquinas }: MaquinasTableProps) {
+export function MaquinasTable({ maquinas, averiasAbiertas = {} }: MaquinasTableProps) {
   const t = useTranslations("maquinas");
+  const tAverias = useTranslations("averias");
 
   if (maquinas.length === 0) {
     return (
@@ -76,7 +80,15 @@ export function MaquinasTable({ maquinas }: MaquinasTableProps) {
                 {formatValorCredito(maquina.valorCredito)}
               </TableCell>
               <TableCell>
-                <EstadoMaquinaBadge estado={maquina.estado} />
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <EstadoMaquinaBadge estado={maquina.estado} />
+                  {averiasAbiertas[maquina.id] ? (
+                    <Badge variant="warning" className="gap-1">
+                      <Wrench className="size-3" aria-hidden />
+                      {tAverias("etiqueta.abiertas", { count: averiasAbiertas[maquina.id] })}
+                    </Badge>
+                  ) : null}
+                </div>
               </TableCell>
               <TableCell>
                 <Link

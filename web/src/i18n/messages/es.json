@@ -322,6 +322,99 @@
       "desconocido": "Ha ocurrido un error inesperado."
     }
   },
+  "averias": {
+    "historial": {
+      "titulo": "Historial de averías",
+      "descripcion": "Fallos y recambios de esta máquina a lo largo de su vida, incluso en distintos locales.",
+      "vacio": "Esta máquina no tiene averías registradas."
+    },
+    "estado": {
+      "abierta": "Abierta",
+      "en_reparacion": "En reparación",
+      "resuelta": "Resuelta"
+    },
+    "categoria": {
+      "atasco_billete": "Atasco de billete",
+      "atasco_moneda": "Atasco de moneda",
+      "error": "Error",
+      "falta_pago": "Falta de pago",
+      "no_enciende": "No enciende",
+      "otro": "Otro"
+    },
+    "etiqueta": {
+      "fueraServicio": "Fuera de servicio",
+      "abiertas": "{count, plural, one {# avería} other {# averías}}"
+    },
+    "meta": {
+      "enLocal": "En {local}",
+      "enAlmacen": "En almacén",
+      "resueltaEl": "Resuelta el {fecha}"
+    },
+    "campos": {
+      "categoria": "Categoría",
+      "categoriaPlaceholder": "Selecciona una categoría",
+      "descripcion": "Descripción",
+      "descripcionPlaceholder": "Qué le pasa a la máquina",
+      "fueraServicio": "Sacar la máquina de servicio",
+      "fueraServicioAyuda": "Mientras la avería esté abierta, la máquina figurará como averiada.",
+      "notas": "Notas"
+    },
+    "nueva": {
+      "titulo": "Nueva avería",
+      "descripcion": "Registra un fallo de la máquina. El local se toma de su instalación actual.",
+      "ok": "Avería registrada."
+    },
+    "editar": {
+      "titulo": "Editar avería",
+      "descripcion": "Actualiza los datos de la avería.",
+      "ok": "Avería actualizada."
+    },
+    "resolver": {
+      "titulo": "Resolver avería",
+      "descripcion": "Marca la avería como resuelta. Si dejó la máquina fuera de servicio, volverá a su estado operativo.",
+      "notas": "Notas de resolución (opcional)",
+      "notasPlaceholder": "Qué se hizo para resolverla",
+      "ok": "Avería resuelta."
+    },
+    "recambios": {
+      "titulo": "Recambios",
+      "vacio": "Sin recambios.",
+      "pieza": "Pieza",
+      "piezaPlaceholder": "Pieza sustituida",
+      "cantidad": "Cantidad",
+      "coste": "Coste (€)",
+      "costePlaceholder": "Coste",
+      "anadir": "Añadir",
+      "eliminar": "Eliminar recambio"
+    },
+    "accion": {
+      "nueva": "Nueva avería",
+      "editar": "Editar",
+      "resolver": "Resolver",
+      "guardar": "Guardar",
+      "cancelar": "Cancelar"
+    },
+    "validacion": {
+      "categoriaRequerida": "Selecciona una categoría.",
+      "piezaRequerida": "La pieza es obligatoria.",
+      "piezaMuyLarga": "La pieza no puede tener más de 120 caracteres.",
+      "cantidadEntera": "La cantidad debe ser un número entero.",
+      "cantidadPositiva": "La cantidad debe ser mayor que cero.",
+      "costeInvalido": "El coste no es un número válido.",
+      "costeNegativo": "El coste no puede ser negativo.",
+      "costeMaximo": "El coste no puede ser mayor que 99.999,99 €.",
+      "costeDecimales": "El coste admite como máximo dos decimales."
+    },
+    "errores": {
+      "validacion": "Hay campos sin completar correctamente.",
+      "guardarFallido": "No se ha podido guardar la avería. Inténtalo de nuevo.",
+      "resolverFallido": "No se ha podido resolver la avería.",
+      "borrarFallido": "No se ha podido eliminar el recambio.",
+      "yaResuelta": "La avería ya estaba resuelta.",
+      "idInvalido": "Solicitud inválida.",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
   "locales": {
     "vacio": "No hay locales que coincidan con la búsqueda.",
     "guardadoOk": "Local guardado.",

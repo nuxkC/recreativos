@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { MaquinasFilters } from "@/components/maquinas/maquinas-filters";
 import { MaquinasTable } from "@/components/maquinas/maquinas-table";
 import { Button } from "@/components/ui/button";
+import { contarAveriasAbiertasPorMaquina } from "@/lib/averias/queries";
 import { rolCumple, requireMembresiaActiva } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { listarMaquinas } from "@/lib/maquinas/queries";
@@ -32,6 +33,7 @@ export default async function MaquinasPage({ searchParams }: MaquinasPageProps) 
     busqueda,
     estado: estadoParam,
   });
+  const averiasAbiertas = await contarAveriasAbiertasPorMaquina(activa.empresa.id);
 
   const puedeCrear = rolCumple(activa.rol, ROLES_GESTION);
 
@@ -52,7 +54,7 @@ export default async function MaquinasPage({ searchParams }: MaquinasPageProps) 
         ) : null}
       </div>
       <MaquinasFilters busquedaInicial={busqueda} estadoInicial={estadoParam} />
-      <MaquinasTable maquinas={maquinas} />
+      <MaquinasTable maquinas={maquinas} averiasAbiertas={averiasAbiertas} />
     </div>
   );
 }
