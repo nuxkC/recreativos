@@ -52,6 +52,13 @@ data class CrearRecaudacionRequest(
     val baselineEntradas: Long,
     @SerialName("baseline_salidas")
     val baselineSalidas: Long,
+    /**
+     * Orden manual de imputación de la recuperación (T-215): lista de
+     * `credito_id`. `null`/omitido = orden por defecto (tolva → FIFO). El
+     * servidor recalcula el plan como SSOT respetándolo.
+     */
+    @SerialName("orden_recuperacion")
+    val ordenRecuperacion: List<String>? = null,
 )
 
 @Serializable

@@ -41,6 +41,8 @@ import com.recre.app.feature.auth.LoginScreen
 import com.recre.app.feature.auth.LoginViewModel
 import com.recre.app.feature.cambio_placa.CambioPlacaScreen
 import com.recre.app.feature.cambio_placa.CambioPlacaViewModel
+import com.recre.app.feature.deudas.DeudasLocalScreen
+import com.recre.app.feature.deudas.DeudasLocalViewModel
 import com.recre.app.feature.empresa.SeleccionarEmpresaScreen
 import com.recre.app.feature.empresa.SeleccionarEmpresaViewModel
 import com.recre.app.feature.empresa.SinAccesoScreen
@@ -263,7 +265,16 @@ private fun RecreApp(
                         Routes.recaudacion(primeraInstalacionId, cadenaLocalId = localId),
                     )
                 },
+                onVerDeudas = { navController.navigate(Routes.localDeudas(localId)) },
             )
+        }
+        composable(
+            route = Routes.LOCAL_DEUDAS,
+            arguments = listOf(
+                navArgument(DeudasLocalViewModel.ARG_LOCAL_ID) { type = NavType.StringType },
+            ),
+        ) {
+            DeudasLocalScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.CAMBIO_PLACA,
@@ -600,6 +611,7 @@ private object Routes {
     const val SIN_ACCESO = "sinAcceso"
     const val LOCALES = "locales"
     const val LOCAL_DETALLE = "local/{${LocalDetalleViewModel.ARG_LOCAL_ID}}"
+    const val LOCAL_DEUDAS = "local/{${DeudasLocalViewModel.ARG_LOCAL_ID}}/deudas"
     const val CAMBIO_PLACA = "cambio-placa/{${CambioPlacaViewModel.ARG_INSTALACION_ID}}"
     const val IMPRESORA = "impresora"
     const val AJUSTES = "ajustes"
@@ -618,6 +630,7 @@ private object Routes {
     const val RECAUDACION_CONFIRMACION = "recaudacion-confirmacion"
 
     fun localDetalle(localId: String): String = "local/$localId"
+    fun localDeudas(localId: String): String = "local/$localId/deudas"
     fun cambioPlaca(instalacionId: String): String = "cambio-placa/$instalacionId"
     fun historicoDetalle(recaudacionId: String): String = "historico/$recaudacionId"
 

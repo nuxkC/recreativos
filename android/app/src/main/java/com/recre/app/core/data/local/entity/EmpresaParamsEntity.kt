@@ -38,6 +38,14 @@ data class EmpresaParamsEntity(
     /** Unidad de redondeo del bruto (0 = sin redondeo). Espejo de empresa.redondeo_recaudacion. */
     @ColumnInfo(name = "redondeo_recaudacion")
     val redondeoRecaudacion: Int,
+    /**
+     * % de la parte_local que se retiene por defecto para amortizar deudas del
+     * local (tolva/préstamos) en cada recaudación (T-215). Espejo de
+     * `empresa.porcentaje_recuperacion`. Un local puede sobreescribirlo
+     * (ver [LocalEntity.porcentajeRecuperacion]). 0 = no se recupera nada.
+     */
+    @ColumnInfo(name = "porcentaje_recuperacion")
+    val porcentajeRecuperacion: Int,
     @ColumnInfo(name = "updated_at")
     val updatedAt: Instant,
 )

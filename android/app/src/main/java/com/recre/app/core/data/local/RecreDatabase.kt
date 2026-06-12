@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.recre.app.core.data.local.dao.CreditoLocalDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.LicenciaDao
@@ -12,6 +13,7 @@ import com.recre.app.core.data.local.dao.LocalDao
 import com.recre.app.core.data.local.dao.MaquinaDao
 import com.recre.app.core.data.local.dao.RecaudacionPendienteDao
 import com.recre.app.core.data.local.dao.SyncMetaDao
+import com.recre.app.core.data.local.entity.CreditoLocalEntity
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.local.entity.InstalacionEntity
 import com.recre.app.core.data.local.entity.LicenciaEntity
@@ -30,6 +32,11 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * Versión 4 (T-211): añade `empresa_params.redondeo_recaudacion` para que
  * el cálculo en local aplique el mismo redondeo que el servidor.
  *
+ * Versión 5 (T-215): tolva y préstamos. Añade el % de recuperación a
+ * `empresa_params` y `local` (override), la tabla `credito_local` con las
+ * deudas abiertas para el preview offline, y `recaudacion_pendiente
+ * .orden_recuperacion_json` para llevar el orden manual de imputación.
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -43,8 +50,9 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         InstalacionEntity::class,
         SyncMetaEntity::class,
         RecaudacionPendienteEntity::class,
+        CreditoLocalEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -56,6 +64,7 @@ abstract class RecreDatabase : RoomDatabase() {
     abstract fun instalacionDao(): InstalacionDao
     abstract fun syncMetaDao(): SyncMetaDao
     abstract fun recaudacionPendienteDao(): RecaudacionPendienteDao
+    abstract fun creditoLocalDao(): CreditoLocalDao
 
     companion object {
         /**
@@ -125,6 +134,57 @@ abstract class RecreDatabase : RoomDatabase() {
                 db.execSQL(
                     "ALTER TABLE `empresa_params` " +
                         "ADD COLUMN `redondeo_recaudacion` INTEGER NOT NULL DEFAULT 0",
+                )
+            }
+        }
+
+        /**
+         * v5 (T-215): tolva y préstamos.
+         * - `empresa_params.porcentaje_recuperacion` (default 0) y override
+         *   nullable `local.porcentaje_recuperacion`.
+         * - tabla `credito_local` con las deudas abiertas para el preview
+         *   offline de recuperación y la ficha de deudas.
+         * - `recaudacion_pendiente.orden_recuperacion_json` para el orden
+         *   manual de imputación que viaja al servidor.
+         */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `empresa_params` " +
+                        "ADD COLUMN `porcentaje_recuperacion` INTEGER NOT NULL DEFAULT 0",
+                )
+                db.execSQL(
+                    "ALTER TABLE `local` ADD COLUMN `porcentaje_recuperacion` INTEGER",
+                )
+                db.execSQL(
+                    "ALTER TABLE `recaudacion_pendiente` " +
+                        "ADD COLUMN `orden_recuperacion_json` TEXT",
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `credito_local` (
+                        `credito_id` TEXT NOT NULL PRIMARY KEY,
+                        `empresa_id` TEXT NOT NULL,
+                        `local_id` TEXT NOT NULL,
+                        `tipo` TEXT NOT NULL,
+                        `instalacion_id` TEXT,
+                        `principal` TEXT NOT NULL,
+                        `tipo_interes` TEXT NOT NULL,
+                        `fecha` TEXT NOT NULL,
+                        `estado` TEXT NOT NULL,
+                        `notas` TEXT,
+                        `recuperado` TEXT NOT NULL,
+                        `saldo` TEXT NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_credito_local_empresa` " +
+                        "ON `credito_local` (`empresa_id`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_credito_local_local` " +
+                        "ON `credito_local` (`local_id`)",
                 )
             }
         }

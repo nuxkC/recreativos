@@ -1,5 +1,6 @@
 package com.recre.app.core.data.remote
 
+import com.recre.app.core.data.remote.dto.CreditoLocalSaldoDto
 import com.recre.app.core.data.remote.dto.EmpresaFullDto
 import com.recre.app.core.data.remote.dto.InstalacionActivaDto
 import com.recre.app.core.data.remote.dto.LicenciaDto
@@ -68,6 +69,23 @@ class SyncRemoteDataSource @Inject constructor(
             .from("v_instalacion_actual")
             .select {
                 filter { eq("empresa_id", empresaId) }
+            }
+            .decodeList()
+
+    /**
+     * Deudas ABIERTAS de los locales de la empresa (T-215). Filtramos
+     * `estado = 'abierto'` para no descargar el histórico de deudas saldadas
+     * /condonadas: la app solo necesita las vivas para el preview offline de
+     * recuperación y la ficha de deudas.
+     */
+    suspend fun fetchCreditosAbiertos(empresaId: String): List<CreditoLocalSaldoDto> =
+        supabase
+            .from("v_credito_local_saldo")
+            .select {
+                filter {
+                    eq("empresa_id", empresaId)
+                    eq("estado", "abierto")
+                }
             }
             .decodeList()
 }

@@ -48,6 +48,7 @@ import com.recre.app.feature.recaudacion.RecaudacionFlowState
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
+import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.SignaturePad
 
 /**
@@ -128,6 +129,21 @@ private fun FormularioBlock(state: RecaudacionFlowState, viewModel: RecaudacionF
     }
 
     CifrasResumenCard(cifras = cifras)
+
+    // Recuperación de deuda (T-215): si esta recaudación amortiza deuda del
+    // local, mostramos cuánto se retiene y cuánto se le entrega.
+    val plan = state.recuperacion
+    if (plan != null && plan.recuperadoTotal.signum() > 0) {
+        Spacer(Modifier.height(16.dp))
+        RecuperacionResumenCard(
+            creditos = state.creditosAbiertos,
+            plan = plan,
+            ordenManual = state.ordenManual,
+            reordenable = false,
+            onSubir = {},
+            onBajar = {},
+        )
+    }
 
     Spacer(Modifier.height(16.dp))
     Text(

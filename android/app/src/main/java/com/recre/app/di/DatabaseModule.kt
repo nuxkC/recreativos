@@ -3,6 +3,7 @@ package com.recre.app.di
 import android.content.Context
 import androidx.room.Room
 import com.recre.app.core.data.local.RecreDatabase
+import com.recre.app.core.data.local.dao.CreditoLocalDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.LicenciaDao
@@ -31,7 +32,11 @@ object DatabaseModule {
         )
             // Migraciones reales: la cola de recaudaciones contiene trabajo
             // del técnico que NO se puede perder al subir versión.
-            .addMigrations(RecreDatabase.MIGRATION_2_3, RecreDatabase.MIGRATION_3_4)
+            .addMigrations(
+                RecreDatabase.MIGRATION_2_3,
+                RecreDatabase.MIGRATION_3_4,
+                RecreDatabase.MIGRATION_4_5,
+            )
             // Solo como red de seguridad para builds antiguos (alpha) que
             // hubiera v=1; los técnicos en producción nunca pasarán por ahí.
             .fallbackToDestructiveMigrationFrom(1)
@@ -63,4 +68,7 @@ object DatabaseModule {
     @Provides
     fun provideRecaudacionPendienteDao(db: RecreDatabase): RecaudacionPendienteDao =
         db.recaudacionPendienteDao()
+
+    @Provides
+    fun provideCreditoLocalDao(db: RecreDatabase): CreditoLocalDao = db.creditoLocalDao()
 }
