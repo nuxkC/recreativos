@@ -85,6 +85,13 @@ export async function generarPdfTicket(input: PdfInput): Promise<Uint8Array> {
   w.kv("Tasa semanal:", `${input.resultado.tasa_semanal} €`);
   w.kv("Tasa total:", `${input.resultado.tasa_total} €`);
   w.kv("Neto:", `${input.resultado.neto} €`);
+  // Reposición de tolva por avería (§5.6): se devuelve a la máquina ANTES del
+  // reparto, así que local y empresa reparten sobre la base, no sobre el neto.
+  const reposicionTolva = input.resultado.reposicion_tolva ?? "0.00";
+  if (Number(reposicionTolva) > 0) {
+    w.kv("Repuesto a tolva:", `-${reposicionTolva} €`);
+    w.kv("Base reparto:", `${input.resultado.base_reparto} €`);
+  }
   w.kv("% Local:", `${input.resultado.porcentaje_local} %`);
   w.kv("Parte Local:", `${input.resultado.parte_local} €`);
   const recuperado = input.recuperado ?? "0.00";
