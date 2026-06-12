@@ -133,6 +133,8 @@
     <string name="recaudacion_recuperacion_saldo">Saldo: %1$s</string>
     <string name="recaudacion_recuperacion_subir">Subir prioridad</string>
     <string name="recaudacion_recuperacion_bajar">Bajar prioridad</string>
+    <string name="recaudacion_local_nada_deuda">Toda la parte del local se destina a amortizar su deuda. No se le entrega efectivo en esta recaudación.</string>
+    <string name="recaudacion_local_nada">No hay parte para el local en esta recaudación.</string>
 
     <string name="recaudacion_firma_titulo">Firma del local</string>
     <string name="recaudacion_firma_descripcion">Pide al titular del local que firme con el dedo en el recuadro.</string>
