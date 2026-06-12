@@ -47,7 +47,7 @@ INSERT INTO _ids(k, id) VALUES
         '2026-06-01', 10.00, 50.00, NULL, 0, NULL));
 INSERT INTO _ids(k, id) VALUES
     ('p1', public.crear_prestamo('c1214000-0000-0000-0000-000000000001',
-                                 'c1214000-0000-0000-0000-000000000030', 90.00));
+                                 'c1214000-0000-0000-0000-000000000030', 90.00, 0, NULL, 'préstamo de prueba'));
 
 -- --- persistir_recaudacion ---------------------------------------------------
 -- bruto 200, tasa 20 → neto 180, %50 → parte_local 90, parte_empresa 90.
@@ -109,7 +109,7 @@ SELECT is(
 -- --- rechazo: recuperación que supera el saldo -------------------------------
 INSERT INTO _ids(k, id) VALUES
     ('p2', public.crear_prestamo('c1214000-0000-0000-0000-000000000001',
-                                 'c1214000-0000-0000-0000-000000000030', 30.00));
+                                 'c1214000-0000-0000-0000-000000000030', 30.00, 0, NULL, 'préstamo de prueba'));
 SELECT throws_ok(
     format($$ SELECT public.persistir_recaudacion(
         jsonb_build_object(
