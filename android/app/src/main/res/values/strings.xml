@@ -488,6 +488,8 @@
     <string name="deudas_nuevo_prestamo">Nuevo préstamo</string>
     <string name="deudas_prestamo_principal">Importe del préstamo (€)</string>
     <string name="deudas_prestamo_notas">Notas (opcional)</string>
+    <string name="deudas_prestamo_concepto">Concepto (obligatorio)</string>
+    <string name="deudas_prestamo_concepto_ayuda">El motivo del préstamo (p. ej. \"adelanto para reforma\").</string>
     <string name="deudas_prestamo_ok">Préstamo registrado.</string>
     <!-- Pago en efectivo -->
     <string name="deudas_pago_accion">Registrar pago</string>

@@ -370,7 +370,8 @@ private fun NuevoPrestamoDialog(
 ) {
     var principal by remember { mutableStateOf("") }
     var notas by remember { mutableStateOf("") }
-    val valido = normalizarImporte(principal) != null
+    // El concepto es obligatorio al dar de alta un préstamo (T-216).
+    val valido = normalizarImporte(principal) != null && notas.isNotBlank()
     AlertDialog(
         onDismissRequest = onCancelar,
         title = { Text(stringResource(R.string.deudas_nuevo_prestamo)) },
@@ -386,14 +387,15 @@ private fun NuevoPrestamoDialog(
                 OutlinedTextField(
                     value = notas,
                     onValueChange = { notas = it },
-                    label = { Text(stringResource(R.string.deudas_prestamo_notas)) },
+                    label = { Text(stringResource(R.string.deudas_prestamo_concepto)) },
+                    supportingText = { Text(stringResource(R.string.deudas_prestamo_concepto_ayuda)) },
                     minLines = 2,
                 )
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirmar(normalizarImporte(principal)!!, notas.ifBlank { null }) },
+                onClick = { onConfirmar(normalizarImporte(principal)!!, notas.trim()) },
                 enabled = valido,
             ) { Text(stringResource(R.string.gestion_guardar)) }
         },
