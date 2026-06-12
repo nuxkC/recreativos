@@ -73,7 +73,11 @@ Deno.serve(withHandler(async (req: Request) => {
     .gt("fecha", rec.fecha)
     .limit(1);
   if (postError) {
-    throw makeError("internal_error", "No se pudo comprobar el orden de recaudaciones", postError.message);
+    throw makeError(
+      "internal_error",
+      "No se pudo comprobar el orden de recaudaciones",
+      postError.message,
+    );
   }
   if (posteriores && posteriores.length > 0) {
     throw makeError(
@@ -105,6 +109,19 @@ Deno.serve(withHandler(async (req: Request) => {
   }
   if (!row) {
     throw makeError("conflict", "La recaudación ya está anulada");
+  }
+
+  // Revertir las recuperaciones de deuda de esta recaudación (T-214): se borra su
+  // ledger y los créditos que dejaban de estar saldados se reabren (la deuda
+  // vuelve a deberse). La fila anulada conserva sus cifras como histórico.
+  const { error: revertError } = await getServiceClient()
+    .rpc("revertir_recuperaciones_recaudacion", { p_recaudacion_id: input.recaudacion_id });
+  if (revertError) {
+    throw makeError(
+      "internal_error",
+      "No se pudieron revertir las recuperaciones de la recaudación anulada",
+      revertError.message,
+    );
   }
 
   // Alerta para el equipo. El service_role bypasea la RLS de `alerta`

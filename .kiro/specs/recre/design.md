@@ -191,6 +191,8 @@ recaudacion (
   porcentaje_local_aplicado numeric(5,2) NOT NULL,
   parte_local numeric(10,2) NOT NULL,
   parte_empresa numeric(10,2) NOT NULL,
+  recuperado_total numeric(10,2) NOT NULL DEFAULT 0,            -- retenido de la parte_local para amortizar deuda (T-214); <= parte_local
+  pagado_local numeric(10,2) GENERATED ALWAYS AS (parte_local - recuperado_total) STORED,  -- lo que se lleva el local; desglose_local cuadra con esto
 
   -- desglose embebido
   desglose_total jsonb NOT NULL,

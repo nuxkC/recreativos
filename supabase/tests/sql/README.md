@@ -15,6 +15,7 @@ Tests automatizados de las funciones SQL críticas del dominio Recre.
 | `07_lockdown_escritura_global.sql` | Guardarraíl global: ninguna tabla de dominio concede escritura directa a `authenticated`/`anon` | T-210 |
 | `08_lockdown_rpc_grants.sql` | Guardarraíl: las RPCs de escritura las ejecuta `authenticated` y no `anon` | T-210 |
 | `09_credito_local_recuperacion.sql` | Tolva/préstamos: `crear_prestamo`, recuperación en efectivo, saldos (`v_credito_local_saldo`/`v_local_saldo`), tolva en `crear_instalacion` y su traslado, condonación y permisos | T-212 |
+| `10_recaudacion_recupera_deuda.sql` | `persistir_recaudacion` (recaudación + recuperaciones atómicas + `pagado_local`), rechazo de recuperación > saldo, y `revertir_recuperaciones_recaudacion` al anular | T-214 |
 
 ## Ejecutar
 

@@ -73,6 +73,8 @@ export interface EmpresaContext {
   logo_url: string | null;
   /** Unidad de redondeo del bruto (0 = sin redondeo). */
   redondeo_recaudacion: number;
+  /** % por defecto de la parte_local retenido para amortizar deuda (0 = sin recuperación). */
+  porcentaje_recuperacion: number;
 }
 
 /** Datos de instalación + máquina + local + licencia, agregados. */
@@ -97,6 +99,8 @@ export interface InstalacionContext {
     nombre: string;
     direccion: string | null;
     titular_nombre: string | null;
+    /** Override del % de recuperación; null = hereda el de la empresa. */
+    porcentaje_recuperacion: number | null;
   };
   licencia: {
     numero: string;
