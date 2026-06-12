@@ -47,6 +47,7 @@ fun LocalDetalleScreen(
     onBack: () -> Unit,
     onRecaudarMaquina: (String) -> Unit,
     onCambioPlaca: (String) -> Unit,
+    onReportarAveria: (String) -> Unit,
     onRecaudarTodas: (String) -> Unit,
     onVerDeudas: () -> Unit,
 ) {
@@ -90,6 +91,7 @@ fun LocalDetalleScreen(
                     syncStale = state.syncStale,
                     onRecaudarMaquina = onRecaudarMaquina,
                     onCambioPlaca = onCambioPlaca,
+                    onReportarAveria = onReportarAveria,
                     onSincronizar = viewModel::refrescar,
                     onRecaudarTodas = onRecaudarTodas,
                     onVerDeudas = onVerDeudas,
@@ -139,6 +141,7 @@ private fun Contenido(
     syncStale: Boolean,
     onRecaudarMaquina: (String) -> Unit,
     onCambioPlaca: (String) -> Unit,
+    onReportarAveria: (String) -> Unit,
     onSincronizar: () -> Unit,
     onRecaudarTodas: (String) -> Unit,
     onVerDeudas: () -> Unit,
@@ -195,6 +198,7 @@ private fun Contenido(
                     syncStale = syncStale,
                     onRecaudarClick = { onRecaudarMaquina(maquina.instalacionId) },
                     onCambioPlacaClick = { onCambioPlaca(maquina.instalacionId) },
+                    onReportarAveriaClick = { onReportarAveria(maquina.maquinaId) },
                 )
             }
         }

@@ -3,6 +3,7 @@ package com.recre.app.feature.gestion.maquinas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
@@ -55,6 +57,7 @@ fun MaquinasGestorScreen(
     onBack: () -> Unit,
     onAlta: () -> Unit,
     onEditar: (String) -> Unit,
+    onVerAverias: (String) -> Unit,
     viewModel: MaquinasGestorViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -133,6 +136,7 @@ fun MaquinasGestorScreen(
                             maquina = m,
                             borrando = state.borrando == m.id,
                             onEditar = { onEditar(m.id) },
+                            onVerAverias = { onVerAverias(m.id) },
                             onEliminar = { aBorrar = m },
                         )
                     }
@@ -173,6 +177,7 @@ private fun MaquinaCard(
     maquina: MaquinaEntity,
     borrando: Boolean,
     onEditar: () -> Unit,
+    onVerAverias: () -> Unit,
     onEliminar: () -> Unit,
 ) {
     Card(
@@ -202,15 +207,18 @@ private fun MaquinaCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(4.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onEditar, enabled = !borrando) {
                     Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit))
                 }
-                IconButton(
-                    onClick = onEliminar,
-                    enabled = !borrando,
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                ) {
+                IconButton(onClick = onVerAverias, enabled = !borrando) {
+                    Icon(
+                        Icons.Default.Build,
+                        contentDescription = stringResource(R.string.averia_historial_titulo),
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = onEliminar, enabled = !borrando) {
                     if (borrando) CircularProgressIndicator(strokeWidth = 2.dp)
                     else Icon(
                         Icons.Default.Delete,

@@ -39,6 +39,10 @@ import com.recre.app.feature.ajustes.AjustesScreen
 import com.recre.app.feature.alertas.AlertasScreen
 import com.recre.app.feature.auth.LoginScreen
 import com.recre.app.feature.auth.LoginViewModel
+import com.recre.app.feature.averias.AveriasMaquinaScreen
+import com.recre.app.feature.averias.AveriasMaquinaViewModel
+import com.recre.app.feature.averias.ReportarAveriaScreen
+import com.recre.app.feature.averias.ReportarAveriaViewModel
 import com.recre.app.feature.cambio_placa.CambioPlacaScreen
 import com.recre.app.feature.cambio_placa.CambioPlacaViewModel
 import com.recre.app.feature.deudas.DeudasGestorScreen
@@ -261,6 +265,9 @@ private fun RecreApp(
                 onCambioPlaca = { instalacionId ->
                     navController.navigate(Routes.cambioPlaca(instalacionId))
                 },
+                onReportarAveria = { maquinaId ->
+                    navController.navigate(Routes.reportarAveria(maquinaId))
+                },
                 onRecaudarTodas = { primeraInstalacionId ->
                     navController.navigate(
                         Routes.recaudacion(primeraInstalacionId, cadenaLocalId = localId),
@@ -289,6 +296,19 @@ private fun RecreApp(
             CambioPlacaScreen(
                 viewModel = vm,
                 onFinalizar = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.REPORTAR_AVERIA,
+            arguments = listOf(
+                navArgument(ReportarAveriaViewModel.ARG_MAQUINA_ID) {
+                    type = NavType.StringType
+                },
+            ),
+        ) {
+            ReportarAveriaScreen(
+                onGuardado = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
             )
         }
@@ -370,7 +390,18 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
             onEditar = { id ->
                 navController.navigate(Routes.gestionMaquinaEditar(id))
             },
+            onVerAverias = { id ->
+                navController.navigate(Routes.gestionMaquinaAverias(id))
+            },
         )
+    }
+    composable(
+        route = Routes.GESTION_MAQUINA_AVERIAS,
+        arguments = listOf(
+            navArgument(AveriasMaquinaViewModel.ARG_MAQUINA_ID) { type = NavType.StringType },
+        ),
+    ) {
+        AveriasMaquinaScreen(onBack = { navController.popBackStack() })
     }
     composable(Routes.GESTION_MAQUINA_NUEVA) {
         MaquinaFormScreen(
@@ -623,6 +654,7 @@ private object Routes {
     const val LOCAL_DETALLE = "local/{${LocalDetalleViewModel.ARG_LOCAL_ID}}"
     const val LOCAL_DEUDAS = "local/{${DeudasLocalViewModel.ARG_LOCAL_ID}}/deudas"
     const val CAMBIO_PLACA = "cambio-placa/{${CambioPlacaViewModel.ARG_INSTALACION_ID}}"
+    const val REPORTAR_AVERIA = "averia/{${ReportarAveriaViewModel.ARG_MAQUINA_ID}}"
     const val IMPRESORA = "impresora"
     const val AJUSTES = "ajustes"
     const val HISTORICO = "historico"
@@ -642,6 +674,7 @@ private object Routes {
     fun localDetalle(localId: String): String = "local/$localId"
     fun localDeudas(localId: String): String = "local/$localId/deudas"
     fun cambioPlaca(instalacionId: String): String = "cambio-placa/$instalacionId"
+    fun reportarAveria(maquinaId: String): String = "averia/$maquinaId"
     fun historicoDetalle(recaudacionId: String): String = "historico/$recaudacionId"
 
     fun recaudacion(instalacionId: String, cadenaLocalId: String? = null): String {
@@ -663,6 +696,8 @@ private object Routes {
     const val GESTION_MAQUINA_NUEVA = "gestion/maquinas/nueva"
     const val GESTION_MAQUINA_EDITAR =
         "gestion/maquinas/{${MaquinaFormViewModel.ARG_MAQUINA_ID}}"
+    const val GESTION_MAQUINA_AVERIAS =
+        "gestion/maquinas/{${AveriasMaquinaViewModel.ARG_MAQUINA_ID}}/averias"
     const val GESTION_LOCALES = "gestion/locales"
     const val GESTION_LOCAL_NUEVO = "gestion/locales/nuevo"
     const val GESTION_LOCAL_EDITAR =
@@ -675,6 +710,7 @@ private object Routes {
 
     fun gestionLicenciaEditar(id: String): String = "gestion/licencias/$id"
     fun gestionMaquinaEditar(id: String): String = "gestion/maquinas/$id"
+    fun gestionMaquinaAverias(id: String): String = "gestion/maquinas/$id/averias"
     fun gestionLocalEditar(id: String): String = "gestion/locales/$id"
     fun gestionInstalacionEditar(id: String): String = "gestion/instalaciones/$id"
 }

@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.recre.app.core.data.local.dao.AveriaPendienteDao
 import com.recre.app.core.data.local.dao.CreditoLocalDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
@@ -13,6 +14,7 @@ import com.recre.app.core.data.local.dao.LocalDao
 import com.recre.app.core.data.local.dao.MaquinaDao
 import com.recre.app.core.data.local.dao.RecaudacionPendienteDao
 import com.recre.app.core.data.local.dao.SyncMetaDao
+import com.recre.app.core.data.local.entity.AveriaPendienteEntity
 import com.recre.app.core.data.local.entity.CreditoLocalEntity
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.local.entity.InstalacionEntity
@@ -37,6 +39,10 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * deudas abiertas para el preview offline, y `recaudacion_pendiente
  * .orden_recuperacion_json` para llevar el orden manual de imputación.
  *
+ * Versión 6 (T-222): añade `averia_pendiente` como cola offline de averías
+ * reportadas por el técnico (mismo criterio que `recaudacion_pendiente`: el
+ * reporte se persiste siempre y se sube cuando hay red).
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -51,8 +57,9 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         SyncMetaEntity::class,
         RecaudacionPendienteEntity::class,
         CreditoLocalEntity::class,
+        AveriaPendienteEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -65,6 +72,7 @@ abstract class RecreDatabase : RoomDatabase() {
     abstract fun syncMetaDao(): SyncMetaDao
     abstract fun recaudacionPendienteDao(): RecaudacionPendienteDao
     abstract fun creditoLocalDao(): CreditoLocalDao
+    abstract fun averiaPendienteDao(): AveriaPendienteDao
 
     companion object {
         /**
@@ -185,6 +193,51 @@ abstract class RecreDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `idx_credito_local_local` " +
                         "ON `credito_local` (`local_id`)",
+                )
+            }
+        }
+
+        /**
+         * v6 (T-222): cola offline de averías reportadas por el técnico.
+         * Subida reanudable: `averia_id_remoto` + `recambios_subidos` permiten
+         * reintentar sin duplicar la avería ni sus recambios.
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `averia_pendiente` (
+                        `id` TEXT NOT NULL PRIMARY KEY,
+                        `empresa_id` TEXT NOT NULL,
+                        `maquina_id` TEXT NOT NULL,
+                        `maquina_numero_serie` TEXT NOT NULL,
+                        `categoria` TEXT NOT NULL,
+                        `descripcion` TEXT,
+                        `pone_maquina_fuera_servicio` INTEGER NOT NULL,
+                        `notas` TEXT,
+                        `recambios_json` TEXT NOT NULL,
+                        `estado` TEXT NOT NULL,
+                        `intentos` INTEGER NOT NULL,
+                        `ultimo_error` TEXT,
+                        `ultimo_intento_at` INTEGER,
+                        `created_at` INTEGER NOT NULL,
+                        `subida_at` INTEGER,
+                        `averia_id_remoto` TEXT,
+                        `recambios_subidos` INTEGER NOT NULL
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_empresa` " +
+                        "ON `averia_pendiente` (`empresa_id`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_estado` " +
+                        "ON `averia_pendiente` (`estado`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_averia_pendiente_maquina` " +
+                        "ON `averia_pendiente` (`maquina_id`)",
                 )
             }
         }

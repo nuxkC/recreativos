@@ -3,6 +3,8 @@ package com.recre.app.di
 import com.recre.app.core.data.repository.AlertasRepository
 import com.recre.app.core.data.repository.AlertasRepositoryImpl
 import com.recre.app.core.data.repository.AuthRepository
+import com.recre.app.core.data.repository.AveriaRepository
+import com.recre.app.core.data.repository.AveriaRepositoryImpl
 import com.recre.app.core.data.repository.DeudasRepository
 import com.recre.app.core.data.repository.DeudasRepositoryImpl
 import com.recre.app.core.data.repository.EmpresaRepository
@@ -107,4 +109,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDeudasRepository(impl: DeudasRepositoryImpl): DeudasRepository
+
+    // Averías (T-222) -------------------------------------------------------
+
+    @Binds
+    @Singleton
+    abstract fun bindAveriaRepository(impl: AveriaRepositoryImpl): AveriaRepository
 }

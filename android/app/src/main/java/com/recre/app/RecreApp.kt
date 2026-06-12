@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.recre.app.core.push.PushTokenManager
+import com.recre.app.core.sync.AveriaUploadManager
 import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.sync.RecaudacionUploadManager
 import com.recre.app.core.sync.SyncManager
@@ -34,6 +35,9 @@ class RecreApp : Application(), Configuration.Provider {
     lateinit var uploadManager: RecaudacionUploadManager
 
     @Inject
+    lateinit var averiaUploadManager: AveriaUploadManager
+
+    @Inject
     lateinit var realtimeManager: RealtimeManager
 
     @Inject
@@ -50,6 +54,8 @@ class RecreApp : Application(), Configuration.Provider {
         // un intento de subir las recaudaciones pendientes.
         syncManager.start()
         uploadManager.start()
+        // T-222: sube las averías reportadas offline al recuperar la red.
+        averiaUploadManager.start()
         // Realtime: ante cambios en las tablas que afectan al baseline
         // (recaudacion, cambio_placa, instalacion, maquina) dispara un re-sync
         // para que los contadores no queden viejos mientras la app está abierta.

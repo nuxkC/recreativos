@@ -525,4 +525,50 @@
     <string name="deudas_error_no_encontrada">La deuda o el local ya no existe.</string>
     <string name="deudas_error_network">Sin conexión. Inténtalo cuando vuelvas a tener red.</string>
     <string name="deudas_error_generic">No se pudo completar la operación.</string>
+
+    <!-- Averías (T-222) -->
+    <string name="maquina_accion_reportar_averia">Reportar avería</string>
+    <!-- Categorías (lista fija, espejo del CHECK de la tabla averia) -->
+    <string name="averia_categoria_atasco_billete">Atasco de billete</string>
+    <string name="averia_categoria_atasco_moneda">Atasco de moneda</string>
+    <string name="averia_categoria_error">Error</string>
+    <string name="averia_categoria_falta_pago">Falta de pago</string>
+    <string name="averia_categoria_no_enciende">No enciende</string>
+    <string name="averia_categoria_otro">Otro</string>
+    <!-- Estados -->
+    <string name="averia_estado_abierta">Abierta</string>
+    <string name="averia_estado_en_reparacion">En reparación</string>
+    <string name="averia_estado_resuelta">Resuelta</string>
+    <!-- Reporte (técnico) -->
+    <string name="averia_reportar_titulo">Reportar avería</string>
+    <string name="averia_reportar_maquina">Máquina %1$s</string>
+    <string name="averia_campo_categoria">Categoría</string>
+    <string name="averia_campo_descripcion">Descripción</string>
+    <string name="averia_campo_fuera_servicio">Deja la máquina fuera de servicio</string>
+    <string name="averia_campo_fuera_servicio_ayuda">Mientras la avería siga abierta, la máquina figurará como averiada.</string>
+    <string name="averia_campo_notas">Notas</string>
+    <string name="averia_recambios_titulo">Recambios</string>
+    <string name="averia_recambios_vacio">Sin recambios. Añade los que hayas sustituido.</string>
+    <string name="averia_recambio_pieza">Pieza</string>
+    <string name="averia_recambio_cantidad">Cantidad</string>
+    <string name="averia_recambio_coste">Coste (€)</string>
+    <string name="averia_recambio_anadir">Añadir recambio</string>
+    <string name="averia_reportar_guardar">Guardar avería</string>
+    <string name="averia_reportar_offline_ayuda">Se guarda en el dispositivo y se sube cuando haya conexión.</string>
+    <!-- Historial (gestión) -->
+    <string name="averia_historial_titulo">Historial de averías</string>
+    <string name="averia_historial_vacio">Esta máquina no tiene averías registradas.</string>
+    <string name="averia_en_local">En %1$s</string>
+    <string name="averia_fuera_servicio_marca">Fuera de servicio</string>
+    <string name="averia_notas">Notas: %1$s</string>
+    <string name="averia_accion_resolver">Marcar resuelta</string>
+    <string name="averia_resolver_titulo">Resolver avería</string>
+    <string name="averia_resolver_descripcion">La avería se marcará como resuelta. Si la máquina estaba fuera de servicio por ella, volverá a su estado operativo.</string>
+    <string name="averia_resolver_notas">Notas de resolución (opcional)</string>
+    <string name="averia_resuelta_ok">Avería resuelta.</string>
+    <!-- Errores -->
+    <string name="averia_error_sin_permiso">No tienes permiso para esta operación.</string>
+    <string name="averia_error_ya_resuelta">La avería ya estaba resuelta.</string>
+    <string name="averia_error_no_encontrada">La avería o la máquina ya no existe.</string>
+    <string name="averia_error_guardar">No se pudo guardar la avería. Inténtalo de nuevo.</string>
 </resources>

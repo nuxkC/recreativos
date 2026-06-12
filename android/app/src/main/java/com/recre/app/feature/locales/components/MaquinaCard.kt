@@ -47,6 +47,7 @@ fun MaquinaCard(
     syncStale: Boolean,
     onRecaudarClick: () -> Unit,
     onCambioPlacaClick: () -> Unit,
+    onReportarAveriaClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -128,14 +129,18 @@ fun MaquinaCard(
             ) {
                 Text(stringResource(R.string.maquina_accion_recaudar))
             }
-            // T-61 — botón secundario para registrar un cambio de placa.
-            // Disponible para máquinas instaladas; no depende del flag stale
-            // porque es una operación online que produce una baseline nueva.
-            if (maquina.estado == "instalada") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
+            // Acciones secundarias. "Reportar avería" (T-222) está siempre
+            // disponible: es offline-first (se encola y sube luego) y aplica a
+            // cualquier estado de la máquina. "Cambio de placa" (T-61) requiere
+            // máquina instalada y red (produce una baseline nueva).
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onReportarAveriaClick) {
+                    Text(stringResource(R.string.maquina_accion_reportar_averia))
+                }
+                if (maquina.estado == "instalada") {
                     TextButton(onClick = onCambioPlacaClick) {
                         Text(stringResource(R.string.maquina_accion_cambio_placa))
                     }
