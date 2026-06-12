@@ -25,6 +25,8 @@ export interface Local {
   telefono: string | null;
   email: string | null;
   notas: string | null;
+  /** Override del % de recuperación de deuda. NULL = hereda el de la empresa. */
+  porcentajeRecuperacion: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,6 +42,7 @@ export interface LocalRow {
   telefono: string | null;
   email: string | null;
   notas: string | null;
+  porcentaje_recuperacion: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +58,7 @@ export function mapLocalRow(row: LocalRow): Local {
     telefono: row.telefono,
     email: row.email,
     notas: row.notas,
+    porcentajeRecuperacion: row.porcentaje_recuperacion,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

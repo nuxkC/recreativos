@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarX, Coins, Gamepad2, Store } from "lucide-react";
+import { AlertTriangle, Banknote, CalendarX, Coins, Gamepad2, Store } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -14,6 +14,7 @@ import {
   listarLicenciasProximasACaducar,
   obtenerResumenRecaudacion,
 } from "@/lib/dashboard/queries";
+import { obtenerCapitalEnLaCalle } from "@/lib/deudas/queries";
 import { formatDate, formatEur } from "@/lib/recaudaciones/format";
 
 export default async function DashboardPage() {
@@ -21,14 +22,16 @@ export default async function DashboardPage() {
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
 
-  const [resumen, maquinas, conflictos, licencias, sinRecaudar, alertas] = await Promise.all([
-    obtenerResumenRecaudacion(activa.empresa.id),
-    contarMaquinasPorEstado(activa.empresa.id),
-    contarConflictosPendientes(activa.empresa.id),
-    listarLicenciasProximasACaducar(activa.empresa.id, 30),
-    listarInstalacionesSinRecaudar(activa.empresa.id, 14),
-    listarAlertasPendientes(activa.empresa.id, 10),
-  ]);
+  const [resumen, maquinas, conflictos, licencias, sinRecaudar, alertas, capital] =
+    await Promise.all([
+      obtenerResumenRecaudacion(activa.empresa.id),
+      contarMaquinasPorEstado(activa.empresa.id),
+      contarConflictosPendientes(activa.empresa.id),
+      listarLicenciasProximasACaducar(activa.empresa.id, 30),
+      listarInstalacionesSinRecaudar(activa.empresa.id, 14),
+      listarAlertasPendientes(activa.empresa.id, 10),
+      obtenerCapitalEnLaCalle(activa.empresa.id),
+    ]);
 
   return (
     <div className="space-y-6">
@@ -68,6 +71,15 @@ export default async function DashboardPage() {
           value={String(licencias.length)}
           hint={t("kpis.licenciasHint", { dias: 30 })}
           variant={licencias.length > 0 ? "warning" : "default"}
+        />
+        <KpiCard
+          icon={Banknote}
+          title={t("kpis.capitalEnLaCalle")}
+          value={formatEur(capital.total)}
+          hint={t("kpis.capitalEnLaCalleHint", {
+            tolva: formatEur(capital.tolva),
+            prestamo: formatEur(capital.prestamo),
+          })}
         />
       </div>
 

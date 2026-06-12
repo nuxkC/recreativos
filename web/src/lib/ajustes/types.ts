@@ -17,6 +17,7 @@ export interface EmpresaAjustes {
   ticketCabecera: string | null;
   ticketPie: string | null;
   redondeoRecaudacion: number;
+  porcentajeRecuperacion: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +34,7 @@ export interface EmpresaAjustesRow {
   ticket_cabecera: string | null;
   ticket_pie: string | null;
   redondeo_recaudacion: number;
+  porcentaje_recuperacion: number;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +52,7 @@ export function mapEmpresaAjustesRow(row: EmpresaAjustesRow): EmpresaAjustes {
     ticketCabecera: row.ticket_cabecera,
     ticketPie: row.ticket_pie,
     redondeoRecaudacion: row.redondeo_recaudacion,
+    porcentajeRecuperacion: row.porcentaje_recuperacion,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

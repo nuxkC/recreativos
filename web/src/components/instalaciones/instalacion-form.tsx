@@ -47,6 +47,7 @@ type InstalacionFormValues = {
   fechaInicio: string;
   tasaSemanal: string;
   porcentajeLocal: string;
+  tolva: string;
   notas: string;
 };
 
@@ -66,6 +67,8 @@ function defaults(instalacion?: Instalacion): InstalacionFormValues {
     fechaInicio: instalacion?.fechaInicio ?? "",
     tasaSemanal: instalacion?.tasaSemanal ?? "",
     porcentajeLocal: instalacion?.porcentajeLocal ?? "50.00",
+    // La tolva solo se fija en el alta; en edición el campo no se muestra.
+    tolva: "0",
     notas: instalacion?.notas ?? "",
   };
 }
@@ -326,6 +329,30 @@ export function InstalacionForm({
                 </FormItem>
               )}
             />
+            {/* Tolva: solo en el alta. En edición no se muestra porque la deuda de
+                tolva ya está creada y su ajuste va por el flujo de traslado. */}
+            {mode === "create" ? (
+              <FormField
+                control={form.control}
+                name="tolva"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{tCampos("tolva")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        autoComplete="off"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>{tCampos("tolvaAyuda")}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
             <FormField
               control={form.control}
               name="notas"

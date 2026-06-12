@@ -32,6 +32,14 @@ export const EmpresaAjustesSchema = z.object({
     .refine((v) => (REDONDEO_RECAUDACION_OPCIONES as readonly number[]).includes(v), {
       message: "redondeoInvalido",
     }),
+  // % por defecto de la parte_local que se retiene en cada recaudación para
+  // amortizar deudas del local (tolva/préstamo). 0 = sin recuperación automática.
+  // Un local puede sobreescribirlo (override) desde su ficha.
+  porcentajeRecuperacion: z.coerce
+    .number({ message: "porcentajeRecuperacionInvalido" })
+    .int({ message: "porcentajeRecuperacionInvalido" })
+    .min(0, { message: "porcentajeRecuperacionRango" })
+    .max(100, { message: "porcentajeRecuperacionRango" }),
 });
 
 export type EmpresaAjustesInput = z.infer<typeof EmpresaAjustesSchema>;

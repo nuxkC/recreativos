@@ -46,6 +46,7 @@ type AjustesFormValues = {
   ticketCabecera: string;
   ticketPie: string;
   redondeoRecaudacion: number;
+  porcentajeRecuperacion: number;
 };
 
 interface AjustesFormProps {
@@ -66,6 +67,7 @@ function defaults(empresa: EmpresaAjustes): AjustesFormValues {
     ticketCabecera: empresa.ticketCabecera ?? "",
     ticketPie: empresa.ticketPie ?? "",
     redondeoRecaudacion: empresa.redondeoRecaudacion,
+    porcentajeRecuperacion: empresa.porcentajeRecuperacion,
   };
 }
 
@@ -274,9 +276,7 @@ export function AjustesForm({ empresa }: AjustesFormProps) {
         <div className="space-y-4 rounded-md border p-4">
           <div>
             <h2 className="text-base font-medium">{t("seccion.recaudacion")}</h2>
-            <p className="text-sm text-muted-foreground">
-              {t("seccion.recaudacionDescripcion")}
-            </p>
+            <p className="text-sm text-muted-foreground">{t("seccion.recaudacionDescripcion")}</p>
           </div>
           <FormField
             control={form.control}
@@ -304,6 +304,29 @@ export function AjustesForm({ empresa }: AjustesFormProps) {
                   </SelectContent>
                 </Select>
                 <FormDescription>{tCampos("redondeoRecaudacionAyuda")}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="porcentajeRecuperacion"
+            render={({ field }) => (
+              <FormItem className="sm:max-w-xs">
+                <FormLabel>{tCampos("porcentajeRecuperacion")}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={100}
+                    value={field.value}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === "" ? 0 : Number(e.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormDescription>{tCampos("porcentajeRecuperacionAyuda")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
