@@ -36,10 +36,11 @@ INSERT INTO _tablas_dominio(t) VALUES
     ('recaudacion_lock'),
     ('recuperacion'),
     ('resumen_mensual_envio'),
+    ('tolva_movimiento'),
     ('usuario');
 
--- 19 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 133
-SELECT plan(133);
+-- 20 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 140
+SELECT plan(140);
 
 -- authenticated CONSERVA lectura.
 SELECT ok(
