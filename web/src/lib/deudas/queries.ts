@@ -36,6 +36,34 @@ export async function obtenerPorcentajeRecuperacionEmpresa(empresaId: string): P
   return data?.porcentaje_recuperacion ?? 0;
 }
 
+/** Un local con su saldo de deuda + nombre, para el listado de la sección Deudas. */
+export interface LocalConSaldo extends LocalSaldo {
+  nombre: string;
+}
+
+/**
+ * Todos los locales con su saldo de deuda (los que más deben, primero).
+ * Alimenta el índice de la sección Deudas: desde ahí se entra a cada local
+ * para gestionar (préstamo/abono/condonar/%). Incluye locales sin deuda para
+ * poder darles de alta un préstamo desde la propia sección.
+ */
+export async function listarLocalesConSaldo(empresaId: string): Promise<LocalConSaldo[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("v_local_saldo")
+    .select("*, local:local_id (nombre)")
+    .eq("empresa_id", empresaId)
+    .order("saldo_total", { ascending: false })
+    .returns<Array<LocalSaldoRow & { local: { nombre: string } | null }>>();
+  if (error) {
+    throw new Error(`No se pudieron cargar los locales con saldo: ${error.message}`);
+  }
+  return (data ?? []).map((row) => ({
+    ...mapLocalSaldoRow(row),
+    nombre: row.local?.nombre ?? "—",
+  }));
+}
+
 /** Saldo de deuda agregado del local (solo deudas abiertas). */
 export async function obtenerSaldoLocal(
   empresaId: string,

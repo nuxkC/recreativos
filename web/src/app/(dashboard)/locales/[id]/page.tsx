@@ -1,22 +1,16 @@
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 
-import { DeudasLocal } from "@/components/deudas/deudas-local";
 import { EliminarLocal } from "@/components/locales/eliminar-local";
 import { LocalForm } from "@/components/locales/local-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { rolCumple, requireRol } from "@/lib/auth/guards";
-import { ROLES_ADMIN, ROLES_GESTION } from "@/lib/auth/roles";
-import {
-  listarCreditosLocal,
-  listarRecuperacionesLocal,
-  obtenerPorcentajeRecuperacionEmpresa,
-  obtenerSaldoLocal,
-} from "@/lib/deudas/queries";
+import { requireRol } from "@/lib/auth/guards";
+import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerLocal } from "@/lib/locales/queries";
 
 const IdSchema = z.string().uuid();
@@ -48,14 +42,6 @@ export default async function LocalDetallePage({ params }: LocalDetallePageProps
     notFound();
   }
 
-  const [saldo, creditos, recuperaciones, porcentajeEmpresa] = await Promise.all([
-    obtenerSaldoLocal(activa.empresa.id, local.id),
-    listarCreditosLocal(activa.empresa.id, local.id),
-    listarRecuperacionesLocal(activa.empresa.id, local.id),
-    obtenerPorcentajeRecuperacionEmpresa(activa.empresa.id),
-  ]);
-  const esAdmin = rolCumple(activa.rol, ROLES_ADMIN);
-
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="space-y-1">
@@ -85,15 +71,19 @@ export default async function LocalDetallePage({ params }: LocalDetallePageProps
         </CardContent>
       </Card>
 
-      <DeudasLocal
-        localId={local.id}
-        saldo={saldo}
-        creditos={creditos}
-        recuperaciones={recuperaciones}
-        porcentajeEmpresa={porcentajeEmpresa}
-        porcentajeLocal={local.porcentajeRecuperacion}
-        esAdmin={esAdmin}
-      />
+      {/* La gestión de deuda vive en la sección Deudas (centro de mando, T-218):
+          desde aquí solo se redirige a la página del local en esa sección. */}
+      <Link href={`/deudas/${local.id}`} className="block">
+        <Card className="transition-colors hover:bg-accent">
+          <CardContent className="flex items-center justify-between gap-4 py-4">
+            <div className="space-y-0.5">
+              <p className="font-medium">{t("deudas.titulo")}</p>
+              <p className="text-sm text-muted-foreground">{t("deudas.descripcion")}</p>
+            </div>
+            <ArrowRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   );
 }
