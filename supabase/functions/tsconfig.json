@@ -1,0 +1,21 @@
+{
+  // Este tsconfig NO lo usa Deno ni el deploy de Supabase (Deno lee deno.json, no tsconfig.json).
+  // Existe solo para que el language server de TypeScript (tsserver, usado por el editor y por
+  // Serena MCP) trate supabase/functions como un proyecto y pueda resolver referencias cruzadas.
+  // Clave: allowImportingTsExtensions permite los imports con extensión .ts ("../_shared/calculo.ts")
+  // que usa Deno; sin él tsserver no resuelve los módulos y find_referencing_symbols devuelve vacío.
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["**/*.ts"],
+  "exclude": []
+}
