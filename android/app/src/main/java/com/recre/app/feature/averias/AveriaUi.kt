@@ -1,5 +1,7 @@
 package com.recre.app.feature.averias
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -79,9 +81,7 @@ fun formatFechaAveria(instant: Instant): String =
 /** Formatea un coste (String con precisión decimal) como "12,50 €". `null` → "". */
 fun formatCoste(value: String?): String {
     if (value.isNullOrBlank()) return ""
-    val decimal = runCatching { BigDecimal(value).setScale(2, RoundingMode.HALF_UP) }
-        .getOrElse { return value }
-    return "${decimal.toPlainString().replace('.', ',')} €"
+    return formatEur(value) // canónico money-safe, agrupación es-ES
 }
 
 /**

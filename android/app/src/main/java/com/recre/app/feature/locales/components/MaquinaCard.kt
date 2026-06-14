@@ -1,5 +1,7 @@
 package com.recre.app.feature.locales.components
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -179,11 +181,7 @@ private fun labelOrigen(origen: String): String = when (origen) {
     else -> origen
 }
 
-private fun formatEur(value: String): String {
-    val decimal = runCatching { BigDecimal(value).setScale(2, java.math.RoundingMode.HALF_UP) }
-        .getOrElse { return value }
-    return "${decimal.toPlainString().replace('.', ',')} €"
-}
+// formatEur migrado al canónico de ui.components (money-safe, agrupación es-ES).
 
 private fun formatPct(value: String): String {
     val decimal = runCatching { BigDecimal(value).setScale(2, java.math.RoundingMode.HALF_UP) }

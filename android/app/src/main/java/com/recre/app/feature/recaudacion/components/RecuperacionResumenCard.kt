@@ -1,5 +1,7 @@
 package com.recre.app.feature.recaudacion.components
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
