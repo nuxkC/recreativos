@@ -10,7 +10,7 @@ export default async function LoginPage() {
   const tApp = await getTranslations("app");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">{tApp("name")}</CardTitle>

@@ -8,10 +8,7 @@ import {
   type RecaudacionesCsvLabels,
 } from "@/lib/export/recaudaciones-csv";
 import { listarRecaudaciones } from "@/lib/recaudaciones/queries";
-import {
-  isEstadoRecaudacion,
-  type EstadoRecaudacion,
-} from "@/lib/recaudaciones/types";
+import { isEstadoRecaudacion, type EstadoRecaudacion } from "@/lib/recaudaciones/types";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;

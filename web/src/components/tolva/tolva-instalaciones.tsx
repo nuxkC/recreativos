@@ -10,11 +10,7 @@ import type { TolvaInstalacion } from "@/lib/tolva/queries";
  * por reponer en la próxima recaudación, §5.6). Se muestra en el contexto del
  * local porque así se ve sin tener que localizar primero la máquina.
  */
-export async function TolvaInstalaciones({
-  instalaciones,
-}: {
-  instalaciones: TolvaInstalacion[];
-}) {
+export async function TolvaInstalaciones({ instalaciones }: { instalaciones: TolvaInstalacion[] }) {
   if (instalaciones.length === 0) return null;
 
   const t = await getTranslations("tolva");
@@ -56,15 +52,7 @@ export async function TolvaInstalaciones({
   );
 }
 
-function Figura({
-  label,
-  value,
-  emphasis,
-}: {
-  label: string;
-  value: string;
-  emphasis?: boolean;
-}) {
+function Figura({ label, value, emphasis }: { label: string; value: string; emphasis?: boolean }) {
   return (
     <div className="text-right">
       <dt className="text-xs text-muted-foreground">{label}</dt>

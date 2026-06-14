@@ -27,7 +27,12 @@ function formatCoste(coste: string | null): string | null {
   return Number.isFinite(n) ? eurFormatter.format(n) : coste;
 }
 
-export function RecambiosAveria({ averiaId, maquinaId, recambios, editable }: RecambiosAveriaProps) {
+export function RecambiosAveria({
+  averiaId,
+  maquinaId,
+  recambios,
+  editable,
+}: RecambiosAveriaProps) {
   const t = useTranslations("averias");
   const tValidacion = useTranslations("averias.validacion");
   const tErrores = useTranslations("averias.errores");

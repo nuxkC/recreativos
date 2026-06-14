@@ -85,7 +85,12 @@ export function ResolverAveria({ averiaId, maquinaId }: ResolverAveriaProps) {
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
               {t("accion.cancelar")}
             </Button>
             <Button type="submit" disabled={pending}>

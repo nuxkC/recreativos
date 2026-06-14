@@ -27,9 +27,7 @@ export async function TrialBanner({ estadoSuscripcion, trialFin }: TrialBannerPr
   const esExpirado = info.estado === "expirado";
   const esAviso = info.estado !== "vigente";
 
-  const mensaje = esExpirado
-    ? t("expirado")
-    : t("diasRestantes", { dias: info.diasRestantes });
+  const mensaje = esExpirado ? t("expirado") : t("diasRestantes", { dias: info.diasRestantes });
 
   return (
     <div
