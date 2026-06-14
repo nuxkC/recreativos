@@ -309,3 +309,147 @@
     display: none;
   }
 }
+
+/* ============================================================================
+   Motion — "Confianza Industrial" (Fase 4 · T-231).
+   SSOT: .kiro/specs/recre/fase3-design-tokens.md (§ Motion).
+   Tokens (duraciones/easings) + animaciones firma (popover/pulse/spin/flash/
+   shake) como CSS. El count-up es presentación aparte (@number-flow, T-238) y
+   las transiciones de presencia/layout las da `motion` 12.x (MotionProvider).
+   Rango de marca 120-180ms, curva cubic-bezier(0.2,0,0,1); sin overshoot.
+   ============================================================================ */
+:root {
+  /* Duraciones */
+  --motion-duration-instant: 0ms;
+  --motion-duration-fast: 120ms; /* tap, fade de popover/Cmd+K */
+  --motion-duration-default: 150ms; /* color/opacidad, crossfade, hover */
+  --motion-duration-slow: 180ms; /* transiciones de layout */
+  --motion-duration-countup: 600ms;
+  --motion-duration-success-flash: 900ms;
+  --motion-duration-danger-shake: 400ms;
+  --motion-duration-offline-pulse: 1600ms;
+  --motion-duration-sync-spin: 900ms;
+
+  /* Easings */
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1); /* curva de marca */
+  --motion-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* lo que sale */
+  --motion-ease-decelerate: cubic-bezier(0, 0, 0, 1); /* lo que entra */
+  --motion-ease-linear: linear;
+
+  /* Desplazamiento de entrada de popover/Cmd+K (fade + 4px, sin rebote) */
+  --motion-popover-offset: 4px;
+
+  /* Transiciones compuestas listas para usar */
+  --motion-transition-colors:
+    color var(--motion-duration-default) var(--motion-ease-standard),
+    background-color var(--motion-duration-default) var(--motion-ease-standard),
+    border-color var(--motion-duration-default) var(--motion-ease-standard),
+    fill var(--motion-duration-default) var(--motion-ease-standard),
+    stroke var(--motion-duration-default) var(--motion-ease-standard);
+  --motion-transition-popover:
+    opacity var(--motion-duration-fast) var(--motion-ease-decelerate),
+    transform var(--motion-duration-fast) var(--motion-ease-decelerate);
+}
+
+/* Popover / Cmd+K: aparece 4px y asienta, sin rebote */
+@keyframes recre-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-popover-offset));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Badge offline-stale (warning/ámbar): pulso lento del opacity */
+@keyframes recre-offline-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Spinner de sincronización: giro continuo a velocidad constante */
+@keyframes recre-sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Flash success al sincronizar: pico de tinte verde y vuelta (verde solo confirma) */
+@keyframes recre-success-flash {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: color-mix(in srgb, var(--success) 18%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Shake danger ante descuadre: oscilación horizontal que decae (rojo solo error) */
+@keyframes recre-danger-shake {
+  0% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-8px);
+  }
+  30% {
+    transform: translateX(8px);
+  }
+  50% {
+    transform: translateX(-6px);
+  }
+  70% {
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Clases utilitarias (consumen los tokens) */
+.motion-popover-in {
+  animation: recre-popover-in var(--motion-duration-fast) var(--motion-ease-decelerate) both;
+}
+.motion-offline-pulse {
+  animation: recre-offline-pulse var(--motion-duration-offline-pulse) var(--motion-ease-standard)
+    infinite;
+}
+.motion-sync-spin {
+  animation: recre-sync-spin var(--motion-duration-sync-spin) var(--motion-ease-linear) infinite;
+}
+.motion-success-flash {
+  animation: recre-success-flash var(--motion-duration-success-flash) var(--motion-ease-standard)
+    both;
+}
+.motion-danger-shake {
+  animation: recre-danger-shake var(--motion-duration-danger-shake) var(--motion-ease-standard) both;
+}
+
+/* reduced-motion: una sola regla apaga TODO el movimiento decorativo.
+   El estado/color/icono se mantienen; combina con MotionConfig reducedMotion="user". */
+@media (prefers-reduced-motion: reduce) {
+  .motion-popover-in,
+  .motion-offline-pulse,
+  .motion-sync-spin,
+  .motion-success-flash,
+  .motion-danger-shake {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

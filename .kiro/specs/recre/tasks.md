@@ -165,7 +165,7 @@ el Bloque 5 → **T-251** (Compose BOM ≥ 2025.10 para Material 3 Expressive / 
 ### F1 — Motion
 
 - [ ] **T-230** Android: `MaterialExpressiveTheme` + `MotionScheme` (transiciones expresivas del plan de diseño). **Requiere T-251** (Bloque 5: Compose BOM ≥ 2025.10, idealmente 2025.12). Ver `design-system-plan.md` §8 (F1) y `dependency-upgrade-plan.md` Bloque 5.
-- [ ] **T-231** Web: animaciones con `motion` 12.x (transiciones, `AnimatePresence`, layout). Funciona en React 18.3 → **no depende** de la Fase 5. Ver `fase3-design-tokens.md` (bindings de motion).
+- [x] **T-231** Web: animaciones con `motion` 12.x (transiciones, `AnimatePresence`, layout). Funciona en React 18.3 → **no depende** de la Fase 5. Ver `fase3-design-tokens.md` (bindings de motion). — **Hecho** (tsc/eslint/prettier verdes en lo tocado; `motion@12.40.0` instalado): materializados en `globals.css` los tokens de motion (`--motion-duration-*`/`--motion-ease-*`/transiciones compuestas) + las 5 animaciones firma CSS (`recre-popover-in`/`offline-pulse`/`sync-spin`/`success-flash`/`danger-shake`) con `@media (prefers-reduced-motion)`; espejo en `tailwind.config.ts` (`transitionTimingFunction`/`transitionDuration`/`keyframes`/`animation`). `MotionProvider` (`MotionConfig reducedMotion="user"`) cableado en `layout.tsx`. Primitivas reutilizables en `components/common/motion.tsx` (`FadeIn`, `MotionItem` con `layout`+`AnimatePresence`, presets `TRANSITION`/`MOTION_EASE`/`fadeInUp`). Count-up de cifras (presentación) queda para T-238 con `@number-flow`. Adopción por pantalla (listas/popovers/flash de sync) se cablea en F3/F4/F5 sobre estas primitivas.
 
 ### F2 — Teclado numérico y campos
 
