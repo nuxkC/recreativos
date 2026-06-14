@@ -137,6 +137,87 @@ del premio pagado de la tolva, que **modifica el SSOT del cálculo**. Ver design
 - [x] **T-225** Web + Android: la reposición de tolva por avería se muestra en el detalle/resumen de la recaudación (repuesto a tolva + base de reparto) y en la ficha de tolva de la instalación (teórica/efectiva/pendiente); ticket PDF con la línea de reposición. Partido por subproyecto en 4 PRs: ticket PDF (`pdf.ts`), web detalle recaudación (`recaudaciones/[id]` + tipo `Recaudacion`), web ficha tolva (tarjeta en el detalle del local, lee `v_instalacion_tolva`), android detalle (`CifrasResumenCard` + `RecaudacionHistoricaRow.reposicion_tolva`, server-fetched). **Previa offline correcta**: `v_instalacion_tolva.pendiente` se sincroniza a Room (`instalacion.pendiente_tolva`, migración Room v7) como la deuda, se pasa a `Calculo.kt` y la previa descuenta la reposición antes del reparto — así el desglose que separa el técnico cuadra con lo que persiste el servidor (no se le da de más al local). *(this PR)*
 - [x] **T-226** Web + Android: **input de la merma de tolva al reportar avería** (cerraba el lazo de T-223: el backend ya insertaba la merma, pero ningún cliente podía activar `afecta_tolva`). El usuario marca "la avería pagó premio de la tolva" + importe (€) — visible solo si la máquina tiene instalación activa (la propia `crear_averia` lo exige, §5.6). **Android** (técnico): fluye offline igual que el resto — `averia_pendiente.afecta_tolva`/`importe_tolva` (migración Room v8) → `CrearAveriaParams` (`p_afecta_tolva`/`p_importe_tolva`, numeric vía `NumericStringSerializer`) → `crear_averia`, que inserta la `merma` atómica; además se **quita el campo "Coste"** del editor de recambios del formulario del técnico (no lo gestiona en campo; la columna y el back-office web siguen igual). **Web** (gestor): mismo bloque en el alta de `AveriaDialog` (gateado por `maquinaTieneInstalacionActiva`), `CrearAveriaInputSchema` (dinero `Decimal` → string, exige importe > 0 si afecta), la Server Action `crearAveria` pasa `p_afecta_tolva`/`p_importe_tolva`. Tests: repo Android (encolar persiste la merma; subida la envía a la RPC) y schema web (`CrearAveriaInputSchema`). *(this PR)*
 
+## Fase 4 — Rediseño UI/UX (sistema de diseño "Confianza Industrial")
+
+Implementa el rediseño visual y de IA especificado en `.kiro/specs/recre/` por las
+cuatro fases de diseño: **auditoría + IA** (`functional-audit-and-ia.md`), **diseño
+por pantalla** (`fase2-design-screens.md`), **tokens atómicos** (`fase3-design-tokens.md`)
+y **specs de componentes** (`fase3-component-specs.md`). El **plan de fases y el orden**
+vienen de `design-system-plan.md` §8 y `visual-identity.md`; **estas tareas refinan y
+sustituyen esa "propuesta T-227+"** (inserta T-229 átomos base, por lo que la numeración
+del §8 se desplaza +1 a partir de ahí). Regla fija del cliente: **teclado numérico in-app
+solo en el extracto de denominaciones** (modos Total y Local); el resto de inputs numéricos
+usan el teclado numérico/decimal del sistema y las fechas un DatePicker (T-232/T-233).
+
+Independiente de la Fase 5 (dependencias) **salvo** T-230 (motion Android), que requiere
+el Bloque 5 → **T-251** (Compose BOM ≥ 2025.10 para Material 3 Expressive / `MotionScheme`).
+
+### F0 — Fundamentos (tokens · tipografía · átomos)
+
+- **T-227** Materializa los tokens "Confianza Industrial". Dividida en web/Android (una rama/PR por plataforma; sin renumerar el resto del plan):
+  - [x] **T-227a** Web: CSS vars + `tailwind.config` light/dark. Paleta de marca (petróleo) sustituye al zinc de shadcn; roles semánticos `success/warning/danger/info` (+`-subtle`), `surface-1/2`, charts/sidebar derivados de marca; **`-text` variants** reales (success-text `#076138`, danger-text `#A81818`, warning-text `#8A3D0A`, info-text `#1D4ED8`); `--muted` (superficie) vs `--muted-foreground` (texto); `on-danger`/`on-warning` de relleno en dark (`#3A0A0A`/`#3A2503`); rol `state-neutral` (deuda EUR/offline, nunca rojo); pares OPACOS precomputados `*-chip-bg/fg` para StatusChip; escala tipográfica, radios y rejilla de espaciado. Validado: Tailwind compila, Prettier, sin hex hardcodeado. Ver `fase3-design-tokens.md` + "Reconciliaciones (ronda 2)".
+  - [x] **T-227b** Android: `Color.kt` + `Theme.kt`/`ColorScheme` M3 con los mismos roles, `RecreColors`/`LocalRecreColors` (slots que M3 no tiene: success/warning/info/border/muted/surface-2/ring), variantes `-text`, `on-danger`/`on-warning` oscuros en dark, rol `state-neutral`. Limpiado el placeholder Slate/Indigo/Red/Green y el marcador stale `T-65 / fase 2`. Sin `dynamicColor` (marca fija). Validado: `compileDebugKotlin` BUILD SUCCESSFUL.
+- [x] **T-228** Tipografía Android: `Type.kt` con `GeistSans`/`GeistMono` (fuentes variables vía eje `wght`, `FontVariation`), `RecreType` (importe/importeMedium/cifra/cifraCaption mono+tabular `tnum`) y `Typography` M3 mapeado (escala Android +1 paso, pesos no estándar `FontWeight(440)`/`FontWeight(450)`). Fuentes Geist convertidas WOFF1→TTF in-repo (las ya vendorizadas en web, OFL) a `res/font/geist_variable.ttf` + `geist_mono_variable.ttf`. Validado: `compileDebugKotlin` BUILD SUCCESSFUL (aapt acepta los TTF).
+- [ ] **T-229** Biblioteca de átomos base (los 44 átomos de `fase3-component-specs.md`) en ambas plataformas: botones (variantes/estados), `StatusChip`/badges, `MoneyText` (color solo positivo/negativo, nunca para deuda), inputs, `SegmentedControl`, `FilterChip`, `Avatar`, `Collapsible`, acciones de icono, skeletons, etc. Respeta los estados y dp/px exactos y las **erratas transversales (§0–§I)**: targets táctiles ≥ 48dp, dinero siempre `decimal.js`/`BigDecimal`, estado nunca solo-color (icono+texto+color). Sustituye el uso de la paleta placeholder previa.
+  - _Progreso web (parcial):_ hechos y validados (tsc + tailwind sin warnings + vitest 65/65, sin colores/deps crudos). **Batch 1 (manual):** `MoneyText` (+helper money-safe `lib/money/format.ts` con test), `StatusChip`, `FilterChip`(+`FilterChipRow`), `SegmentedControl`, `Skeleton`(+`SkeletonCard`), `SubtotalSeparator`, `IconAction`, `OfflineBadge`, `NotificationBadge`, `StepIndicator`. **Batch 2 (workflow Opus, implementar→verificar adversarial):** `Field`/inputs money-safe (`FieldInput`/`FieldNumber`/`FieldSelect`; Combobox CCAA + DatePicker **diferidos**: requieren `cmdk`/`react-day-picker`, no instalados), `SearchField`, `EmptyState`, `ErrorState`, `ConfirmDialog`, `Collapsible`, `SyncControl`, `UserMenu`+`Avatar`. Migrados a tokens por rol `ui/badge`, `ui/card`/`ui/button` (sin shadow), `dashboard/kpi-card`. Tokens F0 añadidos para soportarlos: `--border-strong`, `.no-scrollbar`, `transitionTimingFunction.standard` (`ease-standard`). 5 majors de la verificación corregidos (targets táctiles ≥44px, `aria-disabled` vs `disabled`, nombre accesible de `FieldSelect`). **Batch 3 (workflow Opus, primitivos→compuestos):** primitivos `ui/{tooltip,sheet,popover,command,calendar}` (deps `@radix-ui/react-tooltip`/`react-popover`, `cmdk`, `react-day-picker` instaladas) + compuestos `Combobox` CCAA, `DatePicker`(`date-field`), `CommandPalette`, `Sparkline`. 6 majors corregidos (ARIA combobox al input, `bg-secondary` seleccionado + highlight `surface-2`, `DialogTitle/Description` sr-only en CommandDialog + panel 20vh/640px). Token F0 añadido: **`--muted-strong`** (≥7:1 para iconos/€/sufijos informativos) — resuelve deuda sistémica de `field`/`date-field`. **Build web 100% limpio** (sin warnings tailwind; `ease-standard`/`duration` tokenizados). Capa de **átomos web esencialmente completa**; quedan organismos/layout (ThumbNav/Sidebar/TopBar/DataTable/KPI-Bento/Snackbar) que pertenecen a fases F3-4 (IA), no al átomo base.
+  - _Android (en curso):_ no había capa de átomos Compose (solo `EstadoMaquinaBadge`/`MaquinaCard` a nivel feature). Se crea `com.recre.app.ui.components/` sobre `RecreColors.current`/`RecreType` (T-227b/T-228). Por batches con `compileDebugKotlin` de validación. **Batch A (workflow Opus) — hecho y compila**: `MoneyText`(+`formatEur` canónico money-safe `BigDecimal`), `StatusChip` (+ pares `*ChipBg/Fg` añadidos a `Color.kt`), `RecreButton` (PrimaryCTA/Tonal/Texto/Destructivo+AlertDialog con foco en Cancelar), `AppCard`/`EntidadRow`/`LocalCard`, `Skeleton`, `Divider`, `OfflineBadge`, `IconAction`. 2 blockers de compilación + 9 majors a11y/fidelidad corregidos. **Batch B (workflow Opus parcial + completado a mano) — hecho y compila** (`compileDebugKotlin` BUILD SUCCESSFUL): `SegmentedControl`, `StepIndicator`, `NotificationBadge` (workflow); `FilterChip`(+`FilterChipRow`), `SyncControl`, `Collapsible`, `EmptyState`, `ErrorState` (a mano: 5 agentes del workflow cayeron por rate-limit). Reutilizan átomos de Batch A (`RecreTextButton`/`RecrePrimaryButton`/`MoneyText`). Major de a11y corregido (`SegmentedControl.groupLabel` era código muerto: `.semantics{}` vacío) + 2 blockers (`NotificationBadge` colisión `role` BadgeRole vs semantics; `Collapsible` import `Row`). `primary-selected` de FilterChip derivado opaco vía `compositeOver` (no hay token, evita hex crudo). **Batch C (a mano, Opus) — hecho y compila** (`compileDebugKotlin` BUILD SUCCESSFUL, sin warnings): `Field` (`FieldNum` money-safe entero/decimal + `FieldText` con toggle password + `FieldSelect` + `ComboboxCcaa` con "Sin coincidencias"), `SearchField`, `Sparkline` (Canvas, BigDecimal solo→coordenadas), `Tooltip` (long-press M3 overlay neutro). Token **`mutedStrong`** (#3F4651/#B6BCC6) añadido a `Color.kt` para paridad con web (€/%/iconos informativos ≥7:1 sobre surface-2; `muted` no llega). **Capa de átomos base Android = completa** (paridad con la web). FUERA del átomo base, a sus fases: organismos/layout `TopBarGlobal`/`ThumbNav`/`TablaDensa`/`KPI-Bento`/`Snackbar` → F3-4 (IA), igual que la web los difirió; pantallas `Keypad denominaciones` (T-231/F2), `Lienzo firma`, `OCR CameraOverlay` → features/F2; `DatePicker` Android → se añade en la pantalla que lo consuma (web también lo difirió); `Avatar`/`UserMenu` es **solo web**. **`formatEur` duplicados unificados — hecho** (`compileDebugKotlin` + `testDebugUnitTest` BUILD SUCCESSFUL): los formateadores money locales (`HistoricoScreen`, `HistoricoDetalleScreen`, `MaquinaCard`, `CifrasResumenCard` internal — consumido por `RecuperacionResumenCard`/`DenominacionesScreen`) borrados y apuntando al canónico `com.recre.app.ui.components.formatEur`; los de otro nombre (`eur` en `DeudasGestorScreen`/`DeudasLocalScreen`, `formatCoste` en `AveriaUi`) delegan al canónico. Efecto: ahora todos agrupan miles es-ES «1.234,56 €» y usan el menos tipográfico U+2212 (antes sin agrupación). `TicketEscPos.formatEur` se mantiene aparte (impresora ESC/POS, texto plano, no UI). Imports huérfanos (`RoundingMode`/`Locale`/`BigDecimal`) limpiados.
+
+### F1 — Motion
+
+- [ ] **T-230** Android: `MaterialExpressiveTheme` + `MotionScheme` (transiciones expresivas del plan de diseño). **Requiere T-251** (Bloque 5: Compose BOM ≥ 2025.10, idealmente 2025.12). Ver `design-system-plan.md` §8 (F1) y `dependency-upgrade-plan.md` Bloque 5.
+- [ ] **T-231** Web: animaciones con `motion` 12.x (transiciones, `AnimatePresence`, layout). Funciona en React 18.3 → **no depende** de la Fase 5. Ver `fase3-design-tokens.md` (bindings de motion).
+
+### F2 — Teclado numérico y campos
+
+- [ ] **T-232** Keypad in-app + **pantalla de extracto de denominaciones** (modos Total y Local): el **único** teclado numérico in-app del producto, según `fase3-component-specs.md` (átomo Keypad) y `fase2-design-screens.md`. Dinero como string/`BigDecimal`; el preview descuenta tolva/recuperación pero **no recalcula** (SSOT server-side).
+- [ ] **T-233** Resto de campos numéricos → **teclado numérico/decimal del sistema** (importes, contadores, %, cantidades) y fechas → **DatePicker**; retira cualquier keypad in-app fuera de denominaciones. Web (`inputMode`/`type`) y Android (`KeyboardType`/`DatePicker`).
+
+### F3 — Arquitectura de información (Android)
+
+- [ ] **T-234** Navegación inferior (bottom nav) + FAB contextual según la IA de `functional-audit-and-ia.md`.
+- [ ] **T-235** Ajustes con pestañas (tabs), refinando **T-65** (impresora, sync forzado, cambio de empresa, logout) sobre el nuevo sistema.
+- [ ] **T-236** Centro de alertas/campana (averías abiertas, sync pendiente, descuadres) en el top bar.
+
+### F4 — Arquitectura de información (Web)
+
+- [ ] **T-237** Paleta de comandos (`cmdk`): navegación y acciones rápidas (locales, máquinas, recaudaciones, deudas).
+- [ ] **T-238** Dashboard con layout bento (tarjetas: capital en la calle, recaudación, averías, alertas) según `fase2-design-screens.md`.
+- [ ] **T-239** Deudas como centro de mando con las 3 tarjetas (saldo / capital en la calle / actividad), reforzando T-218 sobre el nuevo sistema. Deuda en **neutral**, nunca rojo.
+- [ ] **T-240** Conflictos/descuadres mostrados **inline** (sin sección dedicada): en el contexto donde ocurren, con icono+texto+color de estado.
+
+### F5 — Pulido e interacción
+
+- [ ] **T-241** Skeletons de carga, pull-to-refresh (Android) y swipe actions en listados.
+- [ ] **T-242** Wizards multipaso (alta de instalación, alta de máquina) con progreso y validación por paso.
+- [ ] **T-243** Drawers y toasts (`sonner` web / equivalente Compose) consistentes con los tokens y el motion.
+- [ ] **T-244** Transiciones de elemento compartido (shared-bounds/element): Compose en Android; en web vía `motion` (layout), realzable con View Transitions nativas cuando entre **T-256** (React 19).
+
+### F6 — Accesibilidad
+
+- [ ] **T-245** Barrido WCAG final (European Accessibility Act): AA 4.5:1 obligatorio en **ambos modos**, estado nunca solo-color, foco visible, `aria-live` que anuncia cambios (no el estado inicial), targets táctiles. Verifica las ratios de `fase3-component-specs.md` "Estado de verificación (ronda 2)".
+
+## Fase 5 — Actualización de dependencias
+
+Implementa `dependency-upgrade-plan.md` (Bloques 0–12) como tareas trazables. **Un bloque
+coherente = una rama = un PR**; baseline verde y gates (lint/test/build, `JAVA_HOME` del
+snap en Android, pgTAP + `deno test` en SSOT) **entre** bloques. Revalidar "latest" con
+`npm view` / `maven-metadata.xml` antes de cada bloque. Los Bloques 1–8 son bajos de riesgo;
+9–11 requieren migración (planificar aparte); 12 se difiere.
+
+- [ ] **T-246** Bloque 0 — Preparación: baseline verde + lockfiles commiteados; aislar/resolver `next build` roto por `@supabase/ssr` y el test dependiente de CRLF **antes** del Bloque 10.
+- [ ] **T-247** Bloque 1 — Web: patches/minors dentro de la major actual (react-query, react-hook-form, `decimal.js` 10.6 **alineado con supabase**, radix, recharts, sonner, tailwind 3.4.19, etc.).
+- [ ] **T-248** Bloque 2 — Web: TypeScript al último **5.x** (aislado; `tsc --noEmit` + test).
+- [ ] **T-249** Bloque 3 — Android: libs aisladas de bajo riesgo sin tocar Kotlin (appcompat, datastore, material, mockk, turbine, core-ktx, google-services).
+- [ ] **T-250** Bloque 4 — Android: AGP 8.7.3 → **8.13.2** (Gradle 8.14.4 actual; **no** AGP 9 / Gradle 9).
+- [ ] **T-251** Bloque 5 — Android **ATÓMICO** ⚛️: Kotlin 2.0.21 → **2.1.21**, KSP **2.1.21-2.0.2** (prefijo == Kotlin), Compose BOM → **2025.10.00+** (idealmente 2025.12 — **habilita Material 3 Expressive**, desbloquea **T-230**), Hilt ~2.56.2, Room 2.7.2, coroutines 1.10.2, serialization ~1.8. Si algo falla, **revertir el bloque entero**. Probar DAO/migraciones Room.
+- [ ] **T-252** Bloque 6 — Android: lifecycle/activity/navigation-compose + WorkManager tras Kotlin alineado.
+- [ ] **T-253** Bloque 7 — Android: CameraX 1.5.x + MLKit + firebase-bom 34.x. **Verificación manual en dispositivo**: OCR de contadores (T-100) y push (T-101).
+- [ ] **T-254** Bloque 8 — Android: tests instrumentados (`androidx-test-ext-junit` + espresso); `connectedAndroidTest` si hay emulador.
+- [ ] **T-255** Bloque 9 — **SSOT coordinado** web ⇄ supabase: `zod` 3→4 y `date-fns` 3→4 a la vez en `web/` y `supabase/functions/deno.json` (+ `@hookform/resolvers` 4/5). **Una sola PR** con pgTAP + `deno test` verdes.
+- [ ] **T-256** Bloque 10 — Web mayor: React 19 + Next 15→16 incremental (params async, ESLint flat config, `next-intl` 4). Resolver antes el `next build`/`@supabase/ssr`. **Habilita** `useOptimistic` y View Transitions (realza **T-244**).
+- [ ] **T-257** Bloque 11 — Web mayor: Tailwind v4 (CSS-first `@theme`, `@tailwindcss/postcss`, `tailwind-merge` 3, `tw-animate-css`, revalidar shadcn). **Validación visual** además de build; coordinar con los tokens de **T-227**.
+- [ ] **T-258** Bloque 12 — **Diferido**: Gradle 9.5.1 + AGP 9 (al salir de alpha), Kotlin 2.2/2.4, Coil 3, TypeScript 6, supabase-kt 3.6 + ktor alineado, recharts 3, lucide-react 1.x.
+
 ## Convenciones
 
 - Migraciones SQL en orden con timestamp `YYYYMMDDhhmmss_descripcion.sql`.
