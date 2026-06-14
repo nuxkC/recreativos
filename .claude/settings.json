@@ -34,6 +34,24 @@
             "command": "OUT=$(python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);p=str(t.get('file_path') or '').replace(chr(92),'/');pl=p.lower();E=('.ts','.tsx','.js','.jsx','.mjs','.cjs','.kt','.kts');ok=('graphify-out/' not in pl) and any(pl.endswith(e) for e in E);s=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());f='/tmp/recre-reads-'+s;L=(open(f).read().splitlines() if os.path.exists(f) else []) if ok else [];n=L.count(p);ok and open(f,'a').write(p+chr(10));sys.stdout.write('1' if (ok and n==1) else '')\" 2>/dev/null || true); if [ \"$OUT\" = 1 ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"RE-LECTURA: ya abriste este fichero en la sesion. En vez de releerlo entero, trae solo el simbolo con mcp__serena__find_symbol / get_symbols_overview. Releelo completo solo si vas a editarlo.\"}}'; fi || true"
           }
         ]
+      },
+      {
+        "matcher": "Read|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);p=str(t.get('file_path') or '').replace(chr(92),chr(47));s=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());p and open('/tmp/recre-readedit-'+s,'a').write(p+chr(10))\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);p=str(t.get('file_path') or '').replace(chr(92),chr(47));s=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());f='/tmp/recre-readedit-'+s;L=(open(f).read().splitlines() if os.path.exists(f) else []);sys.stdout.write('' if (p in L) or (not p) else json.dumps({'hookSpecificOutput':{'hookEventName':'PreToolUse','permissionDecision':'deny','permissionDecisionReason':'No has leido '+p+' en esta sesion. Lee el fichero (Read, o serena find_symbol include_body=true para solo el simbolo) ANTES de Edit; si no, el Edit falla con File-has-not-been-read.'}}))\" 2>/dev/null || true"
+          }
+        ]
       }
     ],
     "Stop": [

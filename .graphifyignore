@@ -1,0 +1,39 @@
+# === Dependencias / salida de build (no es código de dominio) ===
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.gradle/
+.idea/
+# Caché de Gradle: dependencies-accessors generados (LibrariesForLibs*.java).
+# Era el 42% de los nodos del grafo (~2735). Esto es lo que ensuciaba todo.
+toc/
+android/toc/
+**/dependencies-accessors/
+**/org/gradle/accessors/
+**/generated/
+*.apk
+*.aab
+*.class
+*.jar
+
+# === Cachés de herramientas del stack ===
+.git/
+.cache/
+graphify-out/
+.serena/
+*.pkl
+*.lock
+
+# === Assets binarios ===
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
+*.ico
+*.ttf
+*.woff
+*.woff2
