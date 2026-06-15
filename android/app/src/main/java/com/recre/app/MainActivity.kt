@@ -52,6 +52,7 @@ import com.recre.app.feature.empresa.SeleccionarEmpresaScreen
 import com.recre.app.feature.empresa.SeleccionarEmpresaViewModel
 import com.recre.app.feature.empresa.SinAccesoScreen
 import com.recre.app.feature.gestion.GestionScreen
+import com.recre.app.ui.components.navigateTab
 import com.recre.app.feature.gestion.instalaciones.InstalacionFormScreen
 import com.recre.app.feature.gestion.instalaciones.InstalacionFormViewModel
 import com.recre.app.feature.gestion.instalaciones.InstalacionesGestorScreen
@@ -185,21 +186,10 @@ private fun RecreApp(
                 onLocalClick = { localId ->
                     navController.navigate(Routes.localDetalle(localId))
                 },
-                onAjustesClick = {
-                    navController.navigate(Routes.AJUSTES)
-                },
-                onImpresoraClick = {
-                    navController.navigate(Routes.IMPRESORA)
-                },
-                onHistoricoClick = {
-                    navController.navigate(Routes.HISTORICO)
-                },
                 onAlertasClick = {
                     navController.navigate(Routes.ALERTAS)
                 },
-                onGestionClick = {
-                    navController.navigate(Routes.GESTION)
-                },
+                onSelectTab = { dest -> navController.navigateTab(dest) },
             )
         }
         composable(Routes.IMPRESORA) {
@@ -207,15 +197,15 @@ private fun RecreApp(
         }
         composable(Routes.AJUSTES) {
             AjustesScreen(
-                onBack = { navController.popBackStack() },
+                onSelectTab = { dest -> navController.navigateTab(dest) },
                 onImpresoraClick = { navController.navigate(Routes.IMPRESORA) },
-                onHistoricoClick = { navController.navigate(Routes.HISTORICO) },
                 onAlertasClick = { navController.navigate(Routes.ALERTAS) },
             )
         }
         composable(Routes.HISTORICO) {
             HistoricoScreen(
-                onBack = { navController.popBackStack() },
+                onSelectTab = { dest -> navController.navigateTab(dest) },
+                onAlertasClick = { navController.navigate(Routes.ALERTAS) },
                 onRecaudacionClick = { id ->
                     navController.navigate(Routes.historicoDetalle(id))
                 },
@@ -331,7 +321,8 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
 ) {
     composable(Routes.GESTION) {
         GestionScreen(
-            onBack = { navController.popBackStack() },
+            onSelectTab = { dest -> navController.navigateTab(dest) },
+            onAlertasClick = { navController.navigate(Routes.ALERTAS) },
             onLicenciasClick = { navController.navigate(Routes.GESTION_LICENCIAS) },
             onMaquinasClick = { navController.navigate(Routes.GESTION_MAQUINAS) },
             onLocalesClick = { navController.navigate(Routes.GESTION_LOCALES) },

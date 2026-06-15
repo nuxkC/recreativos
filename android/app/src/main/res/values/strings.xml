@@ -31,6 +31,17 @@
     <string name="rol_tecnico">Técnico</string>
     <string name="rol_contable">Contable</string>
 
+    <!-- Navegación de pulgar / app shell (T-234) -->
+    <string name="nav_locales">Locales</string>
+    <string name="nav_historico">Histórico</string>
+    <string name="nav_gestion">Gestión</string>
+    <string name="nav_ajustes">Ajustes</string>
+    <string name="nav_alertas_badge">Alertas</string>
+    <plurals name="alertas_sync_pendiente">
+        <item quantity="one">%1$d elemento sin sincronizar</item>
+        <item quantity="other">%1$d elementos sin sincronizar</item>
+    </plurals>
+
     <!-- Locales (T-52) -->
     <string name="locales_titulo">Locales</string>
     <string name="locales_buscar_placeholder">Buscar por nombre o dirección</string>
@@ -310,6 +321,9 @@
 
     <!-- Ajustes (T-65) -->
     <string name="ajustes_titulo">Ajustes</string>
+    <string name="ajustes_tab_cuenta">Cuenta</string>
+    <string name="ajustes_tab_dispositivo">Dispositivo</string>
+    <string name="ajustes_secciones">Secciones de ajustes</string>
     <string name="ajustes_seccion_cuenta">Cuenta</string>
     <string name="ajustes_cuenta_email_descripcion">Correo del usuario autenticado.</string>
     <string name="ajustes_seccion_empresa">Empresa activa</string>

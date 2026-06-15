@@ -14,12 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwitchAccount
@@ -31,13 +28,19 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreTopBarActions
+import com.recre.app.ui.components.SegmentOption
+import com.recre.app.ui.components.SegmentedControl
+import com.recre.app.ui.components.TopLevelDestination
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,46 +60,40 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Pantalla de Ajustes (T-65).
+ * Pantalla de Ajustes (T-65 · pestañas T-235).
  *
- * Hub agregador del técnico autenticado. Cinco bloques:
+ * Config pura del técnico autenticado, organizada en dos pestañas
+ * (`SegmentedControl`):
  *
- *  1. **Cuenta**: email del usuario.
- *  2. **Empresa activa**: nombre + rol. Botón "Cambiar de empresa"
- *     visible si hay >1 membresía.
- *  3. **Sincronización**: cuándo fue la última sync, badge de stale,
- *     botón "Sincronizar ahora".
- *  4. **Impresora Bluetooth (T-62)**: nombre+MAC vinculada, atajo a
- *     [com.recre.app.feature.impresora.ImpresoraScreen].
- *  5. **Histórico personal (T-63)** y **Alertas (T-64)** como atajos
- *     directos.
- *  6. **Sesión**: botón "Cerrar sesión" con confirmación.
+ *  - **Cuenta**: email del usuario; empresa activa + "Cambiar de empresa" (si
+ *    hay >1 membresía); cerrar sesión (con confirmación).
+ *  - **Dispositivo**: sincronización (última sync, badge de stale, "Sincronizar
+ *    ahora") e impresora Bluetooth (T-62; atajo a [ImpresoraScreen]).
+ *
+ * Los atajos a Histórico/Alertas se retiran: Histórico es una pestaña del bottom
+ * nav y las alertas viven en la campana del top bar global (T-234).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AjustesScreen(
-    onBack: () -> Unit,
+    onSelectTab: (TopLevelDestination) -> Unit,
     onImpresoraClick: () -> Unit,
-    onHistoricoClick: () -> Unit,
     onAlertasClick: () -> Unit,
     viewModel: AjustesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var mostrandoConfirmacionLogout by remember { mutableStateOf(false) }
+    var seccionActiva by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.ajustes_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
             )
+        },
+        bottomBar = {
+            RecreBottomBar(current = TopLevelDestination.AJUSTES, onSelect = onSelectTab)
         },
     ) { padding ->
         Column(
@@ -107,34 +104,45 @@ fun AjustesScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            CuentaCard(email = state.emailUsuario)
-
-            EmpresaCard(
-                nombre = state.empresaNombre,
-                rol = state.rolEnEmpresa,
-                multiple = state.multipleEmpresas,
-                onCambiar = viewModel::cambiarEmpresa,
+            SegmentedControl(
+                options = listOf(
+                    SegmentOption(stringResource(R.string.ajustes_tab_cuenta)),
+                    SegmentOption(stringResource(R.string.ajustes_tab_dispositivo)),
+                ),
+                selectedIndex = seccionActiva,
+                onSelect = { seccionActiva = it },
+                groupLabel = stringResource(R.string.ajustes_secciones),
+                modifier = Modifier.fillMaxWidth(),
             )
 
-            SyncCard(
-                ultimaSync = state.ultimaSync,
-                sincronizando = state.sincronizando,
-                stale = state.syncStale,
-                onSincronizar = viewModel::forzarSync,
-            )
-
-            ImpresoraCard(
-                impresora = state.impresoraSeleccionada,
-                perfil = state.perfilImpresora,
-                onAccion = onImpresoraClick,
-            )
-
-            AtajosCard(
-                onHistoricoClick = onHistoricoClick,
-                onAlertasClick = onAlertasClick,
-            )
-
-            SesionCard(onLogoutClick = { mostrandoConfirmacionLogout = true })
+            // Cuenta: identidad, empresa y sesión. Dispositivo: sync e impresora.
+            // Los atajos a Histórico/Alertas se retiran (T-235): Histórico es una
+            // pestaña y las alertas viven en la campana del top bar.
+            when (seccionActiva) {
+                0 -> {
+                    CuentaCard(email = state.emailUsuario)
+                    EmpresaCard(
+                        nombre = state.empresaNombre,
+                        rol = state.rolEnEmpresa,
+                        multiple = state.multipleEmpresas,
+                        onCambiar = viewModel::cambiarEmpresa,
+                    )
+                    SesionCard(onLogoutClick = { mostrandoConfirmacionLogout = true })
+                }
+                else -> {
+                    SyncCard(
+                        ultimaSync = state.ultimaSync,
+                        sincronizando = state.sincronizando,
+                        stale = state.syncStale,
+                        onSincronizar = viewModel::forzarSync,
+                    )
+                    ImpresoraCard(
+                        impresora = state.impresoraSeleccionada,
+                        perfil = state.perfilImpresora,
+                        onAccion = onImpresoraClick,
+                    )
+                }
+            }
         }
     }
 
@@ -340,27 +348,7 @@ private fun ImpresoraCard(
     }
 }
 
-@Composable
-private fun AtajosCard(
-    onHistoricoClick: () -> Unit,
-    onAlertasClick: () -> Unit,
-) {
-    SeccionCard(titulo = stringResource(R.string.ajustes_seccion_atajos)) {
-        ItemRow(
-            icon = Icons.Default.History,
-            primary = stringResource(R.string.ajustes_atajo_historico),
-            secondary = stringResource(R.string.ajustes_atajo_historico_descripcion),
-            onClick = onHistoricoClick,
-        )
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        ItemRow(
-            icon = Icons.Default.NotificationsActive,
-            primary = stringResource(R.string.ajustes_atajo_alertas),
-            secondary = stringResource(R.string.ajustes_atajo_alertas_descripcion),
-            onClick = onAlertasClick,
-        )
-    }
-}
+
 
 @Composable
 private fun SesionCard(onLogoutClick: () -> Unit) {

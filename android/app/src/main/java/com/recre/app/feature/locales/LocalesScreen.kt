@@ -15,23 +15,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -57,6 +45,9 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.locales.components.LocalCard
+import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreTopBarActions
+import com.recre.app.ui.components.TopLevelDestination
 import java.time.Duration
 import java.time.Instant
 
@@ -65,11 +56,8 @@ import java.time.Instant
 fun LocalesScreen(
     viewModel: LocalesViewModel,
     onLocalClick: (String) -> Unit,
-    onAjustesClick: () -> Unit,
-    onImpresoraClick: () -> Unit,
-    onHistoricoClick: () -> Unit,
     onAlertasClick: () -> Unit,
-    onGestionClick: () -> Unit,
+    onSelectTab: (TopLevelDestination) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pullState = rememberPullToRefreshState()
@@ -111,37 +99,14 @@ fun LocalesScreen(
                         )
                     }
                 },
-                actions = {
-                    if (state.cargandoSync) {
-                        Box(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .size(20.dp),
-                        ) {
-                            CircularProgressIndicator(
-                                strokeWidth = 2.dp,
-                                modifier = Modifier.fillMaxSize(),
-                            )
-                        }
-                    }
-                    LocalesOverflowMenu(
-                        multipleEmpresas = state.multipleEmpresas,
-                        alertasPendientes = state.alertasPendientes,
-                        tieneRolGestion = state.tieneRolGestion,
-                        onSincronizarAhora = viewModel::refrescar,
-                        onCambiarEmpresa = viewModel::cambiarEmpresa,
-                        onCerrarSesion = viewModel::cerrarSesion,
-                        onAjustesClick = onAjustesClick,
-                        onImpresoraClick = onImpresoraClick,
-                        onHistoricoClick = onHistoricoClick,
-                        onAlertasClick = onAlertasClick,
-                        onGestionClick = onGestionClick,
-                    )
-                },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ),
             )
+        },
+        bottomBar = {
+            RecreBottomBar(current = TopLevelDestination.LOCALES, onSelect = onSelectTab)
         },
     ) { padding ->
         PullToRefreshBox(
@@ -249,142 +214,7 @@ private fun SyncStaleBanner(onSincronizar: () -> Unit, modifier: Modifier = Modi
     }
 }
 
-@Composable
-private fun LocalesOverflowMenu(
-    multipleEmpresas: Boolean,
-    alertasPendientes: Int,
-    tieneRolGestion: Boolean,
-    onSincronizarAhora: () -> Unit,
-    onCambiarEmpresa: () -> Unit,
-    onCerrarSesion: () -> Unit,
-    onAjustesClick: () -> Unit,
-    onImpresoraClick: () -> Unit,
-    onHistoricoClick: () -> Unit,
-    onAlertasClick: () -> Unit,
-    onGestionClick: () -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            BadgedBox(
-                badge = {
-                    if (alertasPendientes > 0) {
-                        Badge {
-                            Text(
-                                text = if (alertasPendientes > 9) {
-                                    "9+"
-                                } else {
-                                    alertasPendientes.toString()
-                                },
-                            )
-                        }
-                    }
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.locales_acciones),
-                )
-            }
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.sync_force)) },
-                onClick = {
-                    expanded = false
-                    onSincronizarAhora()
-                },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.locales_menu_historico)) },
-                onClick = {
-                    expanded = false
-                    onHistoricoClick()
-                },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.History, contentDescription = null)
-                },
-            )
-            DropdownMenuItem(
-                text = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.locales_menu_alertas))
-                        if (alertasPendientes > 0) {
-                            Spacer(Modifier.width(8.dp))
-                            Badge {
-                                Text(
-                                    text = if (alertasPendientes > 9) {
-                                        "9+"
-                                    } else {
-                                        alertasPendientes.toString()
-                                    },
-                                )
-                            }
-                        }
-                    }
-                },
-                onClick = {
-                    expanded = false
-                    onAlertasClick()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.NotificationsActive,
-                        contentDescription = null,
-                    )
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.locales_menu_impresora)) },
-                onClick = {
-                    expanded = false
-                    onImpresoraClick()
-                },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Print, contentDescription = null)
-                },
-            )
-            if (tieneRolGestion) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.locales_menu_gestion)) },
-                    onClick = {
-                        expanded = false
-                        onGestionClick()
-                    },
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Default.Build, contentDescription = null)
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.locales_menu_ajustes)) },
-                onClick = {
-                    expanded = false
-                    onAjustesClick()
-                },
-            )
-            if (multipleEmpresas) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.empresa_cambiar)) },
-                    onClick = {
-                        expanded = false
-                        onCambiarEmpresa()
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.auth_signout)) },
-                onClick = {
-                    expanded = false
-                    onCerrarSesion()
-                },
-            )
-        }
-    }
-}
+
 
 @Composable
 private fun EmptyState(
