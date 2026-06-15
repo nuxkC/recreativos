@@ -1,37 +1,55 @@
 package com.recre.app.feature.recaudacion.denominaciones
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.calculo.DENOMINACIONES_PERMITIDAS
@@ -39,26 +57,38 @@ import com.recre.app.core.calculo.importesIguales
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
+import com.recre.app.ui.components.Keypad
+import com.recre.app.ui.components.MoneyText
+import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.StatusChip
+import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.theme.GeistMono
 import java.math.BigDecimal
+import java.math.RoundingMode
 
-/**
- * Pantalla de desglose de denominaciones (T-55).
- *
- * Reutilizada dos veces dentro del flujo:
- *   - Modo `Total`: la suma debe coincidir con `cifras.bruto`.
- *   - Modo `Local`: la suma debe coincidir con `pagado_local` (parte_local
- *     menos lo recuperado de la deuda del local, T-215). Sin deuda o con
- *     pct=0, `pagado_local == parte_local` y el comportamiento es el de antes.
- *
- * Componente reutilizable: solo cambia el target esperado y el valor
- * inicial del map. La validación de "suma exacta" usa
- * [importesIguales] para no fallar por diferencias de escala (p. ej.
- * `5` vs `5.00`).
- *
- * El botón "Continuar" se habilita solo cuando la diferencia con el
- * target es exactamente 0.
- */
+// Pantalla de extracto de denominaciones (T-55 · rediseño T-232, F2).
+// SSOT del componente: .kiro/specs/recre/fase3-component-specs.md
+// (§ Sistema keypad de denominaciones · C-KEYPAD-DENOM-AND).
+//
+// 5 regiones de arriba a abajo: (R1) TopBar con confirmación de descarte; (R2,
+// solo Local) RecuperacionResumenCard fija solo-lectura; (R3) lista de
+// denominaciones agrupada Billetes/Monedas con celda readonly dirigida por el
+// keypad y auto-scroll a la fila activa; (R4) bloque de progreso STICKY
+// (Objetivo/Total/estado + CTA) que nunca queda tapado; (R5) átomo Keypad
+// anclado abajo. El cálculo económico definitivo es SSOT servidor: aquí solo se
+// capturan cantidades enteras y se valida suma == objetivo (importesIguales).
+//
+// Reutilizada en dos modos: Total (objetivo = bruto) y Local (objetivo =
+// pagado_local = parte_local − recuperado). La reordenación de imputación de
+// deuda ya NO se edita aquí (R2 es solo lectura): se movió a un paso previo.
+//
+// Adaptación al stack: la celda de cantidad es un Box tappable (no un TextField),
+// de modo que el IME del sistema JAMÁS puede aparecer (anti-patrón nº1 del spec);
+// el keypad in-app es la única entrada. El resaltado de fila activa
+// (secondaryContainer + anillo primary) hace de cursor.
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DenominacionesScreen(
@@ -69,26 +99,43 @@ fun DenominacionesScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val cifras = state.cifras
-    val target: BigDecimal? = when (modo) {
-        ModoDenominaciones.Total -> cifras?.bruto
-        // En modo Local el objetivo es lo que se entrega al local (pagado_local
-        // = parte_local − recuperado). Si no hay plan, cae a parte_local.
-        ModoDenominaciones.Local -> state.recuperacion?.pagadoLocal ?: cifras?.parteLocal
-    }
-    val map = when (modo) {
-        ModoDenominaciones.Total -> state.denominacionesTotal
-        ModoDenominaciones.Local -> state.denominacionesLocal
-    }
+    val target: BigDecimal? =
+        when (modo) {
+            ModoDenominaciones.Total -> cifras?.bruto
+            ModoDenominaciones.Local -> state.recuperacion?.pagadoLocal ?: cifras?.parteLocal
+        }
+    val map =
+        when (modo) {
+            ModoDenominaciones.Total -> state.denominacionesTotal
+            ModoDenominaciones.Local -> state.denominacionesLocal
+        }
     val totalActual = viewModel.sumarDesgloseDe(map)
-    val diferencia = target?.subtract(totalActual)?.setScale(2, java.math.RoundingMode.HALF_UP)
+    val diferencia = target?.subtract(totalActual)?.setScale(2, RoundingMode.HALF_UP)
     val cuadra = target != null && diferencia != null && importesIguales(diferencia, BigDecimal.ZERO)
-
-    // Si al local no se le entrega nada (toda su parte amortiza deuda, o no hay
-    // parte), no tiene sentido pedir denominaciones: ocultamos los inputs y solo
-    // dejamos continuar. El ViewModel ya dejó el desglose vacío (cuadra con 0).
-    val nadaQueEntregar = modo == ModoDenominaciones.Local &&
-        target != null && importesIguales(target, BigDecimal.ZERO)
+    val nadaQueEntregar =
+        modo == ModoDenominaciones.Local && target != null && importesIguales(target, BigDecimal.ZERO)
     val huboRecuperacion = (state.recuperacion?.recuperadoTotal?.signum() ?: 0) > 0
+    val hayPiezas = map.values.any { it > 0 }
+
+    // Estado de UI local: fila activa (la dirige el keypad) y diálogo de descarte.
+    var activeKey by rememberSaveable(modo) {
+        mutableStateOf(DENOMINACIONES_PERMITIDAS.firstOrNull()?.toPlainString())
+    }
+    var showDiscard by remember { mutableStateOf(false) }
+
+    fun cambiarCantidad(key: String, nueva: Int) {
+        when (modo) {
+            ModoDenominaciones.Total -> viewModel.onDenominacionTotalChange(key, nueva)
+            ModoDenominaciones.Local -> viewModel.onDenominacionLocalChange(key, nueva)
+        }
+    }
+
+    fun intentarSalir() {
+        if (hayPiezas) showDiscard = true else onBack()
+    }
+
+    // Back de hardware: misma confirmación que la flecha (no perder el conteo).
+    BackHandler(enabled = hayPiezas) { showDiscard = true }
 
     Scaffold(
         topBar = {
@@ -105,10 +152,11 @@ fun DenominacionesScreen(
                         )
                         if (target != null) {
                             Text(
-                                text = stringResource(
-                                    R.string.recaudacion_denominaciones_objetivo,
-                                    formatEur(target.toPlainString()),
-                                ),
+                                text =
+                                    stringResource(
+                                        R.string.recaudacion_denominaciones_objetivo,
+                                        formatEur(target.toPlainString()),
+                                    ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -116,7 +164,7 @@ fun DenominacionesScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = ::intentarSalir) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.action_back),
@@ -127,196 +175,386 @@ fun DenominacionesScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValuesAll(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // Resumen de recuperación (solo modo Local y cuando hay deuda
-                // que se amortiza con esta recaudación).
-                val plan = state.recuperacion
-                if (modo == ModoDenominaciones.Local && plan != null &&
-                    plan.recuperadoTotal.signum() > 0
-                ) {
-                    item("recuperacion") {
-                        RecuperacionResumenCard(
-                            creditos = state.creditosAbiertos,
-                            plan = plan,
-                            ordenManual = state.ordenManual,
-                            reordenable = true,
-                            onSubir = viewModel::moverCreditoArriba,
-                            onBajar = viewModel::moverCreditoAbajo,
-                        )
-                    }
-                }
-                if (nadaQueEntregar) {
-                    item("nada-local") {
-                        Text(
-                            text = stringResource(
+            // (R2) Recuperación: fija (fuera del scroll), SOLO LECTURA en esta pantalla.
+            val plan = state.recuperacion
+            if (modo == ModoDenominaciones.Local && plan != null && plan.recuperadoTotal.signum() > 0) {
+                RecuperacionResumenCard(
+                    creditos = state.creditosAbiertos,
+                    plan = plan,
+                    ordenManual = state.ordenManual,
+                    reordenable = false, // la reordenación se movió a un paso previo
+                    onSubir = {},
+                    onBajar = {},
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+
+            if (nadaQueEntregar) {
+                // "Nada que entregar": ni lista ni keypad; solo el texto y Continuar.
+                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(16.dp)) {
+                    Text(
+                        text =
+                            stringResource(
                                 if (huboRecuperacion) {
                                     R.string.recaudacion_local_nada_deuda
                                 } else {
                                     R.string.recaudacion_local_nada
                                 },
                             ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 8.dp),
-                        )
-                    }
-                }
-                if (!nadaQueEntregar) {
-                    items(DENOMINACIONES_PERMITIDAS, key = { it.toPlainString() }) { denominacion ->
-                    val key = denominacion.toPlainString()
-                    DenominacionRow(
-                        denominacion = denominacion,
-                        cantidad = map[key] ?: 0,
-                        onCantidadChange = { nueva ->
-                            when (modo) {
-                                ModoDenominaciones.Total ->
-                                    viewModel.onDenominacionTotalChange(key, nueva)
-                                ModoDenominaciones.Local ->
-                                    viewModel.onDenominacionLocalChange(key, nueva)
-                            }
-                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            } else {
+                // (R3) Lista agrupada Billetes/Monedas, con auto-scroll a la fila activa.
+                val items = remember(map) { construirItems(map) }
+                val listState = rememberLazyListState()
+                LaunchedEffect(activeKey) {
+                    val i = items.indexOfFirst { it is DenomItem.Den && it.value.toPlainString() == activeKey }
+                    if (i >= 0) listState.animateScrollToItem(i)
+                }
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    state = listState,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    itemsIndexed(items, key = { _, item -> item.key }) { _, item ->
+                        when (item) {
+                            is DenomItem.Header -> GrupoHeader(grupoLabel(item.label))
+                            is DenomItem.Subtotal -> GrupoSubtotal(grupoLabel(item.label), item.amount)
+                            is DenomItem.Den -> {
+                                val key = item.value.toPlainString()
+                                DenominacionRow(
+                                    denominacion = item.value,
+                                    cantidad = map[key] ?: 0,
+                                    activa = key == activeKey,
+                                    onActivar = { activeKey = key },
+                                )
+                            }
+                        }
                     }
                 }
             }
-            Footer(
-                target = if (nadaQueEntregar) null else target,
-                totalActual = totalActual,
+
+            // (R4) Bloque de progreso STICKY: nunca tapado por el keypad.
+            BloqueProgreso(
+                objetivo = if (nadaQueEntregar) null else target,
+                total = totalActual,
                 diferencia = if (nadaQueEntregar) null else diferencia,
                 cuadra = cuadra,
+                puedeContinuar = cuadra || nadaQueEntregar,
                 onContinuar = onContinuar,
             )
+
+            // (R5) Keypad anclado abajo (oculto si no hay nada que contar).
+            if (!nadaQueEntregar) {
+                Keypad(
+                    onDigit = { d ->
+                        activeKey?.let { k ->
+                            val actual = map[k] ?: 0
+                            // Concatena el dígito a la derecha; tope 6 cifras (money-safe: solo enteros).
+                            val nuevo = (actual.toLong() * 10 + d).coerceAtMost(999_999L).toInt()
+                            cambiarCantidad(k, nuevo)
+                        }
+                    },
+                    onBackspace = {
+                        activeKey?.let { k -> cambiarCantidad(k, (map[k] ?: 0) / 10) }
+                    },
+                    onNext = { activeKey = siguienteDenominacion(activeKey) },
+                    nextLabel = stringResource(R.string.recaudacion_keypad_siguiente),
+                    backspaceContentDescription = stringResource(R.string.recaudacion_keypad_borrar),
+                    nextContentDescription =
+                        stringResource(R.string.recaudacion_keypad_siguiente_denominacion),
+                )
+            }
         }
+    }
+
+    if (showDiscard) {
+        AlertDialog(
+            onDismissRequest = { showDiscard = false },
+            title = { Text(stringResource(R.string.recaudacion_denominaciones_descartar_titulo)) },
+            text = { Text(stringResource(R.string.recaudacion_denominaciones_descartar_mensaje)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscard = false
+                        onBack()
+                    },
+                ) { Text(stringResource(R.string.recaudacion_denominaciones_descartar_confirmar)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscard = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }
 
+// Dígito de la celda de cantidad: Geist Mono tabular, tamaño cómodo de lectura.
+private val CeldaCantidadStyle =
+    TextStyle(fontFamily = GeistMono, fontSize = 20.sp, fontWeight = FontWeight(500), fontFeatureSettings = "tnum")
+
+/**
+ * Fila de denominación: [valor facial · ancho fijo] · [celda cantidad readonly,
+ * dirigida por el keypad, resaltada si es la fila activa] · [subtotal tabular].
+ * Toda la fila es tappable para activarla (≥56dp). La celda es un Box (no un
+ * TextField): el keypad es la única entrada, el IME nunca aparece.
+ */
 @Composable
 private fun DenominacionRow(
     denominacion: BigDecimal,
     cantidad: Int,
-    onCantidadChange: (Int) -> Unit,
+    activa: Boolean,
+    onActivar: () -> Unit,
 ) {
-    val texto = if (cantidad == 0) "" else cantidad.toString()
+    val colors = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onActivar)
+                .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = formatEur(denominacion.toPlainString()),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.width(96.dp),
-        )
-        OutlinedTextField(
-            value = texto,
-            onValueChange = { raw ->
-                val sanitized = raw.filter { it.isDigit() }.take(6)
-                onCantidadChange(sanitized.toIntOrNull() ?: 0)
-            },
-            modifier = Modifier
-                .weight(1f)
-                .testTag(RecaudacionTestTags.denominacionCantidad(denominacion.toPlainString())),
-            label = { Text(stringResource(R.string.recaudacion_label_cantidad)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-        )
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = formatEur(
-                denominacion.multiply(BigDecimal(cantidad))
-                    .setScale(2, java.math.RoundingMode.HALF_UP)
-                    .toPlainString(),
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun Footer(
-    target: BigDecimal?,
-    totalActual: BigDecimal,
-    diferencia: BigDecimal?,
-    cuadra: Boolean,
-    onContinuar: () -> Unit,
-) {
-    HorizontalDivider()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-    ) {
-        FilaTotal(
-            label = stringResource(R.string.recaudacion_denominaciones_total),
-            value = formatEur(totalActual.toPlainString()),
-            destacado = false,
-        )
-        if (target != null && diferencia != null) {
-            FilaTotal(
-                label = stringResource(R.string.recaudacion_denominaciones_diferencia),
-                value = formatEur(diferencia.toPlainString()),
-                destacado = !cuadra,
-                modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_DIFERENCIA),
+        // Valor facial (ancho fijo, alinea columnas).
+        Box(modifier = Modifier.width(96.dp)) {
+            MoneyText(amount = denominacion, size = MoneyTextSize.Inline)
+        }
+        Spacer(Modifier.width(8.dp))
+        // Celda cantidad readonly: activa = secondaryContainer + anillo primary 2dp;
+        // inactiva = surface-1 + borde outline 1px (≥3:1). El moneyMono va onSurface.
+        Box(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .heightIn(min = 56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (activa) colors.secondaryContainer else colors.surface)
+                    .border(
+                        width = if (activa) 2.dp else 1.dp,
+                        color = if (activa) colors.primary else colors.outline,
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .clickable(onClick = onActivar)
+                    .padding(horizontal = 12.dp, vertical = 12.dp)
+                    .testTag(RecaudacionTestTags.denominacionCantidad(denominacion.toPlainString())),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Text(
+                text = if (cantidad == 0) "" else cantidad.toString(),
+                style = CeldaCantidadStyle,
+                color = colors.onSurface,
             )
         }
-        Spacer(Modifier.height(12.dp))
-        Button(
-            onClick = onContinuar,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
-            enabled = cuadra,
-        ) {
-            Text(stringResource(R.string.recaudacion_accion_continuar))
-        }
+        Spacer(Modifier.width(12.dp))
+        // Subtotal de la fila = cantidad × valor (money-safe; € muted, dígito foreground).
+        MoneyText(
+            amount =
+                denominacion.multiply(BigDecimal(cantidad)).setScale(2, RoundingMode.HALF_UP),
+            size = MoneyTextSize.Inline,
+        )
     }
 }
 
+/** Cabecera de grupo (Billetes / Monedas): caption muted. */
 @Composable
-private fun FilaTotal(label: String, value: String, destacado: Boolean, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (destacado) {
-                MaterialTheme.colorScheme.error
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            color = if (destacado) {
-                MaterialTheme.colorScheme.error
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
-        )
+private fun GrupoHeader(label: String) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+}
+
+/** Subtotal de grupo: divisor 1px (outline ≥3:1) + label muted + cifra neutra. */
+@Composable
+private fun GrupoSubtotal(label: String, amount: BigDecimal) {
+    Column {
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            MoneyText(amount = amount, size = MoneyTextSize.Inline)
+        }
     }
 }
 
 /**
- * Helper local para evitar dependencia con `androidx.compose.foundation.layout.PaddingValues`
- * con kwargs `horizontal=`/`vertical=` cuya signatura cambió entre
- * versiones de Compose. Mantiene el call site limpio.
+ * (R4) Bloque de progreso persistente: Objetivo, Total (héroe) + estado
+ * (Cuadra/Faltan/Sobran con icono+texto+color) y CTA Continuar. Sticky sobre el
+ * keypad (vive fuera del LazyColumn), separado por divisor outline para que el
+ * límite se vea.
  */
-private fun PaddingValuesAll(
-    horizontal: androidx.compose.ui.unit.Dp,
-    vertical: androidx.compose.ui.unit.Dp,
-) = androidx.compose.foundation.layout.PaddingValues(
-    start = horizontal,
-    end = horizontal,
-    top = vertical,
-    bottom = vertical,
-)
+@Composable
+private fun BloqueProgreso(
+    objetivo: BigDecimal?,
+    total: BigDecimal,
+    diferencia: BigDecimal?,
+    cuadra: Boolean,
+    puedeContinuar: Boolean,
+    onContinuar: () -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (objetivo != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.recaudacion_denominaciones_objetivo, ""),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        MoneyText(amount = objetivo, size = MoneyTextSize.Medium)
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.recaudacion_denominaciones_total),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        MoneyText(amount = total, size = MoneyTextSize.Hero)
+                    }
+                    if (objetivo != null && diferencia != null) {
+                        EstadoChip(diferencia = diferencia, cuadra = cuadra)
+                    }
+                }
+                RecrePrimaryButton(
+                    text = stringResource(R.string.recaudacion_accion_continuar),
+                    onClick = onContinuar,
+                    enabled = puedeContinuar,
+                    fullWidth = true,
+                    modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
+                )
+            }
+        }
+    }
+}
+
+/** Chip de estado del cuadre: ✓ Cuadra (success) o ⚠ Faltan/Sobran X € (danger). */
+@Composable
+private fun EstadoChip(diferencia: BigDecimal, cuadra: Boolean) {
+    if (cuadra) {
+        StatusChip(
+            role = StatusRole.SUCCESS,
+            label = stringResource(R.string.recaudacion_denominaciones_cuadra),
+            icon = Icons.Filled.Check,
+            modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_DIFERENCIA),
+        )
+    } else {
+        // diferencia = objetivo − total: >0 ⇒ faltan; <0 ⇒ sobran.
+        val faltan = diferencia.signum() > 0
+        val importe = formatEur(diferencia.abs().toPlainString())
+        StatusChip(
+            role = StatusRole.DANGER,
+            label =
+                stringResource(
+                    if (faltan) {
+                        R.string.recaudacion_denominaciones_faltan
+                    } else {
+                        R.string.recaudacion_denominaciones_sobran
+                    },
+                    importe,
+                ),
+            icon = Icons.Outlined.Warning,
+            modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_DIFERENCIA),
+        )
+    }
+}
+
+// 5 € es el primer billete; por debajo, monedas. Separa los dos grupos de arqueo.
+private val UMBRAL_BILLETE = BigDecimal(5)
+
+/** Ítem renderizable de la lista (cabecera de grupo, fila de denominación o subtotal). */
+private sealed interface DenomItem {
+    val key: String
+
+    data class Header(val label: String, override val key: String) : DenomItem
+
+    data class Den(val value: BigDecimal) : DenomItem {
+        override val key: String = "den-${value.toPlainString()}"
+    }
+
+    data class Subtotal(val label: String, val amount: BigDecimal, override val key: String) : DenomItem
+}
+
+/** Subtotal money-safe de un grupo de denominaciones según el desglose [map]. */
+private fun subtotalGrupo(grupo: List<BigDecimal>, map: Map<String, Int>): BigDecimal =
+    grupo.fold(BigDecimal.ZERO) { acc, d ->
+        acc.add(d.multiply(BigDecimal(map[d.toPlainString()] ?: 0)))
+    }.setScale(2, RoundingMode.HALF_UP)
+
+/**
+ * Construye la lista plana Billetes→Monedas (cabecera + filas + subtotal por
+ * grupo). Las etiquetas de grupo NO se traducen aquí: son claves estables; el
+ * texto visible se resuelve donde se renderiza. Para mantener i18n, las
+ * cabeceras llevan la clave y el label se pasa ya resuelto.
+ */
+private fun construirItems(map: Map<String, Int>): List<DenomItem> {
+    val billetes = DENOMINACIONES_PERMITIDAS.filter { it >= UMBRAL_BILLETE }
+    val monedas = DENOMINACIONES_PERMITIDAS.filter { it < UMBRAL_BILLETE }
+    return buildList {
+        if (billetes.isNotEmpty()) {
+            add(DenomItem.Header(label = GRUPO_BILLETES, key = "h-billetes"))
+            billetes.forEach { add(DenomItem.Den(it)) }
+            add(DenomItem.Subtotal(GRUPO_BILLETES, subtotalGrupo(billetes, map), "s-billetes"))
+        }
+        if (monedas.isNotEmpty()) {
+            add(DenomItem.Header(label = GRUPO_MONEDAS, key = "h-monedas"))
+            monedas.forEach { add(DenomItem.Den(it)) }
+            add(DenomItem.Subtotal(GRUPO_MONEDAS, subtotalGrupo(monedas, map), "s-monedas"))
+        }
+    }
+}
+
+// Marcadores de grupo (se mapean a su stringResource en el render de la cabecera).
+private const val GRUPO_BILLETES = "billetes"
+private const val GRUPO_MONEDAS = "monedas"
+
+/** Resuelve el marcador de grupo a su texto i18n (en el árbol composable). */
+@Composable
+private fun grupoLabel(marker: String): String =
+    when (marker) {
+        GRUPO_BILLETES -> stringResource(R.string.recaudacion_denominaciones_billetes)
+        else -> stringResource(R.string.recaudacion_denominaciones_monedas)
+    }
+
+/** Siguiente denominación (clamp en la última); null-safe sobre la activa. */
+private fun siguienteDenominacion(activa: String?): String? {
+    val claves = DENOMINACIONES_PERMITIDAS.map { it.toPlainString() }
+    val i = claves.indexOf(activa)
+    return when {
+        i < 0 -> claves.firstOrNull()
+        i >= claves.lastIndex -> claves.lastOrNull()
+        else -> claves[i + 1]
+    }
+}
 
 enum class ModoDenominaciones {
     Total,

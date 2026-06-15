@@ -16,7 +16,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTextReplacement
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.recre.app.R
@@ -245,6 +244,16 @@ class RecaudacionFlowInstrumentedTest {
     // Tests
     // -------------------------------------------------------------------------
 
+    /**
+     * Teclea [valor] en la denominación [key] con el keypad in-app de T-232
+     * (la celda ya no acepta IME): activa la fila, limpia y pulsa los dígitos.
+     */
+    private fun tecleaCantidad(key: String, valor: String) {
+        composeRule.onNodeWithTag(RecaudacionTestTags.denominacionCantidad(key)).performClick()
+        repeat(7) { composeRule.onNodeWithTag("keypad-backspace").performClick() } // limpia la celda
+        valor.forEach { c -> composeRule.onNodeWithTag("keypad-$c").performClick() }
+    }
+
     @Test
     fun flujoCompleto_contadores_denominaciones_confirmacion() {
         val viewModel = crearViewModel(maquinaQueProcede())
@@ -263,8 +272,7 @@ class RecaudacionFlowInstrumentedTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_total_titulo))
             .assertIsDisplayed()
-        composeRule.onNodeWithTag(RecaudacionTestTags.denominacionCantidad("0.20"))
-            .performTextInput("100")
+        tecleaCantidad("0.20", "100")
         composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR)
             .assertIsEnabled()
             .performClick()
@@ -273,8 +281,7 @@ class RecaudacionFlowInstrumentedTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_local_titulo))
             .assertIsDisplayed()
-        composeRule.onNodeWithTag(RecaudacionTestTags.denominacionCantidad("0.20"))
-            .performTextInput("50")
+        tecleaCantidad("0.20", "50")
         composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR)
             .assertIsEnabled()
             .performClick()
@@ -302,13 +309,11 @@ class RecaudacionFlowInstrumentedTest {
         composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).assertIsNotEnabled()
 
         // Suma insuficiente (0,20 € × 50 = 10,00 €) → sigue deshabilitado.
-        composeRule.onNodeWithTag(RecaudacionTestTags.denominacionCantidad("0.20"))
-            .performTextInput("50")
+        tecleaCantidad("0.20", "50")
         composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).assertIsNotEnabled()
 
         // Suma exacta (0,20 € × 100 = 20,00 €) → habilitado.
-        composeRule.onNodeWithTag(RecaudacionTestTags.denominacionCantidad("0.20"))
-            .performTextReplacement("100")
+        tecleaCantidad("0.20", "100")
         composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).assertIsEnabled()
     }
 
