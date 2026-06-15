@@ -1,10 +1,8 @@
 package com.recre.app.ui.components
 
 import android.provider.Settings
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.recre.app.ui.theme.RecreMotion
 import com.recre.app.ui.theme.RecreTheme
 
 // =====================================================================
@@ -155,7 +154,9 @@ fun SegmentedControl(
                 if (reducedMotion) {
                     snap()
                 } else {
-                    tween(durationMillis = 160, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f))
+                    // T-230: motion espacial del vocabulario compartido (muelle físico,
+                    // no un tween ad hoc). Migra a MotionScheme.expressive() en T-258.
+                    RecreMotion.current.fastSpatialSpec()
                 },
             label = "segmentThumbOffset",
         )

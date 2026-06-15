@@ -93,7 +93,12 @@ fun RecreTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    CompositionLocalProvider(LocalRecreColors provides recreSemanticColors(darkTheme)) {
+    CompositionLocalProvider(
+        LocalRecreColors provides recreSemanticColors(darkTheme),
+        // Vocabulario de motion (T-230). Sustituirá a MaterialTheme.motionScheme
+        // cuando material3 1.5.0 lo haga público (BOM 2026.x, T-258). Ver Motion.kt.
+        LocalRecreMotion provides ExpressiveRecreMotion,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography, // grupo Tipografía (Geist) → T-228
