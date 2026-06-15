@@ -49,10 +49,10 @@ coil = "2.7.0"
 # OCR (fase 2 — contadores en vivo, T-100)
 mlkit-text-recognition = "16.0.1"
 # CameraX — preview en vivo para el OCR de contadores en directo
-camerax = "1.4.1"
+camerax = "1.5.3"
 
 # Firebase Cloud Messaging — notificaciones push (T-101)
-firebase-bom = "33.7.0"
+firebase-bom = "34.14.1"
 google-services = "4.4.4"
 
 # Test
@@ -138,7 +138,9 @@ androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "
 # Firebase Cloud Messaging — notificaciones push (T-101). La versión la fija
 # el BoM de Firebase para mantener coherencia entre artefactos.
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
-firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
+# firebase-bom 34.x dejó de publicar los artefactos `-ktx` (las extensiones
+# Kotlin se fusionaron en el módulo principal); la versión la fija el BOM.
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 # Test
 junit = { module = "junit:junit", version.ref = "junit" }
