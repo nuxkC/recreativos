@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { FieldDate } from "@/components/common/date-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -125,12 +126,7 @@ export function NuevoPrestamo({ localId }: NuevoPrestamoProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="prestamo-fecha">{t("prestamo.fecha")}</Label>
-            <Input
-              id="prestamo-fecha"
-              type="date"
-              value={fecha}
-              onChange={(event) => setFecha(event.target.value)}
-            />
+            <FieldDate id="prestamo-fecha" value={fecha} onChange={setFecha} density="compact" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="prestamo-notas">{t("prestamo.notas")}</Label>

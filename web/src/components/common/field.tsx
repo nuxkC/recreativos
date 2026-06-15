@@ -538,90 +538,11 @@ const FieldSelect = React.forwardRef<HTMLButtonElement, FieldSelectProps>(
 );
 FieldSelect.displayName = "FieldSelect";
 
-// ===========================================================================
-// FieldDate — DatePicker. Sin react-day-picker instalado → <input type="date">,
-// que delega calendario y formato es-ES dd/MM/aaaa al control nativo del
-// navegador (accesible y localizado por el SO). Ver uncertainties.
-// ===========================================================================
-
-interface FieldDateProps extends FieldBaseProps {
-  /** Fecha ISO yyyy-MM-dd (lo que consume/emite <input type="date">). */
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  readOnly?: boolean;
-  min?: string;
-  max?: string;
-  density?: FieldDensity;
-}
-
-/**
- * Selector de fecha. El calendario y el formato visible los aporta el control
- * nativo (`type="date"` muestra dd/MM/aaaa en locales es-ES). El valor de
- * modelo es ISO yyyy-MM-dd. Cuando se instale un calendario propio se podrá
- * sustituir por Popover+Calendar con trigger read-only (ver uncertainties).
- */
-const FieldDate = React.forwardRef<HTMLInputElement, FieldDateProps>(
-  (
-    {
-      value,
-      onChange,
-      label,
-      optional,
-      description,
-      error,
-      offline,
-      offlineText = "Sin sincronizar",
-      id,
-      className,
-      disabled,
-      readOnly,
-      min,
-      max,
-      density = "touch",
-    },
-    ref,
-  ) => {
-    const hasError = error != null && error !== false;
-    const {
-      id: fieldId,
-      descriptionId,
-      errorId,
-      describedBy,
-    } = useFieldIds(id, description != null, hasError);
-
-    return (
-      <FormItem className={className}>
-        {label != null ? (
-          <FormLabel htmlFor={fieldId} error={hasError} optional={optional}>
-            {label}
-          </FormLabel>
-        ) : null}
-        <Input
-          ref={ref}
-          id={fieldId}
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          readOnly={readOnly}
-          min={min}
-          max={max}
-          aria-invalid={hasError}
-          aria-describedby={describedBy}
-          aria-readonly={readOnly || undefined}
-          className={cn(controlClasses(density))}
-        />
-        {description != null && !hasError ? (
-          <FormDescription id={descriptionId}>{description}</FormDescription>
-        ) : null}
-        {hasError ? <FormMessage id={errorId}>{error}</FormMessage> : null}
-        {offline ? <OfflineNote text={offlineText} /> : null}
-      </FormItem>
-    );
-  },
-);
-FieldDate.displayName = "FieldDate";
+// FieldDate (DatePicker real: Popover + calendario react-day-picker, trigger
+// read-only y formato es-ES dd/MM/aaaa) vive en ./date-field.tsx y reutiliza
+// FormItem/FormLabel/FormDescription/FormMessage de este módulo. Aquí no se
+// expone un FieldDate basado en <input type="date"> para no duplicar el átomo
+// ni dejar una ruta de fecha que esquive el DatePicker (regla T-233).
 
 export {
   FormItem,
@@ -632,11 +553,9 @@ export {
   FieldNum,
   FieldDecimal,
   FieldSelect,
-  FieldDate,
   type FieldBaseProps,
   type FieldTextProps,
   type FieldNumProps,
   type FieldSelectProps,
   type FieldSelectOption,
-  type FieldDateProps,
 };

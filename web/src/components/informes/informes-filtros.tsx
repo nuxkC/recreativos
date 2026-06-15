@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FieldDate } from "@/components/common/date-field";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -78,24 +78,24 @@ export function InformesFiltros({
       </div>
       <div className="space-y-1">
         <Label htmlFor="filtro-desde">{t("desde")}</Label>
-        <Input
+        <FieldDate
           id="filtro-desde"
-          type="date"
           value={desdeInicial}
           max={hastaInicial}
-          onChange={(event) => setParam("desde", event.target.value || null)}
+          onChange={(value) => setParam("desde", value || null)}
           className="sm:w-44"
+          density="compact"
         />
       </div>
       <div className="space-y-1">
         <Label htmlFor="filtro-hasta">{t("hasta")}</Label>
-        <Input
+        <FieldDate
           id="filtro-hasta"
-          type="date"
           value={hastaInicial}
           min={desdeInicial}
-          onChange={(event) => setParam("hasta", event.target.value || null)}
+          onChange={(value) => setParam("hasta", value || null)}
           className="sm:w-44"
+          density="compact"
         />
       </div>
       <Button type="button" variant="ghost" onClick={limpiar} className="sm:ml-auto">

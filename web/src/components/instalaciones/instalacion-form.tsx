@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
+import { FieldDate } from "@/components/common/date-field";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -279,14 +280,14 @@ export function InstalacionForm({
             <FormField
               control={form.control}
               name="fechaInicio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{tCampos("fechaInicio")}</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <FieldDate
+                  label={tCampos("fechaInicio")}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                  density="compact"
+                />
               )}
             />
             <FormField

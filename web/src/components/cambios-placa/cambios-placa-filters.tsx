@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
-import { Input } from "@/components/ui/input";
+import { FieldDate } from "@/components/common/date-field";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -74,22 +74,22 @@ export function CambiosPlacaFilters({
       )}
       <div className="space-y-1">
         <Label htmlFor="filtro-cp-desde">{t("filtros.desde")}</Label>
-        <Input
+        <FieldDate
           id="filtro-cp-desde"
-          type="date"
           value={desdeInicial ?? ""}
-          onChange={(event) => setParam("desde", event.target.value || null)}
+          onChange={(value) => setParam("desde", value || null)}
           className="sm:w-44"
+          density="compact"
         />
       </div>
       <div className="space-y-1">
         <Label htmlFor="filtro-cp-hasta">{t("filtros.hasta")}</Label>
-        <Input
+        <FieldDate
           id="filtro-cp-hasta"
-          type="date"
           value={hastaInicial ?? ""}
-          onChange={(event) => setParam("hasta", event.target.value || null)}
+          onChange={(value) => setParam("hasta", value || null)}
           className="sm:w-44"
+          density="compact"
         />
       </div>
     </div>
