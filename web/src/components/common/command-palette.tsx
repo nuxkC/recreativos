@@ -4,7 +4,10 @@ import {
   AlertTriangle,
   Download,
   Gamepad2,
+  ScrollText,
   SearchX,
+  Store,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,11 +24,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import {
-  ROLES_ADMIN,
-  ROLES_GESTION,
-  type Rol,
-} from "@/lib/auth/roles";
+import { ROLES_ADMIN, ROLES_GESTION, type Rol } from "@/lib/auth/roles";
 import { seccionesPermitidas } from "@/components/layout/nav-config";
 
 /**
@@ -77,6 +76,30 @@ const DOMAIN_ACTIONS: readonly DomainAction[] = [
     icon: Gamepad2,
     roles: ROLES_GESTION, // heredado de NAV /maquinas
     run: (r) => r.push("/maquinas/nueva"),
+  },
+  {
+    id: "crear-local",
+    label: "Nuevo local",
+    group: "Crear",
+    icon: Store,
+    roles: ROLES_GESTION, // heredado de NAV /locales
+    run: (r) => r.push("/locales/nuevo"),
+  },
+  {
+    id: "crear-licencia",
+    label: "Nueva licencia",
+    group: "Crear",
+    icon: ScrollText,
+    roles: ROLES_GESTION, // heredado de NAV /licencias
+    run: (r) => r.push("/licencias/nueva"),
+  },
+  {
+    id: "crear-instalacion",
+    label: "Nueva instalación",
+    group: "Crear",
+    icon: Wrench,
+    roles: ROLES_GESTION, // heredado de NAV /instalaciones
+    run: (r) => r.push("/instalaciones/nueva"),
   },
   {
     id: "exportar-recaudaciones",
@@ -188,11 +211,7 @@ export function CommandPalette({
   const hayAcciones = gruposAccion.length > 0;
 
   return (
-    <CommandDialog
-      open={open}
-      onOpenChange={setOpen}
-      label="Paleta de comandos"
-    >
+    <CommandDialog open={open} onOpenChange={setOpen} label="Paleta de comandos">
       <CommandInput placeholder="Buscar o ejecutar una acción…" />
       {/* aria-live: anuncia a lectores de pantalla el cambio de resultados. */}
       <CommandList aria-live="polite">
@@ -218,9 +237,7 @@ export function CommandPalette({
                 >
                   <Icon aria-hidden="true" />
                   <span>{accion.label}</span>
-                  {accion.shortcut ? (
-                    <CommandShortcut>{accion.shortcut}</CommandShortcut>
-                  ) : null}
+                  {accion.shortcut ? <CommandShortcut>{accion.shortcut}</CommandShortcut> : null}
                 </CommandItem>
               );
             })}
@@ -231,14 +248,9 @@ export function CommandPalette({
 
         {/* Navegación desde nav-config (claves i18n existentes en es.json). */}
         {secciones.map((seccion, indice) => {
-          const heading = seccion.i18nKey
-            ? t(`sections.${seccion.i18nKey}`)
-            : undefined;
+          const heading = seccion.i18nKey ? t(`sections.${seccion.i18nKey}`) : undefined;
           return (
-            <CommandGroup
-              key={seccion.i18nKey ?? `seccion-${indice}`}
-              heading={heading}
-            >
+            <CommandGroup key={seccion.i18nKey ?? `seccion-${indice}`} heading={heading}>
               {seccion.items.map((item) => {
                 const Icon = item.icon;
                 const etiqueta = t(item.i18nKey);
