@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -135,7 +136,7 @@ fun Keypad(
                 border = colors.outline,
                 hapticsEnabled = hapticsEnabled,
                 contentDescription = backspaceContentDescription,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("keypad-backspace"),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Backspace,
@@ -155,7 +156,7 @@ fun Keypad(
                 border = null,
                 hapticsEnabled = hapticsEnabled,
                 contentDescription = nextContentDescription,
-                modifier = Modifier.weight(2f),
+                modifier = Modifier.weight(2f).testTag("keypad-next"),
             ) {
                 Text(text = nextLabel, color = colors.onPrimary, style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.width(6.dp))
@@ -184,7 +185,7 @@ private fun DigitKey(
         border = colors.outline, // ≥3:1; TalkBack anuncia el dígito por el Text
         hapticsEnabled = hapticsEnabled,
         contentDescription = null,
-        modifier = modifier,
+        modifier = modifier.testTag("keypad-$digit"),
     ) {
         Text(text = digit.toString(), color = colors.onSurface, style = KeypadDigitStyle)
     }

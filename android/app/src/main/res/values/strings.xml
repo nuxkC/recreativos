@@ -124,6 +124,18 @@
     <string name="recaudacion_label_cantidad">Cantidad</string>
     <string name="recaudacion_denominaciones_total">Total</string>
     <string name="recaudacion_denominaciones_diferencia">Diferencia</string>
+    <!-- Keypad de denominaciones (T-232) -->
+    <string name="recaudacion_denominaciones_cuadra">Cuadra</string>
+    <string name="recaudacion_denominaciones_faltan">Faltan %1$s</string>
+    <string name="recaudacion_denominaciones_sobran">Sobran %1$s</string>
+    <string name="recaudacion_denominaciones_billetes">Billetes</string>
+    <string name="recaudacion_denominaciones_monedas">Monedas</string>
+    <string name="recaudacion_keypad_siguiente">Siguiente</string>
+    <string name="recaudacion_keypad_borrar">Borrar</string>
+    <string name="recaudacion_keypad_siguiente_denominacion">Siguiente denominación</string>
+    <string name="recaudacion_denominaciones_descartar_titulo">¿Descartar el conteo?</string>
+    <string name="recaudacion_denominaciones_descartar_mensaje">Perderás las piezas que ya has contado.</string>
+    <string name="recaudacion_denominaciones_descartar_confirmar">Descartar</string>
 
     <!-- Recuperación de deuda durante la recaudación (T-215) -->
     <string name="recaudacion_recuperacion_titulo">Recuperación de deuda</string>
