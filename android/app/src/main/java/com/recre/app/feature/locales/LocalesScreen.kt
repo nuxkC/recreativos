@@ -48,6 +48,7 @@ import com.recre.app.feature.locales.components.LocalCard
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.TopLevelDestination
+import com.recre.app.ui.theme.RecreMotion
 import java.time.Duration
 import java.time.Instant
 
@@ -152,10 +153,12 @@ fun LocalesScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         items(filtrados, key = { it.id }) { local ->
-                            LocalCard(
-                                local = local,
-                                onClick = { onLocalClick(local.id) },
-                            )
+                            Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
+                                LocalCard(
+                                    local = local,
+                                    onClick = { onLocalClick(local.id) },
+                                )
+                            }
                         }
                     }
                 }

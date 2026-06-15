@@ -50,6 +50,7 @@ import com.recre.app.R
 import com.recre.app.core.data.local.entity.MaquinaEntity
 import com.recre.app.feature.gestion.resolveErrorRes
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.theme.RecreMotion
 
 /** Lista de máquinas (T-67). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -133,13 +134,15 @@ fun MaquinasGestorScreen(
                 filtered.isEmpty() -> CenteredText(R.string.gestion_busqueda_vacia)
                 else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(filtered, key = { it.id }) { m ->
-                        MaquinaCard(
-                            maquina = m,
-                            borrando = state.borrando == m.id,
-                            onEditar = { onEditar(m.id) },
-                            onVerAverias = { onVerAverias(m.id) },
-                            onEliminar = { aBorrar = m },
-                        )
+                        Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
+                            MaquinaCard(
+                                maquina = m,
+                                borrando = state.borrando == m.id,
+                                onEditar = { onEditar(m.id) },
+                                onVerAverias = { onVerAverias(m.id) },
+                                onEliminar = { aBorrar = m },
+                            )
+                        }
                     }
                 }
             }

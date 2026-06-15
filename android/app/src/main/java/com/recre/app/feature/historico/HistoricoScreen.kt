@@ -46,6 +46,7 @@ import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.TopLevelDestination
 import com.recre.app.core.data.repository.RecaudacionHistorica
+import com.recre.app.ui.theme.RecreMotion
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -125,10 +126,12 @@ fun HistoricoScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         items(filtradas, key = { it.id }) { rec ->
-                            HistoricoCard(
-                                recaudacion = rec,
-                                onClick = { onRecaudacionClick(rec.id) },
-                            )
+                            Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
+                                HistoricoCard(
+                                    recaudacion = rec,
+                                    onClick = { onRecaudacionClick(rec.id) },
+                                )
+                            }
                         }
                     }
                 }
