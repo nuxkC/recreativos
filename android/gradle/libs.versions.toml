@@ -58,7 +58,11 @@ google-services = "4.4.4"
 junit = "4.13.2"
 junit5 = "5.11.3"
 turbine = "1.2.1"
-mockk = "1.14.11"
+# mockk fija kotlin-reflect con `strictly`: 1.14.5 ya exige reflect 2.1.x y
+# 1.14.11 reflect 2.2.x. El proyecto está en Kotlin 2.0.21 (B5 lo sube a
+# 2.1.21), así que mockk queda en el último 1.13.x (reflect 2.0.0); su salto
+# real va acoplado a Kotlin en el Bloque 5.
+mockk = "1.13.17"
 androidx-test-junit = "1.2.1"
 espresso = "3.6.1"
 
