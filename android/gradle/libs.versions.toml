@@ -13,9 +13,9 @@ targetSdk = "35"
 # AndroidX
 core-ktx = "1.16.0"
 appcompat = "1.7.1"
-lifecycle = "2.8.7"
-activity-compose = "1.9.3"
-navigation-compose = "2.8.4"
+lifecycle = "2.9.4"
+activity-compose = "1.10.1"
+navigation-compose = "2.9.8"
 material = "1.13.0"
 
 # Compose
@@ -29,11 +29,11 @@ serialization = "1.7.3"
 
 # DI
 hilt = "2.56.2"
-hilt-navigation-compose = "1.2.0"
+hilt-navigation-compose = "1.3.0"
 
 # Persistence
 room = "2.7.2"
-work = "2.9.1"
+work = "2.10.5"
 datastore = "1.1.7"
 
 # Supabase
@@ -102,8 +102,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
-hilt-work = { module = "androidx.hilt:hilt-work", version = "1.2.0" }
-hilt-work-compiler = { module = "androidx.hilt:hilt-compiler", version = "1.2.0" }
+hilt-work = { module = "androidx.hilt:hilt-work", version = "1.3.0" }
+hilt-work-compiler = { module = "androidx.hilt:hilt-compiler", version = "1.3.0" }
 
 # Persistence
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
