@@ -242,7 +242,10 @@ private class ContadoresAnalyzer(
     private val onResultado: (lectura: ContadorOcrAmbosResult, instanteMs: Long) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
-    @OptIn(ExperimentalGetImage::class)
+    // ExperimentalGetImage es un @RequiresOptIn de AndroidX (Java), no de
+    // Kotlin: hay que optar con androidx.annotation.OptIn; el kotlin.OptIn "no
+    // tiene efecto" (warning del compilador) y lint marca UnsafeOptInUsageError.
+    @androidx.annotation.OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
         val media = imageProxy.image
         if (media == null) {

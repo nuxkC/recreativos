@@ -18,6 +18,11 @@
 
     <!-- Cámara para foto de contadores (fase 1 opcional, OCR fase 2). -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- La cámara es opcional (el OCR es una ayuda): no debe excluir del store
+         a tablets/ChromeOS sin cámara. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <!-- Notificaciones push (T-101). En Android 13+ requiere permiso runtime;
          lo solicita MainActivity. En versiones anteriores se concede solo. -->
