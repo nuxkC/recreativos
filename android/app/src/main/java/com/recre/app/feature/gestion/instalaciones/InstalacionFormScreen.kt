@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.gestion.components.GestionDropdown
 import com.recre.app.feature.gestion.components.GestionTextField
+import com.recre.app.ui.components.FieldDate
 import com.recre.app.feature.gestion.resolveErrorRes
 
 /** Form de Instalación (T-69) — alta, edición y cierre. */
@@ -133,12 +134,12 @@ fun InstalacionFormScreen(
                 }
             }
 
-            GestionTextField(
+            FieldDate(
                 label = stringResource(R.string.gestion_instalacion_fecha_inicio),
                 value = state.fechaInicio,
                 onValueChange = viewModel::onFechaInicioChange,
-                placeholder = "YYYY-MM-DD",
-                error = state.errores["fechaInicio"]?.let {
+                isError = state.errores["fechaInicio"] != null,
+                errorText = state.errores["fechaInicio"]?.let {
                     stringResource(R.string.gestion_validacion_fecha)
                 },
             )
@@ -235,11 +236,11 @@ fun InstalacionFormScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.gestion_instalacion_cerrar_descripcion))
-                    GestionTextField(
+                    FieldDate(
                         label = stringResource(R.string.gestion_instalacion_cerrar_fecha),
                         value = state.cerrarFechaFin,
                         onValueChange = viewModel::onCerrarFechaFinChange,
-                        placeholder = "YYYY-MM-DD",
+                        minIso = state.fechaInicio,
                     )
                     GestionTextField(
                         label = stringResource(R.string.gestion_instalacion_cerrar_notas),

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
+import { FieldDate } from "@/components/common/date-field";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -195,27 +196,27 @@ export function LicenciaForm({ mode, licencia }: LicenciaFormProps) {
           <FormField
             control={form.control}
             name="fechaExpedicion"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tCampos("fechaExpedicion")}</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            render={({ field, fieldState }) => (
+              <FieldDate
+                label={tCampos("fechaExpedicion")}
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+                density="compact"
+              />
             )}
           />
           <FormField
             control={form.control}
             name="fechaCaducidad"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tCampos("fechaCaducidad")}</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            render={({ field, fieldState }) => (
+              <FieldDate
+                label={tCampos("fechaCaducidad")}
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+                density="compact"
+              />
             )}
           />
           <FormField

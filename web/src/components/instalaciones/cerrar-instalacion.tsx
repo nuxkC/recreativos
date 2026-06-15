@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { FieldDate } from "@/components/common/date-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cerrarInstalacion } from "@/lib/instalaciones/actions";
@@ -90,21 +90,14 @@ export function CerrarInstalacion({ instalacionId, fechaInicio }: CerrarInstalac
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="cerrar-fecha-fin">{t("campos.fechaFin")}</Label>
-            <Input
+            <FieldDate
               id="cerrar-fecha-fin"
-              type="date"
               value={fechaFin}
+              onChange={setFechaFin}
               min={fechaInicio}
-              onChange={(event) => setFechaFin(event.target.value)}
-              required
-              aria-invalid={errors.fechaFin ? "true" : undefined}
-              aria-describedby={errors.fechaFin ? "cerrar-fecha-fin-error" : undefined}
+              error={errors.fechaFin}
+              density="compact"
             />
-            {errors.fechaFin ? (
-              <p id="cerrar-fecha-fin-error" className="text-[0.8rem] font-medium text-destructive">
-                {errors.fechaFin}
-              </p>
-            ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="cerrar-notas">{t("campos.notasCierre")}</Label>
