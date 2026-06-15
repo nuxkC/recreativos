@@ -38,6 +38,7 @@ import com.recre.app.R
 import com.recre.app.feature.gestion.ESTADOS_LICENCIA
 import com.recre.app.feature.gestion.components.GestionDropdown
 import com.recre.app.feature.gestion.components.GestionTextField
+import com.recre.app.ui.components.FieldDate
 import com.recre.app.feature.gestion.resolveErrorRes
 
 /**
@@ -131,22 +132,23 @@ fun LicenciaFormScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                GestionTextField(
+                FieldDate(
                     label = stringResource(R.string.gestion_licencia_fecha_expedicion),
                     value = state.fechaExpedicion,
                     onValueChange = viewModel::onFechaExpedicionChange,
-                    placeholder = "YYYY-MM-DD",
-                    error = state.errores["fechaExpedicion"]?.let {
+                    isError = state.errores["fechaExpedicion"] != null,
+                    errorText = state.errores["fechaExpedicion"]?.let {
                         stringResource(R.string.gestion_validacion_fecha)
                     },
                     modifier = Modifier.weight(1f),
                 )
-                GestionTextField(
+                FieldDate(
                     label = stringResource(R.string.gestion_licencia_fecha_caducidad),
                     value = state.fechaCaducidad,
                     onValueChange = viewModel::onFechaCaducidadChange,
-                    placeholder = "YYYY-MM-DD",
-                    error = state.errores["fechaCaducidad"]?.let { code ->
+                    minIso = state.fechaExpedicion,
+                    isError = state.errores["fechaCaducidad"] != null,
+                    errorText = state.errores["fechaCaducidad"]?.let { code ->
                         stringResource(
                             if (code == "fecha_caducidad_anterior_expedicion") {
                                 R.string.gestion_validacion_fecha_caducidad_orden

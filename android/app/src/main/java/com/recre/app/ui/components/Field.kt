@@ -1,5 +1,7 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
@@ -7,10 +9,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -21,15 +26,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -41,6 +52,10 @@ import androidx.compose.ui.unit.dp
 import com.recre.app.ui.theme.GeistMono
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 // Design System "Confianza Industrial" — atom C-FIELDNUM family (Fase 3).
 // SSOT: .kiro/specs/recre/fase3-component-specs.md.
@@ -52,6 +67,8 @@ import com.recre.app.ui.theme.RecreTheme
 //  - FieldText: texto/email/password (toggle ojo con hit-area ≥48dp vía IconButton).
 //  - FieldSelect: lista cerrada corta (ExposedDropdownMenuBox, item con check).
 //  - ComboboxCcaa: lista larga con filtro + "Sin coincidencias" (aria-live).
+//  - FieldDate: selector de fecha read-only → DatePickerDialog M3 (NUNCA se
+//    teclea); el valor viaja como String ISO "yyyy-MM-dd" (T-233).
 //
 // MONEY-SAFE (no negociable): el valor SIEMPRE viaja como String; jamás Double/
 // Float. La sanitización es puramente léxica (dígitos + un único separador
@@ -61,9 +78,6 @@ import com.recre.app.ui.theme.RecreTheme
 // foco = `ring`, error = `danger`, €/%/iconos informativos = `mutedStrong`
 // (añadido a Color.kt para paridad con la web; muted no llega a ~7:1 sobre
 // surface-2). Cifra en `GeistMono` tabular (tnum).
-//
-// DIFERIDO: DatePicker (trigger read-only + DatePickerDialog M3) — se añade en
-// la pantalla que lo consuma, igual que la web lo difirió.
 
 /**
  * Sanitiza una entrada numérica de forma puramente léxica (money-safe): conserva
@@ -406,6 +420,143 @@ fun <T> FieldSelect(
     }
 }
 
+// ---------------------------------------------------------------------------
+// FieldDate — selector de fecha (DatePicker M3). Cierra T-233 en Android.
+// ---------------------------------------------------------------------------
+
+/** ISO "yyyy-MM-dd" → millis UTC a medianoche (lo que consume el DatePicker). */
+private fun dateIsoToUtcMillis(iso: String): Long? =
+    runCatching {
+        LocalDate.parse(iso).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    }.getOrNull()
+
+/** millis UTC del DatePicker → ISO "yyyy-MM-dd" (modelo estable, sin TZ ambigua). */
+private fun utcMillisToDateIso(millis: Long): String =
+    Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
+
+private val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+/**
+ * Selector de fecha: trigger read-only (label + fecha es-ES dd/MM/aaaa o
+ * placeholder) que abre un [DatePickerDialog] M3. La fecha NUNCA se teclea —se
+ * elige en el calendario—, así que no aparece IME ni hace falta saneado. El
+ * modelo viaja como String ISO "yyyy-MM-dd" (estable, sin zona horaria
+ * ambigua), idéntico al átomo web; el orden entre fechas lo valida el VM (SSOT).
+ *
+ * @param value fecha ISO "yyyy-MM-dd"; "" o inválida ⇒ sin fecha (placeholder).
+ * @param onValueChange ISO "yyyy-MM-dd" de la fecha confirmada.
+ * @param minIso/maxIso límites inclusivos; los días fuera de rango se
+ *   deshabilitan en el calendario (no se pueden elegir).
+ * @param confirmLabel/dismissLabel textos del diálogo; por defecto los del
+ *   sistema (`android.R.string.ok`/`cancel`, ya localizados a es-ES).
+ * @param modifier modificador del contenedor (último parámetro).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FieldDate(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String? = null,
+    enabled: Boolean = true,
+    isError: Boolean = false,
+    errorText: String? = null,
+    minIso: String? = null,
+    maxIso: String? = null,
+    confirmLabel: String = stringResource(android.R.string.ok),
+    dismissLabel: String = stringResource(android.R.string.cancel),
+    modifier: Modifier = Modifier,
+) {
+    val colors = RecreColors.current
+    var showDialog by remember { mutableStateOf(false) }
+
+    val display =
+        remember(value) {
+            runCatching { LocalDate.parse(value) }.getOrNull()?.format(DATE_DISPLAY_FORMAT).orEmpty()
+        }
+
+    Box(modifier = modifier.semantics(mergeDescendants = true) {}) {
+        OutlinedTextField(
+            value = display,
+            onValueChange = {},
+            readOnly = true,
+            enabled = enabled,
+            isError = isError,
+            singleLine = true,
+            label = { Text(label) },
+            placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.DateRange,
+                    contentDescription = null, // el control se anuncia por label + valor
+                    tint = colors.mutedStrong,
+                )
+            },
+            supportingText =
+                if (isError && errorText != null) {
+                    {
+                        Text(
+                            text = errorText,
+                            color = colors.danger,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                        )
+                    }
+                } else {
+                    null
+                },
+            shape = RoundedCornerShape(12.dp),
+            colors = recreFieldColors(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        )
+        // El OutlinedTextField read-only no recibe el toque; esta capa transparente
+        // lo cubre y abre el calendario. role=Button para que TalkBack lo anuncie.
+        Box(
+            Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(enabled = enabled, role = Role.Button) { showDialog = true },
+        )
+    }
+
+    if (showDialog) {
+        val minMillis = remember(minIso) { minIso?.let(::dateIsoToUtcMillis) }
+        val maxMillis = remember(maxIso) { maxIso?.let(::dateIsoToUtcMillis) }
+        val selectable =
+            remember(minMillis, maxMillis) {
+                object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                        (minMillis == null || utcTimeMillis >= minMillis) &&
+                            (maxMillis == null || utcTimeMillis <= maxMillis)
+                }
+            }
+        val pickerState =
+            rememberDatePickerState(
+                initialSelectedDateMillis = dateIsoToUtcMillis(value),
+                selectableDates = selectable,
+            )
+        DatePickerDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(
+                    enabled = pickerState.selectedDateMillis != null,
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { onValueChange(utcMillisToDateIso(it)) }
+                        showDialog = false
+                    },
+                ) {
+                    Text(confirmLabel)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) { Text(dismissLabel) }
+            },
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
 /**
  * Combobox de lista LARGA con filtro (CCAA, 19 items): input de búsqueda + menú
  * filtrado; cuando el filtro no casa, muestra "Sin coincidencias" anunciado por
@@ -555,6 +706,27 @@ private fun FieldSelectLightPreview() {
             options = listOf("Activa", "Avería", "Retirada"),
             optionLabel = { it },
             label = "Estado de la máquina",
+        )
+    }
+}
+
+@Preview(name = "FieldDate · con fecha", showBackground = true)
+@Composable
+private fun FieldDateLightPreview() {
+    RecreTheme(darkTheme = false) {
+        FieldDate(value = "2026-03-14", onValueChange = {}, label = "Fecha de expedición")
+    }
+}
+
+@Preview(name = "FieldDate · vacío dark", showBackground = true)
+@Composable
+private fun FieldDateEmptyDarkPreview() {
+    RecreTheme(darkTheme = true) {
+        FieldDate(
+            value = "",
+            onValueChange = {},
+            label = "Fecha de caducidad",
+            placeholder = "Elegir fecha",
         )
     }
 }
