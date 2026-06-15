@@ -10,12 +10,12 @@ minSdk = "26"
 targetSdk = "35"
 
 # AndroidX
-core-ktx = "1.15.0"
-appcompat = "1.7.0"
+core-ktx = "1.16.0"
+appcompat = "1.7.1"
 lifecycle = "2.8.7"
 activity-compose = "1.9.3"
 navigation-compose = "2.8.4"
-material = "1.12.0"
+material = "1.13.0"
 
 # Compose
 compose-bom = "2024.11.00"
@@ -33,7 +33,7 @@ hilt-navigation-compose = "1.2.0"
 # Persistence
 room = "2.6.1"
 work = "2.9.1"
-datastore = "1.1.1"
+datastore = "1.1.7"
 
 # Supabase
 supabase = "3.0.2"
@@ -52,13 +52,13 @@ camerax = "1.4.1"
 
 # Firebase Cloud Messaging — notificaciones push (T-101)
 firebase-bom = "33.7.0"
-google-services = "4.4.2"
+google-services = "4.4.4"
 
 # Test
 junit = "4.13.2"
 junit5 = "5.11.3"
-turbine = "1.2.0"
-mockk = "1.13.13"
+turbine = "1.2.1"
+mockk = "1.14.11"
 androidx-test-junit = "1.2.1"
 espresso = "3.6.1"
 
