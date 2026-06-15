@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.gestion.resolveErrorRes
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.theme.RecreMotion
 
 /** Lista del CRUD de Instalaciones (T-69). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,10 +129,12 @@ fun InstalacionesGestorScreen(
                 filtered.isEmpty() -> CenteredText(R.string.gestion_busqueda_vacia)
                 else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(filtered, key = { it.id }) { item ->
-                        InstalacionItemCard(
-                            item = item,
-                            onEditar = { onEditar(item.id) },
-                        )
+                        Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
+                            InstalacionItemCard(
+                                item = item,
+                                onEditar = { onEditar(item.id) },
+                            )
+                        }
                     }
                 }
             }
