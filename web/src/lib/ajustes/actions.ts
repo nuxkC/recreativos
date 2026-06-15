@@ -20,8 +20,13 @@ export type ActionResult<T = void> =
     };
 
 function fieldErrorsFromZod(err: ZodError): Record<string, string[]> {
-  const flat = err.flatten();
-  return Object.fromEntries(Object.entries(flat.fieldErrors).map(([k, v]) => [k, v ?? []]));
+  const out: Record<string, string[]> = {};
+  for (const issue of err.issues) {
+    if (issue.path.length === 0) continue;
+    const key = String(issue.path[0]);
+    (out[key] ??= []).push(issue.message);
+  }
+  return out;
 }
 
 function parseAjustesForm(formData: FormData): Record<string, unknown> {

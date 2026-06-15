@@ -51,7 +51,7 @@ const costeSchema = z
 
 export const AveriaInputSchema = z.object({
   categoria: z.enum(CATEGORIAS_AVERIA, {
-    errorMap: () => ({ message: "categoriaRequerida" }),
+    error: () => "categoriaRequerida",
   }),
   descripcion: trimmedString.pipe(z.string().max(2000).nullable()),
   poneMaquinaFueraServicio: z.coerce.boolean(),
@@ -91,7 +91,7 @@ export const RecambioInputSchema = z.object({
     .min(1, { message: "piezaRequerida" })
     .max(120, { message: "piezaMuyLarga" }),
   cantidad: z.coerce
-    .number({ invalid_type_error: "cantidadEntera" })
+    .number({ error: "cantidadEntera" })
     .int({ message: "cantidadEntera" })
     .positive({ message: "cantidadPositiva" }),
   coste: costeSchema,
