@@ -4,6 +4,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 
+import { MotionProvider } from "@/components/common/motion";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/query/provider";
@@ -41,8 +42,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             disableTransitionOnChange
           >
             <QueryProvider>
-              {children}
-              <Toaster richColors position="top-right" />
+              <MotionProvider>
+                {children}
+                <Toaster richColors position="top-right" />
+              </MotionProvider>
             </QueryProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

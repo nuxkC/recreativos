@@ -158,8 +158,47 @@ const config: Config = {
         modal: "var(--elevation-modal)",
       },
       transitionTimingFunction: {
-        // Easing estándar del sistema (entradas/salidas de UI); `ease-standard`.
-        standard: "cubic-bezier(0.2, 0, 0, 1)",
+        // Easings de marca (T-231); consumen las CSS vars de globals.css.
+        standard: "var(--motion-ease-standard)", // cubic-bezier(0.2,0,0,1)
+        accelerate: "var(--motion-ease-accelerate)", // lo que sale
+        decelerate: "var(--motion-ease-decelerate)", // lo que entra
+      },
+      transitionDuration: {
+        // Rango de marca 120-180ms; `duration-fast/slow`, `duration` = 150ms.
+        fast: "120ms",
+        DEFAULT: "150ms",
+        slow: "180ms",
+      },
+      keyframes: {
+        // Animaciones firma (espejo de globals.css; expuestas como `animate-*`).
+        "recre-popover-in": {
+          from: { opacity: "0", transform: "translateY(var(--motion-popover-offset))" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "recre-offline-pulse": {
+          "0%,100%": { opacity: "1" },
+          "50%": { opacity: "0.45" },
+        },
+        "recre-sync-spin": { to: { transform: "rotate(360deg)" } },
+        "recre-success-flash": {
+          "0%": { backgroundColor: "transparent" },
+          "30%": { backgroundColor: "color-mix(in srgb, var(--success) 18%, transparent)" },
+          "100%": { backgroundColor: "transparent" },
+        },
+        "recre-danger-shake": {
+          "0%,100%": { transform: "translateX(0)" },
+          "15%": { transform: "translateX(-8px)" },
+          "30%": { transform: "translateX(8px)" },
+          "50%": { transform: "translateX(-6px)" },
+          "70%": { transform: "translateX(4px)" },
+        },
+      },
+      animation: {
+        "popover-in": "recre-popover-in 120ms var(--motion-ease-decelerate) both",
+        "offline-pulse": "recre-offline-pulse 1600ms var(--motion-ease-standard) infinite",
+        "sync-spin": "recre-sync-spin 900ms linear infinite",
+        "success-flash": "recre-success-flash 900ms var(--motion-ease-standard) both",
+        "danger-shake": "recre-danger-shake 400ms var(--motion-ease-standard) both",
       },
     },
   },
