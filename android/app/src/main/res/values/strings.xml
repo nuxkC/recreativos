@@ -37,6 +37,10 @@
     <string name="nav_gestion">Gestión</string>
     <string name="nav_ajustes">Ajustes</string>
     <string name="nav_alertas_badge">Alertas</string>
+    <plurals name="alertas_sync_pendiente">
+        <item quantity="one">%1$d elemento sin sincronizar</item>
+        <item quantity="other">%1$d elementos sin sincronizar</item>
+    </plurals>
 
     <!-- Locales (T-52) -->
     <string name="locales_titulo">Locales</string>
@@ -305,6 +309,9 @@
 
     <!-- Ajustes (T-65) -->
     <string name="ajustes_titulo">Ajustes</string>
+    <string name="ajustes_tab_cuenta">Cuenta</string>
+    <string name="ajustes_tab_dispositivo">Dispositivo</string>
+    <string name="ajustes_secciones">Secciones de ajustes</string>
     <string name="ajustes_seccion_cuenta">Cuenta</string>
     <string name="ajustes_cuenta_email_descripcion">Correo del usuario autenticado.</string>
     <string name="ajustes_seccion_empresa">Empresa activa</string>

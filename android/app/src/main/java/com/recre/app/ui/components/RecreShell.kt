@@ -133,7 +133,7 @@ fun RecreTopBarActions(
     }
 
     NotificationBadge(
-        count = state.alertasPendientes,
+        count = state.totalAlertas,
         contentDescription = stringResource(R.string.nav_alertas_badge),
         onClick = onAlertasClick,
     )

@@ -199,7 +199,6 @@ private fun RecreApp(
             AjustesScreen(
                 onSelectTab = { dest -> navController.navigateTab(dest) },
                 onImpresoraClick = { navController.navigate(Routes.IMPRESORA) },
-                onHistoricoClick = { navController.navigate(Routes.HISTORICO) },
                 onAlertasClick = { navController.navigate(Routes.ALERTAS) },
             )
         }
