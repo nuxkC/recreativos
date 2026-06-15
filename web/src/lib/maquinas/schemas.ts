@@ -57,7 +57,7 @@ const valorCreditoSchema = z
   });
 
 const contadorSchema = z.coerce
-  .number({ invalid_type_error: "contadorEntero" })
+  .number({ error: "contadorEntero" })
   .int({ message: "contadorEntero" })
   .nonnegative({ message: "contadorNegativo" });
 

@@ -25,9 +25,16 @@ interface RegistrarEmpresaResponse {
   trial_fin: string;
 }
 
-function fieldErrorsFromZod(err: ZodError): Record<string, string[]> {
-  const flat = err.flatten();
-  return Object.fromEntries(Object.entries(flat.fieldErrors).map(([k, v]) => [k, v ?? []]));
+function fieldErrorsFromZod(
+  err: ZodError,
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const issue of err.issues) {
+    if (issue.path.length === 0) continue;
+    const key = String(issue.path[0]);
+    (out[key] ??= []).push(issue.message);
+  }
+  return out;
 }
 
 async function codigoDeError(error: unknown): Promise<string | null> {

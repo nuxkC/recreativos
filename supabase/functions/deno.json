@@ -2,8 +2,8 @@
   "lock": false,
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
-    "zod": "npm:zod@3",
-    "date-fns": "npm:date-fns@3",
+    "zod": "npm:zod@4",
+    "date-fns": "npm:date-fns@4",
     "date-fns-tz": "npm:date-fns-tz@3",
     "decimal.js": "npm:decimal.js@10",
     "pdf-lib": "npm:pdf-lib@1.17",
