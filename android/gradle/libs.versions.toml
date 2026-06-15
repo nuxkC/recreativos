@@ -62,8 +62,8 @@ turbine = "1.2.1"
 # mockk fija kotlin-reflect con `strictly`: ahora que Kotlin es 2.1.21, mockk
 # sube a 1.14.7 (reflect 2.1.20, el último 1.14.x antes de exigir reflect 2.2).
 mockk = "1.14.7"
-androidx-test-junit = "1.2.1"
-espresso = "3.6.1"
+androidx-test-junit = "1.3.0"
+espresso = "3.7.0"
 
 [libraries]
 # AndroidX core
