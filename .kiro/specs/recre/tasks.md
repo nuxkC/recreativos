@@ -169,7 +169,7 @@ el Bloque 5 → **T-251** (Compose BOM ≥ 2025.10 para Material 3 Expressive / 
 
 ### F2 — Teclado numérico y campos
 
-- [ ] **T-232** Keypad in-app + **pantalla de extracto de denominaciones** (modos Total y Local): el **único** teclado numérico in-app del producto, según `fase3-component-specs.md` (átomo Keypad) y `fase2-design-screens.md`. Dinero como string/`BigDecimal`; el preview descuenta tolva/recuperación pero **no recalcula** (SSOT server-side).
+- [ ] **T-232** Keypad in-app + **pantalla de extracto de denominaciones** (modos Total y Local): el **único** teclado numérico in-app del producto, según `fase3-component-specs.md` (átomo Keypad) y `fase2-design-screens.md`. Dinero como string/`BigDecimal`; el preview descuenta tolva/recuperación pero **no recalcula** (SSOT server-side). — **En curso**: átomo `Keypad` hecho y compila (`ui/components/Keypad.kt`, R5: rejilla 3×4, 4ª fila weight 1f/1f/2f, teclas 64dp surfaceContainer + borde `outline` ≥3:1, dígito Geist Mono, Siguiente único acento primary, backspace muted, haptic tick `KEYBOARD_TAP` no LongPress, `navigationBarsPadding`). Pendiente: reestructurar `DenominacionesScreen` (R1-R4: topbar+confirmar descartar, RecuperacionResumenCard fija en Local, lista DenominacionGroup/Row con celda readonly dirigida por keypad + auto-scroll, BloqueProgreso sticky con chip Cuadra/Faltan/Sobran + CTA gateado), IME suprimido, borrador Room, sin recálculo.
 - [ ] **T-233** Resto de campos numéricos → **teclado numérico/decimal del sistema** (importes, contadores, %, cantidades) y fechas → **DatePicker**; retira cualquier keypad in-app fuera de denominaciones. Web (`inputMode`/`type`) y Android (`KeyboardType`/`DatePicker`).
 
 ### F3 — Arquitectura de información (Android)
