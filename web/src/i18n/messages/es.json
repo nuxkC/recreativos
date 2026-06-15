@@ -820,15 +820,16 @@
       "vacio": "Sin denominaciones registradas."
     },
     "conflicto": {
-      "titulo": "Conflicto pendiente de revisar",
-      "descripcion": "El servidor recalculó las cifras al persistir y no coinciden con las que envió el cliente. Resuélvelo desde la pantalla de conflictos.",
+      "titulo": "Descuadre pendiente de revisar",
+      "descripcion": "El servidor recalculó las cifras al persistir y no coinciden con las que envió el cliente. Revísalo y resuélvelo aquí.",
+      "delta": "Diferencia del bruto: {delta} (servidor − registrado)",
       "brutoCliente": "Bruto cliente",
       "brutoServidor": "Bruto servidor",
       "netoCliente": "Neto cliente",
       "netoServidor": "Neto servidor",
       "parteLocalCliente": "Parte local cliente",
       "parteLocalServidor": "Parte local servidor",
-      "resolver": "Ir al panel de conflictos"
+      "resolver": "Resolver descuadre"
     },
     "anular": {
       "titulo": "Anular recaudación",

@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 
+import { StatusChip } from "@/components/common/status-chip";
 import { ResolverConflicto } from "@/components/conflictos/resolver-conflicto";
 import { AnularRecaudacion } from "@/components/recaudaciones/anular-recaudacion";
 import { DescargarPdf } from "@/components/recaudaciones/descargar-pdf";
@@ -67,6 +68,12 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
   // = parte_local + parte_empresa (exacto, = neto − reposición). Decimal, sin float.
   const baseReparto = new Decimal(recaudacion.parteLocal).plus(recaudacion.parteEmpresa).toFixed(2);
   const conflictoPendiente = recaudacion.conflicto && recaudacion.revisadoEn === null;
+  // Delta del descuadre (servidor − registrado), money-safe con Decimal. El
+  // signo explícito comunica el sentido de la diferencia (T-240).
+  const deltaBrutoDec = new Decimal(
+    recaudacion.brutoRecalculado ?? recaudacion.recaudacionBruta,
+  ).minus(recaudacion.recaudacionBruta);
+  const deltaBrutoLabel = `${deltaBrutoDec.gt(0) ? "+" : ""}${formatEur(deltaBrutoDec.toFixed(2))}`;
 
   const deltaEntradas = recaudacion.contadorEntradasActual - recaudacion.contadorEntradasAnterior;
   const deltaSalidas = recaudacion.contadorSalidasActual - recaudacion.contadorSalidasAnterior;
@@ -110,15 +117,21 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
       </div>
 
       {conflictoPendiente ? (
-        <Card className="border-amber-300 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/30">
+        <Card className="border-warning/40 bg-warning-subtle">
           <CardHeader className="flex-row items-start gap-3 space-y-0">
-            <AlertTriangle className="size-5 text-amber-600" aria-hidden />
+            <AlertTriangle className="size-5 text-warning" aria-hidden />
             <div className="space-y-1">
               <CardTitle className="text-base">{t("conflicto.titulo")}</CardTitle>
               <CardDescription>{t("conflicto.descripcion")}</CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
+            {/* Delta inline del descuadre: icono + texto + color de estado (T-240). */}
+            <StatusChip
+              role="warning"
+              icon={<AlertTriangle className="size-3.5" aria-hidden />}
+              label={t("conflicto.delta", { delta: deltaBrutoLabel })}
+            />
             <dl className="grid gap-3 sm:grid-cols-2">
               <InfoRow
                 label={t("conflicto.brutoCliente")}

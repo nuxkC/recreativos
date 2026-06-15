@@ -104,7 +104,8 @@ export async function resolverConflicto(
     return { ok: false, error: { code: "resolverFallido" } };
   }
 
-  revalidatePath("/conflictos");
+  // El descuadre se resuelve inline en el detalle de la recaudación (T-240):
+  // ya no hay sección /conflictos que revalidar.
   revalidatePath("/recaudaciones");
   revalidatePath(`/recaudaciones/${recaudacionId}`);
   return { ok: true, data: undefined };

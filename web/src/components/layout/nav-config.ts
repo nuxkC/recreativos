@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   BarChart3,
   Coins,
   Gamepad2,
@@ -84,12 +83,9 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         icon: Replace,
         roles: ROLES,
       },
-      {
-        href: "/conflictos",
-        i18nKey: "conflictos",
-        icon: AlertTriangle,
-        roles: ROLES_ADMIN,
-      },
+      // Conflictos dejó de ser sección propia (T-4, T-240): los descuadres se
+      // ven inline en Recaudaciones (filtro `estado=conflicto` + badge) y en su
+      // detalle. Acceso rápido vía ⌘K → «Ver descuadres».
     ],
   },
   {

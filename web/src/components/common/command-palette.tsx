@@ -110,13 +110,12 @@ const DOMAIN_ACTIONS: readonly DomainAction[] = [
     run: (r) => r.push("/recaudaciones?export=1"),
   },
   {
-    id: "filtrar-conflictos",
-    label: "Filtrar conflictos",
-    group: "Crear",
+    id: "filtrar-descuadres",
+    label: "Ver descuadres",
+    group: "Recaudaciones",
     icon: AlertTriangle,
-    roles: ROLES_ADMIN, // heredado de NAV /conflictos
-    shortcut: "⇧C",
-    run: (r) => r.push("/conflictos"),
+    roles: ROLES_ADMIN, // los descuadres son recaudaciones con conflicto (T-240)
+    run: (r) => r.push("/recaudaciones?estado=conflicto"),
   },
 ];
 
