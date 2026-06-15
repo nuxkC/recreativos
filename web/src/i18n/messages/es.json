@@ -111,7 +111,10 @@
       "licenciasPorCaducar": "Licencias por caducar",
       "licenciasHint": "Vencen en menos de {dias} días.",
       "capitalEnLaCalle": "Capital en la calle",
-      "capitalEnLaCalleHint": "{tolva} en tolva · {prestamo} en préstamos"
+      "capitalEnLaCalleHint": "{tolva} en tolva · {prestamo} en préstamos",
+      "averiasAbiertas": "Averías abiertas",
+      "averiasAbiertasHint": "{count, plural, =0 {Sin máquinas averiadas} =1 {1 máquina averiada} other {# máquinas averiadas}}",
+      "verLista": "Ver lista"
     },
     "sinRecaudar": {
       "titulo": "Locales sin recaudar",
