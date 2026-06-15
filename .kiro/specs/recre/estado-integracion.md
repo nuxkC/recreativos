@@ -35,8 +35,9 @@ Android: catálogo de versiones coherente (KSP prefix == Kotlin), validado por b
 ### Rediseño
 - **T-229** (átomos base): caja marcada hecha; la capa Android está completa y los átomos
   web se consumen en F4. Si aparece algún átomo de los 44 sin materializar, reabrir aquí.
-- **T-230** Android motion (`MaterialExpressiveTheme`/`MotionScheme`). **Ya desbloqueado**
-  por T-251 (Compose BOM 2025.12). Pendiente de implementar.
+- ~~T-230 Android motion~~ → **Hecho** (capa propia `RecreMotion`). El API oficial
+  (`MaterialExpressiveTheme`/`MotionScheme`) resultó ser `internal` en material3 1.4.0 (BOM 2025.12);
+  se materializó el vocabulario §2.4 de forma estable. La migración al API oficial queda en **T-258**.
 - **T-241** skeletons / pull-to-refresh / swipe actions.
 - **T-242** wizards multipaso.
 - **T-243** drawers y toasts consistentes.
