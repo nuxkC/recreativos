@@ -1,8 +1,9 @@
 [versions]
 # Tooling
 agp = "8.13.2"
-kotlin = "2.0.21"
-ksp = "2.0.21-1.0.27"
+kotlin = "2.1.21"
+# El prefijo de KSP DEBE igualar la versión de Kotlin (clúster atómico B5).
+ksp = "2.1.21-2.0.2"
 
 # Android
 compileSdk = "35"
@@ -12,13 +13,13 @@ targetSdk = "35"
 # AndroidX
 core-ktx = "1.16.0"
 appcompat = "1.7.1"
-lifecycle = "2.8.7"
-activity-compose = "1.9.3"
-navigation-compose = "2.8.4"
+lifecycle = "2.9.4"
+activity-compose = "1.10.1"
+navigation-compose = "2.9.8"
 material = "1.13.0"
 
 # Compose
-compose-bom = "2024.11.00"
+compose-bom = "2025.12.00"
 
 # Coroutines
 coroutines = "1.9.0"
@@ -27,12 +28,12 @@ coroutines = "1.9.0"
 serialization = "1.7.3"
 
 # DI
-hilt = "2.52"
-hilt-navigation-compose = "1.2.0"
+hilt = "2.56.2"
+hilt-navigation-compose = "1.3.0"
 
 # Persistence
-room = "2.6.1"
-work = "2.9.1"
+room = "2.7.2"
+work = "2.10.5"
 datastore = "1.1.7"
 
 # Supabase
@@ -48,23 +49,21 @@ coil = "2.7.0"
 # OCR (fase 2 — contadores en vivo, T-100)
 mlkit-text-recognition = "16.0.1"
 # CameraX — preview en vivo para el OCR de contadores en directo
-camerax = "1.4.1"
+camerax = "1.5.3"
 
 # Firebase Cloud Messaging — notificaciones push (T-101)
-firebase-bom = "33.7.0"
+firebase-bom = "34.14.1"
 google-services = "4.4.4"
 
 # Test
 junit = "4.13.2"
 junit5 = "5.11.3"
 turbine = "1.2.1"
-# mockk fija kotlin-reflect con `strictly`: 1.14.5 ya exige reflect 2.1.x y
-# 1.14.11 reflect 2.2.x. El proyecto está en Kotlin 2.0.21 (B5 lo sube a
-# 2.1.21), así que mockk queda en el último 1.13.x (reflect 2.0.0); su salto
-# real va acoplado a Kotlin en el Bloque 5.
-mockk = "1.13.17"
-androidx-test-junit = "1.2.1"
-espresso = "3.6.1"
+# mockk fija kotlin-reflect con `strictly`: ahora que Kotlin es 2.1.21, mockk
+# sube a 1.14.7 (reflect 2.1.20, el último 1.14.x antes de exigir reflect 2.2).
+mockk = "1.14.7"
+androidx-test-junit = "1.3.0"
+espresso = "3.7.0"
 
 [libraries]
 # AndroidX core
@@ -103,8 +102,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
-hilt-work = { module = "androidx.hilt:hilt-work", version = "1.2.0" }
-hilt-work-compiler = { module = "androidx.hilt:hilt-compiler", version = "1.2.0" }
+hilt-work = { module = "androidx.hilt:hilt-work", version = "1.3.0" }
+hilt-work-compiler = { module = "androidx.hilt:hilt-compiler", version = "1.3.0" }
 
 # Persistence
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -139,7 +138,9 @@ androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "
 # Firebase Cloud Messaging — notificaciones push (T-101). La versión la fija
 # el BoM de Firebase para mantener coherencia entre artefactos.
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
-firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
+# firebase-bom 34.x dejó de publicar los artefactos `-ktx` (las extensiones
+# Kotlin se fusionaron en el módulo principal); la versión la fija el BOM.
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 # Test
 junit = { module = "junit:junit", version.ref = "junit" }
