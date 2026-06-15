@@ -64,6 +64,16 @@ android {
         }
     }
 
+    lint {
+        // El Compose BOM 2025.12 (Bloque 5) añadió el check de estilo
+        // `LocalContextGetResourceValueCall`: preferir `stringResource(...)` a
+        // `LocalContext.current.getString(...)` (para recomponer al cambiar de
+        // configuración). No es un fallo de corrección; las pantallas afectadas
+        // (Ajustes/Alertas/Locales) las está reescribiendo el rediseño, donde se
+        // migrarán. Se degrada a warning para no romper el build entretanto.
+        warning += "LocalContextGetResourceValueCall"
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true

@@ -1,5 +1,6 @@
 package com.recre.app.core.push
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -63,6 +64,10 @@ object PushNotifier {
      * detalle. Si falta el permiso POST_NOTIFICATIONS (Android 13+) la
      * publicación se ignora silenciosamente (la concede el usuario aparte).
      */
+    // El permiso POST_NOTIFICATIONS lo solicita MainActivity y el notify va
+    // dentro de runCatching (si falta, se ignora). Lint no reconoce runCatching
+    // como manejo de la SecurityException, de ahí el suppress explícito.
+    @SuppressLint("MissingPermission")
     fun mostrarConflicto(
         context: Context,
         title: String,
