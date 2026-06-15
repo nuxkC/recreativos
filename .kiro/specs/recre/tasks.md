@@ -187,7 +187,7 @@ el Bloque 5 → **T-251** (Compose BOM ≥ 2025.10 para Material 3 Expressive / 
 
 ### F5 — Pulido e interacción
 
-- [ ] **T-241** Skeletons de carga, pull-to-refresh (Android) y swipe actions en listados.
+- [ ] **T-241** Skeletons de carga, pull-to-refresh (Android) y swipe actions en listados. — **En curso.** **Hecho:** skeletons en los 4 listados de gestión (Máquinas/Locales/Instalaciones/Averías) — el loader pasa de spinner a pantalla completa al átomo `ListSkeleton` (T-229) + string genérico `cargando`. **Pull-to-refresh ya existía** en los listados de técnico (LocalesScreen/HistóricoScreen/LocalDetalle/Alertas, `PullToRefreshBox`). **FALTA:** swipe actions (`SwipeToDismissBox`: completar/averiar/archivar), `Modifier.animateItem()` en las listas (consume `RecreMotion` de T-230), y skeletons en DeudasGestor/DeudasLocal (loader con patrón distinto).
 - [ ] **T-242** Wizards multipaso (alta de instalación, alta de máquina) con progreso y validación por paso.
 - [ ] **T-243** Drawers y toasts (`sonner` web / equivalente Compose) consistentes con los tokens y el motion.
 - [ ] **T-244** Transiciones de elemento compartido (shared-bounds/element): Compose en Android; en web vía `motion` (layout), realzable con View Transitions nativas cuando entre **T-256** (React 19).

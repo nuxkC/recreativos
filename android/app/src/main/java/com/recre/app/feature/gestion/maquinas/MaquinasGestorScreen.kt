@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.local.entity.MaquinaEntity
 import com.recre.app.feature.gestion.resolveErrorRes
+import com.recre.app.ui.components.ListSkeleton
 
 /** Lista de máquinas (T-67). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -232,9 +233,9 @@ private fun MaquinaCard(
 
 @Composable
 private fun CenteredLoader() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
+    // T-241: el listado en carga muestra un esqueleto, no un spinner a pantalla
+    // completa (plan §3.1). Reutiliza el átomo ListSkeleton.
+    ListSkeleton(loadingLabel = stringResource(R.string.cargando))
 }
 
 @Composable

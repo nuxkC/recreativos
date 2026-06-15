@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">Recre</string>
 
+    <!-- Común -->
+    <string name="cargando">Cargando…</string>
+
     <!-- Auth -->
     <string name="auth_login_title">Iniciar sesión</string>
     <string name="auth_login_description">Accede para ver tus locales y recaudar.</string>

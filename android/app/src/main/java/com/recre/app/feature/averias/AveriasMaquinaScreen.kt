@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.repository.AveriaHistorial
 import com.recre.app.feature.gestion.components.OfflineBanner
+import com.recre.app.ui.components.ListSkeleton
 
 /**
  * Historial de averías de una máquina (T-222), en gestión. Lectura en línea de
@@ -250,9 +251,9 @@ private fun ResolverDialog(onDismiss: () -> Unit, onConfirm: (String?) -> Unit) 
 
 @Composable
 private fun CenteredLoader() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
+    // T-241: el listado en carga muestra un esqueleto, no un spinner a pantalla
+    // completa (plan §3.1). Reutiliza el átomo ListSkeleton.
+    ListSkeleton(loadingLabel = stringResource(R.string.cargando))
 }
 
 @Composable
