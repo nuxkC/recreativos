@@ -65,9 +65,7 @@ export default async function RecaudacionDetallePage({ params }: RecaudacionDeta
   const huboReposicionTolva = Number(recaudacion.reposicionTolva) > 0;
   // base_reparto no se persiste: es lo que se reparte tras devolver la tolva,
   // = parte_local + parte_empresa (exacto, = neto − reposición). Decimal, sin float.
-  const baseReparto = new Decimal(recaudacion.parteLocal)
-    .plus(recaudacion.parteEmpresa)
-    .toFixed(2);
+  const baseReparto = new Decimal(recaudacion.parteLocal).plus(recaudacion.parteEmpresa).toFixed(2);
   const conflictoPendiente = recaudacion.conflicto && recaudacion.revisadoEn === null;
 
   const deltaEntradas = recaudacion.contadorEntradasActual - recaudacion.contadorEntradasAnterior;

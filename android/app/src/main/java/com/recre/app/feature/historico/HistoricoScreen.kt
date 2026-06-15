@@ -1,5 +1,7 @@
 package com.recre.app.feature.historico
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,8 +45,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.repository.EstadoHistorico
 import com.recre.app.core.data.repository.RecaudacionHistorica
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -318,5 +318,4 @@ private fun formatFecha(instant: java.time.Instant): String {
     return formatter.format(instant.atZone(ZoneId.systemDefault()))
 }
 
-private fun formatEur(value: BigDecimal): String =
-    "${value.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',')} €"
+// formatEur migrado al canónico de ui.components (money-safe, agrupación es-ES).

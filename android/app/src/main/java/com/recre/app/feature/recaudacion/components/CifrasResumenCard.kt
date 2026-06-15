@@ -1,5 +1,7 @@
 package com.recre.app.feature.recaudacion.components
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -190,12 +192,8 @@ private fun FilaCifra(
     }
 }
 
-internal fun formatEur(value: String): String {
-    val decimal = runCatching {
-        java.math.BigDecimal(value).setScale(2, java.math.RoundingMode.HALF_UP)
-    }.getOrElse { return value }
-    return "${decimal.toPlainString().replace('.', ',')} €"
-}
+// formatEur migrado al canónico de ui.components (money-safe, agrupación es-ES);
+// lo consumen también RecuperacionResumenCard y DenominacionesScreen vía import.
 
 internal fun formatPct(value: String): String {
     val decimal = runCatching {

@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku"
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -7,6 +10,10 @@
           {
             "type": "command",
             "command": "CMD=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))\" 2>/dev/null || true); case \"$CMD\" in *grep*|*rg\\ *|*ripgrep*|*find\\ *|*fd\\ *|*ack\\ *|*ag\\ *)   [ -f graphify-out/graph.json ] &&   echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"MANDATORY: graphify-out/graph.json exists. You MUST run `graphify query \\\"<question>\\\"` before grepping raw files. Only grep after graphify has oriented you, or to modify/debug specific lines.\"}}'   || true ;; esac"
+          },
+          {
+            "type": "command",
+            "command": "HIT=$(python3 -c \"import json,sys,re;c=str(json.load(sys.stdin).get('tool_input',{}).get('command','')).replace(chr(92),'/');E=('.ts','.tsx','.js','.jsx','.mjs','.cjs','.kt','.kts','.sql');V=('cat','head','tail','sed','awk','nl','less','more');h=any((seg.strip().lstrip('(').split()[:1] or [''])[0].lower() in V and any(e in seg.lower() for e in E) and 'graphify-out/' not in seg.lower() for seg in re.split(r'[|;&]',c));sys.stdout.write('1' if h else '')\" 2>/dev/null || true); if [ \"$HIT\" = 1 ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Leyendo CODIGO por Bash (cat/head/sed sobre .ts/.kt/.sql): esquiva Serena y vuelca el fichero entero. TS/Kotlin -> mcp__serena__find_symbol / get_symbols_overview (solo el simbolo). SQL -> graphify. cat/sed sobre codigo solo para TRANSFORMAR, no para leer.\"}}'; fi || true"
           }
         ]
       },
@@ -15,7 +22,44 @@
         "hooks": [
           {
             "type": "command",
-            "command": "HIT=$(python3 -c \"import json,sys;d=json.load(sys.stdin);t=d.get('tool_input',d);s=(str(t.get('file_path') or '')+' '+str(t.get('pattern') or '')+' '+str(t.get('path') or '')).lower().replace(chr(92),'/');exts=('.py','.js','.ts','.tsx','.jsx','.go','.rs','.java','.rb','.c','.h','.cpp','.hpp','.cc','.cs','.kt','.swift','.php','.scala','.lua','.sh','.md','.rst','.txt','.mdx');sys.stdout.write('1' if 'graphify-out/' not in s and any(e in s for e in exts) else '')\" 2>/dev/null || true); if [ \"$HIT\" = 1 ] && [ -f graphify-out/graph.json ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"MANDATORY: graphify-out/graph.json exists. You MUST run graphify before reading source files. Use: `graphify query \\\"<question>\\\"` (scoped subgraph), `graphify explain \\\"<concept>\\\"`, or `graphify path \\\"<A>\\\" \\\"<B>\\\"`. Only read raw files after graphify has oriented you, or to modify/debug specific lines. This rule applies to subagents too \u2014 include it in every subagent prompt involving code exploration.\"}}'; fi || true"
+            "command": "python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);s=(str(t.get('file_path') or '')+' '+str(t.get('pattern') or '')+' '+str(t.get('path') or '')).lower().replace(chr(92),'/');E=('.py','.js','.ts','.tsx','.jsx','.go','.rs','.java','.rb','.c','.h','.cpp','.hpp','.cc','.cs','.kt','.swift','.php','.scala','.lua','.sh','.md','.rst','.txt','.mdx');ok=('graphify-out/' not in s) and any(e in s for e in E) and os.path.exists('graphify-out/graph.json');sid=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());f='/tmp/recre-graphify-nudge-'+sid;emit=ok and not os.path.exists(f);emit and open(f,'a').write('1');sys.stdout.write(json.dumps({'hookSpecificOutput':{'hookEventName':'PreToolUse','additionalContext':'graphify-out/ existe. Orientate con graphify ANTES de leer fuentes: graphify query (pregunta)=subgrafo acotado, graphify explain (concepto), graphify path (A) (B). Solo lee crudo tras orientarte o para editar. Aviso 1 vez por sesion; aplica a subagentes.'}}) if emit else '')\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "OUT=$(python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);p=str(t.get('file_path') or '').replace(chr(92),'/');pl=p.lower();E=('.ts','.tsx','.js','.jsx','.mjs','.cjs','.kt','.kts');ok=('graphify-out/' not in pl) and any(pl.endswith(e) for e in E);s=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());f='/tmp/recre-reads-'+s;L=(open(f).read().splitlines() if os.path.exists(f) else []) if ok else [];n=L.count(p);ok and open(f,'a').write(p+chr(10));sys.stdout.write('1' if (ok and n==1) else '')\" 2>/dev/null || true); if [ \"$OUT\" = 1 ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"RE-LECTURA: ya abriste este fichero en la sesion. En vez de releerlo entero, trae solo el simbolo con mcp__serena__find_symbol / get_symbols_overview. Releelo completo solo si vas a editarlo.\"}}'; fi || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);p=str(t.get('file_path') or '').replace(chr(92),chr(47));s=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());p and open('/tmp/recre-readedit-'+s,'a').write(p+chr(10))\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys,os;d=json.load(sys.stdin);t=d.get('tool_input',d);p=str(t.get('file_path') or '').replace(chr(92),chr(47));s=''.join(ch for ch in str(d.get('session_id','x')) if ch.isalnum());f='/tmp/recre-readedit-'+s;L=(open(f).read().splitlines() if os.path.exists(f) else []);sys.stdout.write('' if (p in L) or (not p) else json.dumps({'hookSpecificOutput':{'hookEventName':'PreToolUse','permissionDecision':'deny','permissionDecisionReason':'No has leido '+p+' en esta sesion. Lee el fichero (Read, o serena find_symbol include_body=true para solo el simbolo) ANTES de Edit; si no, el Edit falla con File-has-not-been-read.'}}))\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "( flock -n /tmp/graphify-recre.lock /home/a/.local/bin/graphify update \"$CLAUDE_PROJECT_DIR\" --force >/dev/null 2>&1 & )"
           }
         ]
       }

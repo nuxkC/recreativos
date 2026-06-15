@@ -28,12 +28,7 @@ export function UserMenu({ email, totalMembresias }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label={t("layout.userMenu")}
-          className="gap-2"
-        >
+        <Button variant="ghost" size="sm" aria-label={t("layout.userMenu")} className="gap-2">
           <User className="size-4" aria-hidden />
           <span className="max-w-44 truncate text-sm">{email}</span>
         </Button>

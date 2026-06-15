@@ -51,11 +51,7 @@ describe("toCsv", () => {
   });
 
   it("escapa separadores, comillas y saltos de línea en las celdas", () => {
-    const csv = toCsv(
-      ["nombre", "nota"],
-      [["Bar; el Rincón", 'dijo "ok"\nadiós']],
-      { bom: false },
-    );
+    const csv = toCsv(["nombre", "nota"], [["Bar; el Rincón", 'dijo "ok"\nadiós']], { bom: false });
     expect(csv).toBe('nombre;nota\r\n"Bar; el Rincón";"dijo ""ok""\nadiós"');
   });
 

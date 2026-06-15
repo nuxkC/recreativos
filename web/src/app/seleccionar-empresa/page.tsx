@@ -39,7 +39,7 @@ export default async function SeleccionarEmpresaPage() {
   const t = await getTranslations();
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{t("seleccionarEmpresa.title")}</CardTitle>

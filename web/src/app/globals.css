@@ -2,85 +2,250 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
+/* =====================================================================
+ * Tokens de marca Recre — "Confianza Industrial" (Fase 3, grupo Color +
+ * Tipografía + Forma/Espaciado/Elevación). SSOT: .kiro/specs/recre/
+ * fase3-design-tokens.md. Valores HEX = fuente de verdad (no derivar a
+ * oklch). primary = petróleo (acento ≤10% de pantalla); --ring = primary;
+ * success/warning/danger/info reservados a su significado.
+ * ===================================================================== */
 @layer base {
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.141 0.005 285.823);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.141 0.005 285.823);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.141 0.005 285.823);
-    --primary: oklch(0.21 0.006 285.885);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.967 0.001 286.375);
-    --muted-foreground: oklch(0.552 0.016 285.938);
-    --accent: oklch(0.967 0.001 286.375);
-    --accent-foreground: oklch(0.21 0.006 285.885);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.92 0.004 286.32);
-    --input: oklch(0.92 0.004 286.32);
-    --ring: oklch(0.705 0.015 286.067);
-    --chart-1: oklch(0.871 0.006 286.286);
-    --chart-2: oklch(0.552 0.016 285.938);
-    --chart-3: oklch(0.442 0.017 285.786);
-    --chart-4: oklch(0.37 0.013 285.805);
-    --chart-5: oklch(0.274 0.006 286.033);
-    --radius: 0.5rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.141 0.005 285.823);
-    --sidebar-primary: oklch(0.21 0.006 285.885);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.967 0.001 286.375);
-    --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-    --sidebar-border: oklch(0.92 0.004 286.32);
-    --sidebar-ring: oklch(0.705 0.015 286.067);
+    /* superficies / elevación por capas (no por sombra) */
+    --background: #fafbfc; /* lienzo */
+    --foreground: #11161b; /* texto principal */
+    --surface-1: #ffffff; /* cards, dialogs, popovers */
+    --surface-2: #f4f6f8; /* fondos sutiles, hovers, headers */
+    --card: var(--surface-1);
+    --card-foreground: #11161b;
+    --popover: var(--surface-1);
+    --popover-foreground: #11161b;
+
+    /* marca: primary = petróleo (acento ≤10% de pantalla) */
+    --primary: #0e7490;
+    --primary-foreground: #ffffff; /* on-primary */
+    --secondary: #e6f2f4;
+    --secondary-foreground: #062a33;
+
+    /* neutros */
+    --muted: #f4f6f8; /* fondo muted == surface-2 */
+    --muted-foreground: #646b76; /* texto secundario (placeholder) · 5.38:1 */
+    --muted-strong: #3f4651; /* iconos/€/sufijos informativos ≥7:1 sobre surface-2 */
+    --accent: #e6f2f4; /* accent == secondary (tint petróleo) */
+    --accent-foreground: #062a33;
+
+    /* roles semánticos de dominio (consumir SIEMPRE por rol) */
+    --success: #0e8a55; /* SOLO dinero+/cuadra */
+    --success-foreground: #ffffff;
+    --success-subtle: #d3f2e2;
+    --warning: #b45309; /* SOLO pendiente/sin-firmar/offline-stale */
+    --warning-foreground: #ffffff;
+    --warning-subtle: #fcebd2;
+    --danger: #dc2626; /* SOLO error/avería/descuadre/conflicto */
+    --danger-foreground: #ffffff;
+    --danger-subtle: #fadcdc;
+    --info: #2563eb;
+    --info-foreground: #ffffff;
+    --info-subtle: #dbe7fe;
+
+    /* destructive = alias de danger (compat shadcn) */
+    --destructive: var(--danger);
+    --destructive-foreground: #ffffff;
+
+    /* bordes / inputs / foco */
+    --border: #e3e6ea; /* hairline (separadores, cards) */
+    --border-strong: #646b76; /* borde de control reforzado ≥3:1 (1.4.11), solo light */
+    --input: #e3e6ea;
+    --ring: #0e7490; /* ring == primary */
+
+    /* sidebar / nav unificado a marca */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #11161b;
+    --sidebar-primary: #0e7490;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f4f6f8;
+    --sidebar-accent-foreground: #11161b;
+    --sidebar-border: #e3e6ea;
+    --sidebar-ring: #0e7490;
+
+    /* charts derivados de la marca (no grises) */
+    --chart-1: #0e7490;
+    --chart-2: #0e8a55;
+    --chart-3: #2563eb;
+    --chart-4: #b45309;
+    --chart-5: #646b76;
+
+    /* --- Variantes -text (TEXTO pequeño y etiqueta de soft-chip en LIGHT;
+     * contraste WCAG verificado). El FILL del rol se reserva a iconos, rellenos
+     * y cifras grandes; el texto pequeño usa estas -text oscurecidas. --- */
+    --success-text: #076138; /* 7.56:1 / #fff · 6.x / success@12% */
+    --danger-text: #a81818; /* 7.48:1 / #fff · 6.05 / danger@12% */
+    --warning-text: #8a3d0a; /* 7.63:1 / #fff */
+    --info-text: #1d4ed8; /* ~5.9:1 / #fff (AA fuerte) */
+    --primary-text: #0e7490; /* 5.36:1 / #fff — == primary */
+
+    /* --- Rol state-neutral: superficie de ESTADO neutra (NO marca).
+     * offline / info-neutro / permiso RBAC / deuda EUR / estado impresor /
+     * 'no procede' / 'baja confianza OCR'. Distinto de --secondary (marca) y
+     * de --muted (solo texto): fondo gris de estado + texto + icono. --- */
+    --state-neutral: #f4f6f8; /* == surface-2 */
+    --state-neutral-border: #e3e6ea; /* == border */
+    --state-neutral-foreground: #11161b; /* etiqueta de estado */
+    --state-neutral-muted: #646b76; /* metadato secundario · 5.38:1 */
+
+    /* --- StatusChip: pares OPACOS precomputados por rol (NO alpha: el
+     * contraste de un fondo semitransparente dependería de la superficie).
+     * bg = rol ~14% sobre surface-1; fg = rol OSCURECIDO a AA ≥4.5:1. El fg NO
+     * es el fill pleno (que falla AA) ni el mismo hex del fondo. --- */
+    --success-chip-bg: #ddefe7; /* fg 4.62:1 */
+    --success-chip-fg: #0c784a;
+    --warning-chip-bg: #f4e7dd; /* fg 4.67:1 */
+    --warning-chip-fg: #a74d08;
+    --danger-chip-bg: #fae1e1; /* fg 4.63:1 */
+    --danger-chip-fg: #c62222;
+    --info-chip-bg: #e0e9fc; /* fg 4.61:1 */
+    --info-chip-fg: #235edf;
+    --neutral-chip-bg: #e9eaec; /* offline/borrador — NUNCA rojo · fg 4.60:1 */
+    --neutral-chip-fg: #626974;
+
+    /* --- Familias tipográficas (espejo de next/font en layout.tsx) --- */
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+    /* --- Escala tipográfica web: size / line-height / weight --- */
+    --fs-kpi: 2.25rem;
+    --lh-kpi: 2.5rem;
+    --fw-kpi: 600; /* 36/40/600 */
+    --fs-h1: 1.5rem;
+    --lh-h1: 2rem;
+    --fw-h1: 600; /* 24/32/600 */
+    --fs-h2: 1.125rem;
+    --lh-h2: 1.625rem;
+    --fw-h2: 600; /* 18/26/600 */
+    --fs-body: 0.875rem;
+    --lh-body: 1.375rem;
+    --fw-body: 440; /* 14/22/440 */
+    --fs-body-lg: 1rem;
+    --lh-body-lg: 1.5rem;
+    --fw-body-lg: 440; /* 16/24/440 */
+    --fs-caption: 0.75rem;
+    --lh-caption: 1rem;
+    --fw-caption: 500; /* 12/16/500 */
+    --fs-label: 0.875rem;
+    --lh-label: 1.25rem;
+    --fw-label: 600; /* 14/20/600 */
+
+    /* --- Radios de marca (web: 6 / 8 / 12 / 16) --- */
+    --radius-sm: 6px; /* chips, badges, inputs compactos */
+    --radius-md: 8px; /* botones, inputs, selects */
+    --radius-lg: 12px; /* cards, popover, dropdown */
+    --radius-xl: 16px; /* dialog, sheet/drawer, contenedores destacados */
+    /* Compat shadcn: --radius sigue siendo el ancla "lg" de los componentes ui/ */
+    --radius: var(--radius-lg);
+
+    /* --- Rejilla de espaciado (4 / 8 / 12 / 16 / 24 / 32) --- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* --- Elevación (light: borde 1px; sombras SOLO en overlays) --- */
+    --elevation-flat: 0 0 0 0 transparent;
+    --elevation-border: 0 0 0 1px var(--border);
+    --elevation-overlay: 0 4px 12px -2px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+    --elevation-modal: 0 16px 40px -8px rgb(15 23 42 / 0.18), 0 4px 12px -4px rgb(15 23 42 / 0.1);
   }
+
   .dark {
-    --background: oklch(0.141 0.005 285.823);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.21 0.006 285.885);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.21 0.006 285.885);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.92 0.004 286.32);
-    --primary-foreground: oklch(0.21 0.006 285.885);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.274 0.006 286.033);
-    --muted-foreground: oklch(0.705 0.015 286.067);
-    --accent: oklch(0.274 0.006 286.033);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.552 0.016 285.938);
-    --chart-1: oklch(0.871 0.006 286.286);
-    --chart-2: oklch(0.552 0.016 285.938);
-    --chart-3: oklch(0.442 0.017 285.786);
-    --chart-4: oklch(0.37 0.013 285.805);
-    --chart-5: oklch(0.274 0.006 286.033);
-    --sidebar: oklch(0.21 0.006 285.885);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.274 0.006 286.033);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.552 0.016 285.938);
+    --background: #0b0c0e;
+    --foreground: #e7eaee;
+    --surface-1: #131519;
+    --surface-2: #1b1e24;
+    --card: var(--surface-1);
+    --card-foreground: #e7eaee;
+    --popover: var(--surface-1);
+    --popover-foreground: #e7eaee;
+
+    --primary: #2bc4dd; /* cian */
+    --primary-foreground: #06212a; /* on-primary: texto oscuro sobre cian */
+    --secondary: #16323a;
+    --secondary-foreground: #c7e6ee;
+
+    --muted: #1b1e24;
+    --muted-foreground: #9aa1ad;
+    --muted-strong: #b6bcc6; /* iconos/€/sufijos informativos ~7:1 en dark */
+    --accent: #16323a;
+    --accent-foreground: #c7e6ee;
+
+    --success: #34d399;
+    --success-foreground: #053b23;
+    --success-subtle: #0c4d34;
+    --warning: #fbbf24;
+    --warning-foreground: #3a2503;
+    --warning-subtle: #5a3a06;
+    --danger: #f87171;
+    --danger-foreground: #3a0a0a; /* on-danger fill dark: blanco=2.77 falla → oscuro */
+    --danger-subtle: #5c2120;
+    --info: #60a5fa;
+    --info-foreground: #0a2247;
+    --info-subtle: #1c3a6b;
+
+    --destructive: var(--danger);
+    --destructive-foreground: #3a0a0a;
+
+    --border: #262a31;
+    --border-strong: #262a31; /* en dark el delta de superficie basta; == border */
+    --input: #262a31;
+    --ring: #2bc4dd;
+
+    --sidebar: #131519;
+    --sidebar-foreground: #e7eaee;
+    --sidebar-primary: #2bc4dd;
+    --sidebar-primary-foreground: #06212a;
+    --sidebar-accent: #1b1e24;
+    --sidebar-accent-foreground: #e7eaee;
+    --sidebar-border: #262a31;
+    --sidebar-ring: #2bc4dd;
+
+    --chart-1: #2bc4dd;
+    --chart-2: #34d399;
+    --chart-3: #60a5fa;
+    --chart-4: #fbbf24;
+    --chart-5: #9aa1ad;
+
+    /* -text en dark: el fill ya cumple ~7:1 como texto sobre fondos oscuros,
+     * así que -text == fill (el problema de contraste es LIGHT). */
+    --success-text: #34d399;
+    --danger-text: #f87171;
+    --warning-text: #fbbf24;
+    --info-text: #60a5fa;
+    --primary-text: #2bc4dd;
+
+    --state-neutral: #1b1e24; /* == surface-2 */
+    --state-neutral-border: #262a31; /* == border */
+    --state-neutral-foreground: #e7eaee;
+    --state-neutral-muted: #9aa1ad;
+
+    /* StatusChip dark: bg = rol ~18% sobre surface-1; fg aclarado a ~7:1. */
+    --success-chip-bg: #193730; /* fg 7.04:1 */
+    --success-chip-fg: #44d7a1;
+    --warning-chip-bg: #3d341b; /* fg 7.38:1 */
+    --warning-chip-fg: #fbbf24;
+    --danger-chip-bg: #3c2629; /* fg 7.06:1 */
+    --danger-chip-fg: #faa0a0;
+    --info-chip-bg: #212f42; /* fg 7.03:1 */
+    --info-chip-fg: #8dbefb;
+    --neutral-chip-bg: #2b2e34; /* fg 7.06:1 */
+    --neutral-chip-fg: #b6bbc4;
+
+    /* Elevación en dark: la "elevación" es luminancia de surface, no sombra.
+     * Solo los overlays conservan sombra (más densa por el fondo oscuro). */
+    --elevation-flat: 0 0 0 0 transparent;
+    --elevation-border: 0 0 0 1px var(--border);
+    --elevation-overlay: 0 4px 16px -2px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+    --elevation-modal: 0 20px 48px -8px rgb(0 0 0 / 0.65), 0 6px 16px -4px rgb(0 0 0 / 0.45);
   }
 }
 
@@ -90,5 +255,57 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Cifras tabulares: TODA cifra (importe/contador/%) usa la familia mono con
+   * tnum para que los dígitos no se desplacen en count-up ni descuadres.
+   * El símbolo € va en .text-muted-foreground y el dígito en color foreground. */
+  .num-tabular {
+    font-family: var(--font-mono);
+    font-feature-settings:
+      "tnum" 1,
+      "cv01" 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-importe {
+    font-family: var(--font-mono);
+    font-size: var(--fs-kpi);
+    line-height: var(--lh-kpi);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-cifra {
+    font-family: var(--font-mono);
+    /* cifra inline (fila de tabla / resumen): 14/20, más ceñido que body 14/22 */
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 440;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-cifra-caption {
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    font-weight: 500;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Oculta la scrollbar manteniendo el scroll (filas de chips, carruseles). */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -1,5 +1,7 @@
 package com.recre.app.feature.deudas
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,8 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import java.math.BigDecimal
-import java.math.RoundingMode
-import java.util.Locale
 
 /**
  * Índice de la sección Deudas en gestión (T-219): lista de locales con su saldo
@@ -140,6 +140,5 @@ fun DeudasGestorScreen(
     }
 }
 
-/** Formato de euros es-ES: `1.234,50 €`. */
-private fun eur(v: BigDecimal): String =
-    String.format(Locale("es", "ES"), "%,.2f €", v.setScale(2, RoundingMode.HALF_UP))
+/** Formato de euros es-ES: «1.234,50 €». Delega en el canónico money-safe. */
+private fun eur(v: BigDecimal): String = formatEur(v)

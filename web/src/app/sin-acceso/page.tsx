@@ -12,7 +12,7 @@ export default async function SinAccesoPage() {
   const t = await getTranslations("sinAcceso");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md">
         <CardHeader className="items-center text-center">
           <ShieldAlert className="size-10 text-muted-foreground" aria-hidden />

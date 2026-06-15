@@ -59,8 +59,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithPassword(values);
 
       if (error) {
-        const message =
-          error.status === 400 ? t("errorInvalid") : t("errorGeneric");
+        const message = error.status === 400 ? t("errorInvalid") : t("errorGeneric");
         toast.error(message);
         return;
       }

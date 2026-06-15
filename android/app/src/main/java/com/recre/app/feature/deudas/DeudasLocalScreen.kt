@@ -1,5 +1,7 @@
 package com.recre.app.feature.deudas
 
+import com.recre.app.ui.components.formatEur
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +55,6 @@ import com.recre.app.core.data.local.entity.CreditoLocalEntity
 import com.recre.app.core.data.repository.RecuperacionLedger
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.Locale
 
 /**
  * Ficha de deudas (tolva + préstamos) de un local (T-215).
@@ -548,9 +549,8 @@ private fun deudaErrorRes(code: String): Int = when (code) {
     else -> R.string.deudas_error_generic
 }
 
-/** Formato de euros es-ES: `1.234,50 €`. */
-private fun eur(v: BigDecimal): String =
-    String.format(Locale("es", "ES"), "%,.2f €", v.setScale(2, RoundingMode.HALF_UP))
+/** Formato de euros es-ES: «1.234,50 €». Delega en el canónico money-safe. */
+private fun eur(v: BigDecimal): String = formatEur(v)
 
 /**
  * Normaliza un importe monetario tecleado (`"0,20"` / `" 30.5 "`) al string

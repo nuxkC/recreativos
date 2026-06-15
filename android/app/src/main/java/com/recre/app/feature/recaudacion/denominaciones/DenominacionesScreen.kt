@@ -39,7 +39,7 @@ import com.recre.app.core.calculo.importesIguales
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
-import com.recre.app.feature.recaudacion.components.formatEur
+import com.recre.app.ui.components.formatEur
 import java.math.BigDecimal
 
 /**

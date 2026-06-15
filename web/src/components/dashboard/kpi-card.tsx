@@ -33,8 +33,7 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        variant === "warning" &&
-          "border-amber-300 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/30",
+        variant === "warning" && "border-warning/40 bg-warning-subtle",
         variant === "destructive" &&
           "border-destructive/40 bg-destructive/5 dark:bg-destructive/10",
       )}
@@ -44,7 +43,7 @@ export function KpiCard({
         <Icon
           className={cn(
             "size-4",
-            variant === "warning" && "text-amber-600",
+            variant === "warning" && "text-warning",
             variant === "destructive" && "text-destructive",
             variant === "default" && "text-muted-foreground",
           )}
@@ -58,8 +57,8 @@ export function KpiCard({
           <div
             className={cn(
               "mt-2 flex items-center gap-1 text-xs",
-              trendIsPositive && "text-emerald-600 dark:text-emerald-400",
-              trendIsNegative && "text-amber-600 dark:text-amber-400",
+              trendIsPositive && "text-success-text",
+              trendIsNegative && "text-warning-text",
               !trendIsPositive && !trendIsNegative && "text-muted-foreground",
             )}
           >
