@@ -3,6 +3,7 @@ import type { EmpresaResumen, Membresia } from "@/lib/empresas/types";
 
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
+import { CommandMenu } from "./command-menu";
 import { EmpresaSwitcher } from "./empresa-switcher";
 import { UserMenu } from "./user-menu";
 
@@ -23,6 +24,7 @@ export function Topbar({ email, empresaActiva, rolActivo, membresias }: TopbarPr
         membresias={membresias}
       />
       <div className="flex items-center gap-1">
+        <CommandMenu rol={rolActivo} />
         <ThemeToggle />
         <UserMenu email={email} totalMembresias={membresias.length} />
       </div>

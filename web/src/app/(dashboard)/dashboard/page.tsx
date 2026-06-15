@@ -1,8 +1,9 @@
-import { AlertTriangle, Banknote, CalendarX, Coins, Gamepad2, Store } from "lucide-react";
+import { AlertTriangle, Banknote, CalendarX, Store, Wrench } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { AlertasList } from "@/components/dashboard/alertas-list";
+import { HeroRecaudacion } from "@/components/dashboard/hero-recaudacion";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireMembresiaActiva } from "@/lib/auth/guards";
@@ -13,6 +14,7 @@ import {
   listarInstalacionesSinRecaudar,
   listarLicenciasProximasACaducar,
   obtenerResumenRecaudacion,
+  obtenerSerieRecaudacionMensual,
 } from "@/lib/dashboard/queries";
 import { obtenerCapitalEnLaCalle } from "@/lib/deudas/queries";
 import { formatDate, formatEur } from "@/lib/recaudaciones/format";
@@ -22,7 +24,7 @@ export default async function DashboardPage() {
   const t = await getTranslations("dashboard");
   const tNav = await getTranslations("nav");
 
-  const [resumen, maquinas, conflictos, licencias, sinRecaudar, alertas, capital] =
+  const [resumen, maquinas, conflictos, licencias, sinRecaudar, alertas, capital, serie] =
     await Promise.all([
       obtenerResumenRecaudacion(activa.empresa.id),
       contarMaquinasPorEstado(activa.empresa.id),
@@ -31,6 +33,7 @@ export default async function DashboardPage() {
       listarInstalacionesSinRecaudar(activa.empresa.id, 14),
       listarAlertasPendientes(activa.empresa.id, 10),
       obtenerCapitalEnLaCalle(activa.empresa.id),
+      obtenerSerieRecaudacionMensual(activa.empresa.id),
     ]);
 
   return (
@@ -40,37 +43,18 @@ export default async function DashboardPage() {
         <p className="text-sm text-muted-foreground">{t("welcome")}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          icon={Coins}
-          title={t("kpis.recaudacionMes")}
-          value={formatEur(resumen.mesActual.bruto.toFixed(2))}
-          hint={t("kpis.recaudacionMesHint", { count: resumen.mesActual.recuento })}
-          trend={resumen.variacionBruto}
-          trendLabel={t("kpis.vsMesAnterior")}
-        />
-        <KpiCard
-          icon={Gamepad2}
-          title={t("kpis.maquinasInstaladas")}
-          value={`${maquinas.instaladas} / ${maquinas.total}`}
-          hint={t("kpis.maquinasHint", {
-            almacen: maquinas.almacen,
-            averiadas: maquinas.averiadas,
-          })}
-        />
-        <KpiCard
-          icon={AlertTriangle}
-          title={t("kpis.conflictosPendientes")}
-          value={String(conflictos)}
-          hint={conflictos > 0 ? t("kpis.conflictosHintPendientes") : t("kpis.conflictosHintOk")}
-          variant={conflictos > 0 ? "warning" : "default"}
-        />
-        <KpiCard
-          icon={CalendarX}
-          title={t("kpis.licenciasPorCaducar")}
-          value={String(licencias.length)}
-          hint={t("kpis.licenciasHint", { dias: 30 })}
-          variant={licencias.length > 0 ? "warning" : "default"}
+      {/* Bento (T-238, T-8): recaudación como dato-héroe (2×2) + 4 KPIs
+          clicables, cada uno deep-link a su lista filtrada (T-12). */}
+      <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <HeroRecaudacion
+          bruto={resumen.mesActual.bruto}
+          brutoAccesible={formatEur(resumen.mesActual.bruto.toFixed(2))}
+          serie={serie}
+          variacion={resumen.variacionBruto}
+          titulo={t("kpis.recaudacionMes")}
+          hintRecuento={t("kpis.recaudacionMesHint", { count: resumen.mesActual.recuento })}
+          vsLabel={t("kpis.vsMesAnterior")}
+          href="/recaudaciones"
         />
         <KpiCard
           icon={Banknote}
@@ -80,6 +64,35 @@ export default async function DashboardPage() {
             tolva: formatEur(capital.tolva),
             prestamo: formatEur(capital.prestamo),
           })}
+          href="/deudas"
+          ariaLabel={`${t("kpis.capitalEnLaCalle")}: ${formatEur(capital.total)}`}
+        />
+        <KpiCard
+          icon={Wrench}
+          title={t("kpis.averiasAbiertas")}
+          value={String(maquinas.averiadas)}
+          hint={t("kpis.averiasAbiertasHint", { count: maquinas.averiadas })}
+          variant={maquinas.averiadas > 0 ? "destructive" : "default"}
+          href="/maquinas?estado=averiada"
+          ariaLabel={`${t("kpis.averiasAbiertas")}: ${maquinas.averiadas}`}
+        />
+        <KpiCard
+          icon={AlertTriangle}
+          title={t("kpis.conflictosPendientes")}
+          value={String(conflictos)}
+          hint={conflictos > 0 ? t("kpis.conflictosHintPendientes") : t("kpis.conflictosHintOk")}
+          variant={conflictos > 0 ? "warning" : "default"}
+          href="/recaudaciones?estado=conflicto"
+          ariaLabel={`${t("kpis.conflictosPendientes")}: ${conflictos}`}
+        />
+        <KpiCard
+          icon={CalendarX}
+          title={t("kpis.licenciasPorCaducar")}
+          value={String(licencias.length)}
+          hint={t("kpis.licenciasHint", { dias: 30 })}
+          variant={licencias.length > 0 ? "warning" : "default"}
+          href="/licencias"
+          ariaLabel={`${t("kpis.licenciasPorCaducar")}: ${licencias.length}`}
         />
       </div>
 

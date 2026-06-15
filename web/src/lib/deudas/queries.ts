@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import Decimal from "decimal.js";
 
 import { createClient } from "@/lib/supabase/server";
@@ -176,4 +177,39 @@ export async function obtenerCapitalEnLaCalle(empresaId: string): Promise<Capita
     prestamo: prestamo.toFixed(2),
     numLocales,
   };
+}
+
+export interface ActividadDeuda {
+  /** Importe recuperado (abonos) en la ventana, € money-safe (string). */
+  recuperado: string;
+  /** Nº de movimientos de recuperación en la ventana. */
+  movimientos: number;
+  /** Días de la ventana (para el copy). */
+  dias: number;
+}
+
+/**
+ * Actividad reciente de cobro de deuda de la empresa: importe recuperado y nº
+ * de movimientos en los últimos `dias`. Es una cifra mostrada → se suma con
+ * `Decimal` (money-safe), nunca con `Number`. Alimenta la tarjeta "Actividad"
+ * del centro de mando de Deudas (T-239).
+ */
+export async function obtenerActividadDeuda(empresaId: string, dias = 30): Promise<ActividadDeuda> {
+  const supabase = createClient();
+  const desde = subDays(new Date(), dias);
+  const { data, error } = await supabase
+    .from("recuperacion")
+    .select("importe")
+    .eq("empresa_id", empresaId)
+    .gte("fecha", desde.toISOString())
+    .returns<Array<{ importe: string }>>();
+  if (error) {
+    throw new Error(`No se pudo cargar la actividad de deuda: ${error.message}`);
+  }
+  const filas = data ?? [];
+  let recuperado = new Decimal(0);
+  for (const row of filas) {
+    recuperado = recuperado.plus(row.importe);
+  }
+  return { recuperado: recuperado.toFixed(2), movimientos: filas.length, dias };
 }

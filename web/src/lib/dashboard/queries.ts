@@ -1,4 +1,4 @@
-import { addDays, endOfMonth, startOfMonth, subMonths } from "date-fns";
+import { addDays, differenceInCalendarMonths, endOfMonth, startOfMonth, subMonths } from "date-fns";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -83,6 +83,45 @@ export async function obtenerResumenRecaudacion(
     mesAnterior.bruto > 0 ? (mesActual.bruto - mesAnterior.bruto) / mesAnterior.bruto : null;
 
   return { mesActual, mesAnterior, variacionBruto };
+}
+
+/**
+ * Serie de recaudación bruta firme de los últimos `meses` (índice 0 = mes más
+ * antiguo de la ventana, último = mes actual). SOLO alimenta el sparkline del
+ * dashboard (coordenadas de pintura, T-8), nunca una cifra mostrada: por eso
+ * suma con `Number` como el resto de agregados del dashboard. Una única query
+ * sobre la ventana, bucketizada por mes en memoria.
+ */
+export async function obtenerSerieRecaudacionMensual(
+  empresaId: string,
+  meses = 6,
+  ahora: Date = new Date(),
+): Promise<number[]> {
+  const supabase = createClient();
+  const inicio = startOfMonth(subMonths(ahora, meses - 1));
+  const finExclusivo = addDays(endOfMonth(ahora), 1);
+
+  const { data, error } = await supabase
+    .from("recaudacion")
+    .select("fecha, recaudacion_bruta")
+    .eq("empresa_id", empresaId)
+    .eq("estado", "firme")
+    .gte("fecha", inicio.toISOString())
+    .lt("fecha", finExclusivo.toISOString())
+    .returns<Array<{ fecha: string; recaudacion_bruta: string }>>();
+
+  if (error) {
+    throw new Error(`No se pudo obtener la serie de recaudación: ${error.message}`);
+  }
+
+  const serie = new Array<number>(meses).fill(0);
+  for (const row of data ?? []) {
+    const idx = differenceInCalendarMonths(new Date(row.fecha), inicio);
+    if (idx >= 0 && idx < meses) {
+      serie[idx] = (serie[idx] ?? 0) + Number(row.recaudacion_bruta);
+    }
+  }
+  return serie;
 }
 
 export interface RecuentoMaquinas {
