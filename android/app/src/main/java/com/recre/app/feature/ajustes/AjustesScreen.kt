@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.History
@@ -31,13 +30,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreTopBarActions
+import com.recre.app.ui.components.TopLevelDestination
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,7 +76,7 @@ import java.time.Instant
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AjustesScreen(
-    onBack: () -> Unit,
+    onSelectTab: (TopLevelDestination) -> Unit,
     onImpresoraClick: () -> Unit,
     onHistoricoClick: () -> Unit,
     onAlertasClick: () -> Unit,
@@ -88,15 +89,11 @@ fun AjustesScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.ajustes_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
             )
+        },
+        bottomBar = {
+            RecreBottomBar(current = TopLevelDestination.AJUSTES, onSelect = onSelectTab)
         },
     ) { padding ->
         Column(

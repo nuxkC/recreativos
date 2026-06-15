@@ -31,6 +31,13 @@
     <string name="rol_tecnico">Técnico</string>
     <string name="rol_contable">Contable</string>
 
+    <!-- Navegación de pulgar / app shell (T-234) -->
+    <string name="nav_locales">Locales</string>
+    <string name="nav_historico">Histórico</string>
+    <string name="nav_gestion">Gestión</string>
+    <string name="nav_ajustes">Ajustes</string>
+    <string name="nav_alertas_badge">Alertas</string>
+
     <!-- Locales (T-52) -->
     <string name="locales_titulo">Locales</string>
     <string name="locales_buscar_placeholder">Buscar por nombre o dirección</string>
