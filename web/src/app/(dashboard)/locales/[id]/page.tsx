@@ -55,7 +55,13 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
         </Link>
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{local.nombre}</h1>
+            <h1
+              className="text-2xl font-semibold tracking-tight"
+              // T-244: par compartido con el nombre en la lista (morph lista→detalle).
+              style={{ viewTransitionName: `local-name-${local.id}` }}
+            >
+              {local.nombre}
+            </h1>
             <p className="text-sm text-muted-foreground">{local.direccion ?? "—"}</p>
             <p className="text-xs text-muted-foreground">
               {t("detalle.actualizado", {
