@@ -51,7 +51,7 @@ export function ResolverConflicto({ recaudacionId }: ResolverConflictoProps) {
   }
 
   return (
-    <Card className="border-amber-300 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/30">
+    <Card className="border-warning/40 bg-warning-subtle">
       <CardHeader>
         <CardTitle className="text-base">{t("resolver.titulo")}</CardTitle>
         <CardDescription>{t("resolver.descripcion")}</CardDescription>

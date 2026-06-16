@@ -102,7 +102,7 @@ export function Collapsible({
           "group flex w-full items-center gap-3 px-4 py-3 text-left",
           dense ? "min-h-11" : "min-h-12",
           // Foco visible (mismo patrón que FieldNum/Botones): ring=primary + 1px offset.
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "transition-colors duration-150 ease-standard motion-reduce:transition-none",
           sticky
             ? "hover:bg-surface-2/90 sticky top-0 z-10 border-b border-border bg-surface-2"

@@ -162,7 +162,7 @@ export default async function DashboardPage() {
                         lic.diasRestantes < 0
                           ? "text-destructive"
                           : lic.diasRestantes < 7
-                            ? "text-amber-600 dark:text-amber-400"
+                            ? "text-warning-text"
                             : "text-muted-foreground"
                       }`}
                     >

@@ -56,9 +56,7 @@ function Figura({ label, value, emphasis }: { label: string; value: string; emph
   return (
     <div className="text-right">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={emphasis ? "font-semibold text-amber-600 dark:text-amber-500" : "font-medium"}>
-        {value}
-      </dd>
+      <dd className={emphasis ? "font-semibold text-warning-text" : "font-medium"}>{value}</dd>
     </div>
   );
 }

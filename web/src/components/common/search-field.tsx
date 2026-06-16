@@ -108,7 +108,7 @@ export function SearchField({
         className={cn(
           "flex h-9 w-full rounded-md border border-input bg-surface-2 pl-9 pr-9 text-sm shadow-none transition-colors",
           "caret-primary placeholder:text-muted-foreground",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "disabled:cursor-not-allowed disabled:opacity-50",
         )}
       />
@@ -129,7 +129,7 @@ export function SearchField({
             // Target táctil ≥44px sin agrandar el glifo (pseudo-elemento invisible)
             "before:absolute before:-inset-2 before:content-['']",
             "text-muted-foreground hover:bg-accent hover:text-foreground",
-            "transition-colors duration-150 focus-visible:ring-1 focus-visible:ring-ring",
+            "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
             "animate-in fade-in zoom-in-95 motion-reduce:animate-none",
           )}
         >

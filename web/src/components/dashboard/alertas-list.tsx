@@ -67,9 +67,9 @@ export function AlertasList({ alertas }: AlertasListProps) {
                   <Icon
                     className={cn(
                       "mt-0.5 size-4 shrink-0",
-                      alerta.tipo === "recaudacion_conflicto" && "text-amber-600",
+                      alerta.tipo === "recaudacion_conflicto" && "text-warning-text",
                       alerta.tipo === "recaudacion_anulada" && "text-destructive",
-                      alerta.tipo === "licencia_caducidad" && "text-amber-600",
+                      alerta.tipo === "licencia_caducidad" && "text-warning-text",
                       alerta.tipo === "local_sin_recaudar" && "text-muted-foreground",
                     )}
                     aria-hidden
