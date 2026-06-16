@@ -85,7 +85,7 @@ export function MaquinasTable({ maquinas, averiasAbiertas = {} }: MaquinasTableP
                   {averiasAbiertas[maquina.id] ? (
                     <Badge variant="warning" className="gap-1">
                       <Wrench className="size-3" aria-hidden />
-                      {tAverias("etiqueta.abiertas", { count: averiasAbiertas[maquina.id] })}
+                      {tAverias("etiqueta.abiertas", { count: averiasAbiertas[maquina.id] ?? 0 })}
                     </Badge>
                   ) : null}
                 </div>

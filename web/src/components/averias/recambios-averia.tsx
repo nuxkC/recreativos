@@ -58,7 +58,7 @@ export function RecambiosAveria({
       if (!result.ok) {
         const fe = result.error.fieldErrors;
         if (fe?.pieza) {
-          const k = fe.pieza[0];
+          const k = fe.pieza[0] ?? "";
           setErrorPieza(tValidacion.has(k) ? tValidacion(k) : k);
           return;
         }
