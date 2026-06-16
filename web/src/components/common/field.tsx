@@ -61,7 +61,7 @@ function controlClasses(density: FieldDensity): string {
   return cn(
     controlHeight(density),
     "rounded-md bg-surface-2 shadow-none",
-    "focus-visible:ring-1 focus-visible:ring-ring",
+    "focus-visible:ring-2 focus-visible:ring-ring",
     "aria-[invalid=true]:border-danger",
     "read-only:cursor-default", // read-only ≠ disabled: NO se atenúa, sigue enfocable/copiable
   );
@@ -278,7 +278,7 @@ const FieldText = React.forwardRef<HTMLInputElement, FieldTextProps>(
               className={cn(
                 "absolute inset-y-0 right-0 -my-1 flex min-h-11 min-w-11 items-center justify-center",
                 "rounded-md text-muted-foreground",
-                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               )}
             >
               {visible ? (

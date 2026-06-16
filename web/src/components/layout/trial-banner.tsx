@@ -38,7 +38,7 @@ export async function TrialBanner({ estadoSuscripcion, trialFin }: TrialBannerPr
         esExpirado
           ? "border-destructive/30 bg-destructive/10 text-destructive"
           : esAviso
-            ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+            ? "border-warning/30 bg-warning-subtle text-warning-text"
             : "border-primary/20 bg-primary/5 text-foreground",
       )}
     >

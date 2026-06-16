@@ -22,7 +22,7 @@
 // económico/temporal definitivo está en el servidor; esto solo captura y muestra.
 //
 // Notas de tokens (verdad en globals.css / tailwind.config.ts):
-//  - Control: bg-surface-2, rounded-md (8px), foco focus-visible:ring-1 ring-ring,
+//  - Control: bg-surface-2, rounded-md (8px), foco focus-visible:ring-2 ring-ring,
 //    sin sombra (elevación por borde 1px); en error el borde pasa a danger vía
 //    aria-[invalid]. Idéntico a controlClasses() de field.tsx.
 //  - El icono calendario y el placeholder informativo usan text-muted-foreground:
@@ -210,7 +210,7 @@ const FieldDate = React.forwardRef<HTMLButtonElement, FieldDateProps>(
                 // radio 8px, sin sombra (elevación por borde 1px), foco ring=primary.
                 "flex w-full items-center justify-between gap-2 rounded-md border border-input bg-surface-2 px-3",
                 "text-left text-body",
-                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 "transition-colors ease-standard",
                 // error: borde danger (nace del aria-invalid, no de una clase suelta).
                 "aria-[invalid=true]:border-danger",

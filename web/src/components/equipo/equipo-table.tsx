@@ -173,9 +173,7 @@ export function EquipoTable({ miembros, rolActivo }: EquipoTableProps) {
                   </TableCell>
                   <TableCell>
                     {miembro.activo ? (
-                      <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                        {t("estado.activo")}
-                      </span>
+                      <span className="text-xs text-success-text">{t("estado.activo")}</span>
                     ) : (
                       <span className="text-xs text-muted-foreground">
                         {t("estado.desactivado")}

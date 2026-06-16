@@ -113,7 +113,7 @@ export function Combobox({
           // control de formulario: superficie surface-2, no background.
           "flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-input bg-surface-2 px-3 text-sm font-normal text-foreground transition-colors",
           "hover:bg-accent/40",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "disabled:pointer-events-none disabled:opacity-50",
           // Error: borde danger sin depender solo del color (lo refuerza el
           // FormMessage con icono+texto que pone el contenedor de campo).
