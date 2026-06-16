@@ -519,11 +519,15 @@
 }
 
 @layer base {
+  /* CSS directo en vez de `@apply` de utilidades-token: Turbopack + Tailwind v4
+     no resuelve `@apply border-border`/`bg-background` dentro de `@layer base`
+     (pide `@reference`). Equivalente y robusto en dev y prod (T-257). */
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
