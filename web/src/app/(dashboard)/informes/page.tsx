@@ -11,10 +11,11 @@ import { resolverFiltros, type InformesSearchParams } from "@/lib/informes/schem
 import { ROLES_INFORMES } from "@/lib/informes/permisos";
 
 interface InformesPageProps {
-  searchParams: InformesSearchParams;
+  searchParams: Promise<InformesSearchParams>;
 }
 
-export default async function InformesPage({ searchParams }: InformesPageProps) {
+export default async function InformesPage(props: InformesPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireRol(ROLES_INFORMES);
   const tNav = await getTranslations("nav");
 

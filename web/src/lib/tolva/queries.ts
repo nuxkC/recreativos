@@ -21,7 +21,7 @@ export interface TolvaInstalacion {
  * máquina se resuelve aparte: `v_instalacion_tolva` no es embebible por PostgREST.
  */
 export async function obtenerTolvaInstalaciones(localId: string): Promise<TolvaInstalacion[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: filas, error } = await supabase
     .from("v_instalacion_tolva")

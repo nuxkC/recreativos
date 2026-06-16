@@ -23,7 +23,7 @@ import {
 const IdSchema = z.string().uuid();
 
 interface InstalacionDetallePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 function formatDate(iso: string | null): string {
@@ -35,7 +35,8 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export default async function InstalacionDetallePage({ params }: InstalacionDetallePageProps) {
+export default async function InstalacionDetallePage(props: InstalacionDetallePageProps) {
+  const params = await props.params;
   const activa = await requireRol(ROLES_GESTION);
   const t = await getTranslations("instalaciones");
 

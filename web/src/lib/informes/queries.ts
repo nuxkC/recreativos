@@ -63,7 +63,7 @@ function mesEnRango(mesIso: string, desde: string | null, hasta: string | null):
 
 /** Locales de la empresa para poblar el selector de filtro. */
 export async function listarLocalesInformes(empresaId: string): Promise<LocalOpcion[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("local")
     .select("id, nombre")
@@ -83,7 +83,7 @@ interface MaquinaResumen {
 }
 
 async function listarMaquinasResumen(empresaId: string): Promise<Map<string, string>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("maquina")
     .select("id, numero_serie, modelo")
@@ -107,7 +107,7 @@ async function listarMaquinasResumen(empresaId: string): Promise<Map<string, str
  * a ese local.
  */
 async function maquinasDelLocal(empresaId: string, localId: string): Promise<Set<string>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("instalacion")
     .select("maquina_id")
@@ -124,7 +124,7 @@ export async function obtenerInformes(
   empresaId: string,
   filtros: InformesFiltros = {},
 ): Promise<InformesData> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const localId = filtros.localId ?? null;
   const desde = filtros.desde ?? null;
   const hasta = filtros.hasta ?? null;

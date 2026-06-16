@@ -76,7 +76,7 @@ export async function registrarEmpresa(
   }
 
   const { nombreEmpresa, nombreCompleto, email, password } = parsed.data;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.functions.invoke<RegistrarEmpresaResponse>(
     "registrar-empresa",
@@ -111,7 +111,7 @@ export async function registrarEmpresa(
   }
 
   if (empresaId) {
-    cookies().set(EMPRESA_COOKIE_NAME, empresaId, empresaCookieOptions);
+    (await cookies()).set(EMPRESA_COOKIE_NAME, empresaId, empresaCookieOptions);
   }
 
   revalidatePath("/", "layout");

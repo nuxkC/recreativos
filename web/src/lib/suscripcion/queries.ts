@@ -29,7 +29,7 @@ function esEstado(value: string): value is EstadoSuscripcion {
 export async function obtenerSuscripcionEmpresa(
   empresaId: string,
 ): Promise<SuscripcionEmpresa | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("empresa")
     .select("estado_suscripcion, trial_inicio, trial_fin")

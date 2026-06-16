@@ -26,7 +26,7 @@ export async function listarEventosAuditoria(
   empresaId: string,
   filtros: ListarEventosAuditoriaFiltros = {},
 ): Promise<EventoAuditoria[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("audit_log")
     .select("*")
@@ -71,7 +71,7 @@ async function resolverNombresActores(rows: EventoAuditoriaRow[]): Promise<Map<s
     return nombrePorId;
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("usuario")
     .select("id, nombre_completo")

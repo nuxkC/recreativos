@@ -18,7 +18,7 @@ export async function listarLocales(
   empresaId: string,
   filtros: ListarLocalesFiltros = {},
 ): Promise<Local[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("local")
     .select("*")
@@ -44,7 +44,7 @@ export async function listarLocales(
  * `null` si no existe o el usuario no lo puede ver (RLS).
  */
 export async function obtenerLocal(empresaId: string, localId: string): Promise<Local | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("local")
     .select("*")

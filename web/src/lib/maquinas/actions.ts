@@ -76,7 +76,7 @@ export async function crearMaquina(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_maquina", {
     p_empresa_id: activa.empresa.id,
     p_numero_serie: parsed.data.numeroSerie,
@@ -137,7 +137,7 @@ export async function actualizarMaquina(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("actualizar_maquina", {
     p_id: maquinaId,
     p_numero_serie: parsed.data.numeroSerie,
@@ -180,7 +180,7 @@ export async function eliminarMaquina(maquinaId: string): Promise<ActionResult> 
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("eliminar_maquina", {
     p_id: maquinaId,
   });

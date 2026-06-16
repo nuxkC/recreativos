@@ -24,7 +24,7 @@ import {
 
 /** % de recuperación por defecto de la empresa (para mostrar el valor heredado). */
 export async function obtenerPorcentajeRecuperacionEmpresa(empresaId: string): Promise<number> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("empresa")
     .select("porcentaje_recuperacion")
@@ -49,7 +49,7 @@ export interface LocalConSaldo extends LocalSaldo {
  * poder darles de alta un préstamo desde la propia sección.
  */
 export async function listarLocalesConSaldo(empresaId: string): Promise<LocalConSaldo[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("v_local_saldo")
     .select("*, local:local_id (nombre)")
@@ -70,7 +70,7 @@ export async function obtenerSaldoLocal(
   empresaId: string,
   localId: string,
 ): Promise<LocalSaldo | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("v_local_saldo")
     .select("*")
@@ -90,7 +90,7 @@ export async function listarCreditosLocal(
   localId: string,
   soloAbiertas = false,
 ): Promise<CreditoLocal[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("v_credito_local_saldo")
     .select("*")
@@ -118,7 +118,7 @@ export async function listarRecuperacionesLocal(
   localId: string,
   limite = 50,
 ): Promise<Recuperacion[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recuperacion")
     .select(
@@ -143,7 +143,7 @@ export async function listarRecuperacionesLocal(
  * orden de magnitud del MVP es suficiente; si crece, se migra a RPC SQL.
  */
 export async function obtenerCapitalEnLaCalle(empresaId: string): Promise<CapitalEnLaCalle> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("v_local_saldo")
     .select("saldo_total, saldo_tolva, saldo_prestamo, num_deudas_abiertas")
@@ -195,7 +195,7 @@ export interface ActividadDeuda {
  * del centro de mando de Deudas (T-239).
  */
 export async function obtenerActividadDeuda(empresaId: string, dias = 30): Promise<ActividadDeuda> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const desde = subDays(new Date(), dias);
   const { data, error } = await supabase
     .from("recuperacion")

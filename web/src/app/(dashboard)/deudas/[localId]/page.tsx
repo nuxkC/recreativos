@@ -17,7 +17,7 @@ import { obtenerLocal } from "@/lib/locales/queries";
 const IdSchema = z.string().uuid();
 
 interface DeudasLocalPageProps {
-  params: { localId: string };
+  params: Promise<{ localId: string }>;
 }
 
 /**
@@ -26,7 +26,8 @@ interface DeudasLocalPageProps {
  * nuevo préstamo, pago en efectivo, condonación (admin) y % de recuperación.
  * Es a donde redirige el detalle del local para todo lo que sea gestión.
  */
-export default async function DeudasLocalPage({ params }: DeudasLocalPageProps) {
+export default async function DeudasLocalPage(props: DeudasLocalPageProps) {
+  const params = await props.params;
   const activa = await requireRol(ROLES_GESTION);
   const t = await getTranslations("deudas");
 

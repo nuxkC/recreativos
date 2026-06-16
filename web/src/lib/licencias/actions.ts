@@ -74,7 +74,7 @@ export async function crearLicencia(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_licencia", {
     p_empresa_id: activa.empresa.id,
     p_numero: parsed.data.numero,
@@ -134,7 +134,7 @@ export async function actualizarLicencia(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("actualizar_licencia", {
     p_id: licenciaId,
     p_numero: parsed.data.numero,
@@ -176,7 +176,7 @@ export async function eliminarLicencia(licenciaId: string): Promise<ActionResult
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("eliminar_licencia", {
     p_id: licenciaId,
   });

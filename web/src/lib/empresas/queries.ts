@@ -42,7 +42,7 @@ function mapMembresia(row: EmpresaUsuarioRow): Membresia | null {
  * (las rutas protegidas ya lo evitan vía middleware).
  */
 export async function listarMembresiasUsuarioActual(): Promise<Membresia[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -82,7 +82,7 @@ export async function obtenerMembresiaActiva(): Promise<{
   membresias: Membresia[];
 }> {
   const membresias = await listarMembresiasUsuarioActual();
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const empresaIdCookie = cookieStore.get(EMPRESA_COOKIE_NAME)?.value ?? null;
 
   const fromCookie = empresaIdCookie

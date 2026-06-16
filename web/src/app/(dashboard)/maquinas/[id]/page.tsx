@@ -18,7 +18,7 @@ import { obtenerMaquina } from "@/lib/maquinas/queries";
 const IdSchema = z.string().uuid();
 
 interface MaquinaDetallePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 function formatDate(iso: string | null): string {
@@ -30,7 +30,8 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export default async function MaquinaDetallePage({ params }: MaquinaDetallePageProps) {
+export default async function MaquinaDetallePage(props: MaquinaDetallePageProps) {
+  const params = await props.params;
   const activa = await requireRol(ROLES_GESTION);
   const t = await getTranslations("maquinas");
 

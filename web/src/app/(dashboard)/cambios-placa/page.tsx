@@ -9,15 +9,16 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 interface CambiosPlacaPageProps {
-  searchParams: {
+  searchParams: Promise<{
     local?: string;
     desde?: string;
     hasta?: string;
     instalacion?: string;
-  };
+  }>;
 }
 
-export default async function CambiosPlacaPage({ searchParams }: CambiosPlacaPageProps) {
+export default async function CambiosPlacaPage(props: CambiosPlacaPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireMembresiaActiva();
   const tNav = await getTranslations("nav");
 

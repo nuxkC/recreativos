@@ -12,13 +12,14 @@ import { listarMaquinas } from "@/lib/maquinas/queries";
 import { isEstadoMaquina, type EstadoMaquina } from "@/lib/maquinas/types";
 
 interface MaquinasPageProps {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
     estado?: string;
-  };
+  }>;
 }
 
-export default async function MaquinasPage({ searchParams }: MaquinasPageProps) {
+export default async function MaquinasPage(props: MaquinasPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireMembresiaActiva();
   const t = await getTranslations("maquinas");
   const tNav = await getTranslations("nav");

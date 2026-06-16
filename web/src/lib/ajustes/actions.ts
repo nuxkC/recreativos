@@ -61,7 +61,7 @@ export async function actualizarAjustesEmpresa(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("actualizar_ajustes_empresa", {
     p_empresa_id: activa.empresa.id,
     p_nombre: parsed.data.nombre,

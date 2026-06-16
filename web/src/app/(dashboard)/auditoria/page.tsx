@@ -15,15 +15,16 @@ import {
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 interface AuditoriaPageProps {
-  searchParams: {
+  searchParams: Promise<{
     accion?: string;
     entidad?: string;
     desde?: string;
     hasta?: string;
-  };
+  }>;
 }
 
-export default async function AuditoriaPage({ searchParams }: AuditoriaPageProps) {
+export default async function AuditoriaPage(props: AuditoriaPageProps) {
+  const searchParams = await props.searchParams;
   // La bitácora es información sensible: solo owner/admin (RLS lo refuerza).
   const activa = await requireRol(ROLES_ADMIN);
   const tNav = await getTranslations("nav");

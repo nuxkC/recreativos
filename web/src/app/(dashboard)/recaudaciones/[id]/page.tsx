@@ -22,7 +22,7 @@ import { obtenerRecaudacion, obtenerSignedUrlsEvidencia } from "@/lib/recaudacio
 const IdSchema = z.string().uuid();
 
 interface RecaudacionDetallePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 interface InfoRowProps {
@@ -46,7 +46,8 @@ function InfoRow({ label, value, emphasis, hint }: InfoRowProps) {
   );
 }
 
-export default async function RecaudacionDetallePage({ params }: RecaudacionDetallePageProps) {
+export default async function RecaudacionDetallePage(props: RecaudacionDetallePageProps) {
+  const params = await props.params;
   const activa = await requireMembresiaActiva();
   const t = await getTranslations("recaudaciones");
 

@@ -18,7 +18,7 @@ import { obtenerTolvaInstalaciones } from "@/lib/tolva/queries";
 const IdSchema = z.string().uuid();
 
 interface LocalDetallePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 function formatDate(iso: string | null): string {
@@ -30,7 +30,8 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export default async function LocalDetallePage({ params }: LocalDetallePageProps) {
+export default async function LocalDetallePage(props: LocalDetallePageProps) {
+  const params = await props.params;
   const activa = await requireRol(ROLES_GESTION);
   const t = await getTranslations("locales");
 

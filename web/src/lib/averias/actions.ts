@@ -72,7 +72,7 @@ export async function crearAveria(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_averia", {
     p_empresa_id: activa.empresa.id,
     p_maquina_id: maquinaId,
@@ -122,7 +122,7 @@ export async function actualizarAveria(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("actualizar_averia", {
     p_id: averiaId,
     p_categoria: parsed.data.categoria,
@@ -165,7 +165,7 @@ export async function resolverAveria(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("resolver_averia", {
     p_id: averiaId,
     p_notas_resolucion: parsed.data.notasResolucion ?? null,
@@ -212,7 +212,7 @@ export async function crearRecambio(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_recambio", {
     p_averia_id: averiaId,
     p_pieza: parsed.data.pieza,
@@ -243,7 +243,7 @@ export async function eliminarRecambio(
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("eliminar_recambio", { p_id: recambioId });
 
   if (error) {

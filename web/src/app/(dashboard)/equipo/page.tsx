@@ -13,7 +13,7 @@ export default async function EquipoPage() {
   const t = await getTranslations("equipo");
   const tNav = await getTranslations("nav");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

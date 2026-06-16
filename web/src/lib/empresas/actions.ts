@@ -35,7 +35,7 @@ export async function seleccionarEmpresa(formData: FormData): Promise<void> {
   }
   const { empresaId, next } = parsed.data;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -57,7 +57,7 @@ export async function seleccionarEmpresa(formData: FormData): Promise<void> {
     throw new Error("El usuario no pertenece a esta empresa");
   }
 
-  cookies().set(EMPRESA_COOKIE_NAME, empresaId, empresaCookieOptions);
+  (await cookies()).set(EMPRESA_COOKIE_NAME, empresaId, empresaCookieOptions);
 
   revalidatePath("/", "layout");
   redirect(next ?? "/dashboard");
@@ -68,7 +68,7 @@ export async function seleccionarEmpresa(formData: FormData): Promise<void> {
  * desplegable del header o desde un futuro "Cambiar empresa" en Ajustes.
  */
 export async function limpiarEmpresaActiva(): Promise<void> {
-  cookies().delete(EMPRESA_COOKIE_NAME);
+  (await cookies()).delete(EMPRESA_COOKIE_NAME);
   revalidatePath("/", "layout");
   redirect("/seleccionar-empresa");
 }

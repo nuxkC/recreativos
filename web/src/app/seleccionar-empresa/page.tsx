@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/server";
  * "Cambiar empresa" desde el menú).
  */
 export default async function SeleccionarEmpresaPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

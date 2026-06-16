@@ -13,7 +13,7 @@ import { formatDateTime } from "@/lib/recaudaciones/format";
 const IdSchema = z.string().uuid();
 
 interface CambioPlacaDetallePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 interface InfoRowProps {
@@ -30,7 +30,8 @@ function InfoRow({ label, value }: InfoRowProps) {
   );
 }
 
-export default async function CambioPlacaDetallePage({ params }: CambioPlacaDetallePageProps) {
+export default async function CambioPlacaDetallePage(props: CambioPlacaDetallePageProps) {
+  const params = await props.params;
   const activa = await requireMembresiaActiva();
   const t = await getTranslations("cambiosPlaca");
 

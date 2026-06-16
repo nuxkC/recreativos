@@ -26,7 +26,7 @@ export async function listarMaquinas(
   empresaId: string,
   filtros: ListarMaquinasFiltros = {},
 ): Promise<Maquina[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("maquina")
     .select("*")
@@ -59,7 +59,7 @@ export async function obtenerMaquina(
   empresaId: string,
   maquinaId: string,
 ): Promise<Maquina | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("maquina")
     .select("*")

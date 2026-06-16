@@ -80,7 +80,7 @@ export async function resolverConflicto(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     code?: string;
     message?: string;

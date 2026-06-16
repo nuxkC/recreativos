@@ -17,7 +17,7 @@ export async function listarMiembros(
   empresaId: string,
   yoUsuarioId: string,
 ): Promise<MiembroEquipo[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("empresa_usuario")
     .select(

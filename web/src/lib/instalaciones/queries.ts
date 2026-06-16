@@ -38,7 +38,7 @@ export async function listarInstalaciones(
   empresaId: string,
   filtros: ListarInstalacionesFiltros = {},
 ): Promise<Instalacion[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("instalacion")
     .select(SELECT_COLUMNS)
@@ -64,7 +64,7 @@ export async function obtenerInstalacion(
   empresaId: string,
   instalacionId: string,
 ): Promise<Instalacion | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("instalacion")
     .select(SELECT_COLUMNS)
@@ -90,7 +90,7 @@ export async function listarLicenciasResumen(
   empresaId: string,
   disponiblesSolo: boolean,
 ): Promise<LicenciaResumen[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("licencia")
     .select("id, numero, estado, instalaciones:instalacion!licencia_id (id, estado)")
@@ -127,7 +127,7 @@ export async function listarMaquinasResumen(
   empresaId: string,
   disponiblesSolo: boolean,
 ): Promise<MaquinaResumen[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("maquina")
     .select("id, numero_serie, modelo, estado, instalaciones:instalacion!maquina_id (id, estado)")
@@ -164,7 +164,7 @@ export async function listarMaquinasResumen(
 
 /** Lista todos los locales de la empresa (no hay restricción de unicidad). */
 export async function listarLocalesResumen(empresaId: string): Promise<LocalResumen[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("local")
     .select("id, nombre")

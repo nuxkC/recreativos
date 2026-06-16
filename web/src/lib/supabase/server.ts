@@ -10,8 +10,8 @@ import { env } from "@/lib/env";
  * donde no se permite escribir (p. ej. Server Components puros), las llamadas
  * a `setAll` se silencian; el middleware se encarga de mantener la cookie viva.
  */
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
     cookies: {
