@@ -7,7 +7,9 @@
     "cerrar": "Cerrar",
     "cancelar": "Cancelar",
     "guardar": "Guardar",
-    "volver": "Volver"
+    "volver": "Volver",
+    "reintentar": "Reintentar",
+    "colaOfflineEnviara": "Se enviará al sincronizar"
   },
   "tema": {
     "titulo": "Tema",
