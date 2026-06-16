@@ -82,6 +82,8 @@
     <string name="local_detalle_sin_maquinas">No hay máquinas activas en este local.</string>
     <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d máquinas)</string>
     <string name="action_back">Volver</string>
+    <string name="action_cerrar">Cerrar</string>
+    <string name="snackbar_sincronizando">Sincronizando</string>
 
     <!-- Estados de máquina -->
     <string name="maquina_estado_instalada">Instalada</string>

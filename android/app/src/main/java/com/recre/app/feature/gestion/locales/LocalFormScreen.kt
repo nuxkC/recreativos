@@ -19,8 +19,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.SnackbarEstado
+import com.recre.app.ui.components.mostrar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -53,7 +55,7 @@ fun LocalFormScreen(
     LaunchedEffect(state.guardado) { if (state.guardado) onGuardado() }
     LaunchedEffect(errorMessage) {
         val msg = errorMessage ?: return@LaunchedEffect
-        snackbarHost.showSnackbar(message = msg)
+        snackbarHost.mostrar(SnackbarEstado.Error, msg)
         viewModel.consumirError()
     }
 
@@ -78,7 +80,7 @@ fun LocalFormScreen(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHost) },
+        snackbarHost = { RecreSnackbarHost(snackbarHost) },
     ) { padding ->
         if (state.cargando) {
             Box(
