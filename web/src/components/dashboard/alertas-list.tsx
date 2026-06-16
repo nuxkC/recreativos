@@ -54,7 +54,7 @@ export function AlertasList({ alertas }: AlertasListProps) {
       </CardHeader>
       <CardContent>
         {alertas.length === 0 ? (
-          <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
             {t("vacio")}
           </p>
         ) : (
@@ -75,8 +75,8 @@ export function AlertasList({ alertas }: AlertasListProps) {
                     aria-hidden
                   />
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <p className="break-words">{alerta.mensaje}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="wrap-break-word">{alerta.mensaje}</p>
+                    <p className="text-muted-foreground text-xs">
                       {formatDateTime(alerta.creadaEn)}
                     </p>
                   </div>

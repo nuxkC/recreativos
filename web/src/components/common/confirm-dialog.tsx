@@ -128,7 +128,7 @@ export function ConfirmDialog({
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       {/* role=alertdialog + aria-modal + focus-trap son nativos de Radix. */}
       <AlertDialogContent
-        className="min-w-[320px] max-w-[440px] gap-grid-6 rounded-xl border-border bg-surface-1 p-grid-6 shadow-modal"
+        className="gap-grid-6 border-border bg-surface-1 p-grid-6 shadow-modal max-w-[440px] min-w-[320px] rounded-xl"
         onEscapeKeyDown={blockEscapeWhileLoading}
         // Foco inicial SIEMPRE en Cancelar (salida segura), nunca en el
         // destructivo ni en el textarea del motivo (que va antes en el DOM).
@@ -138,9 +138,9 @@ export function ConfirmDialog({
         }}
       >
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-grid-2 text-h2 text-foreground">
+          <AlertDialogTitle className="gap-grid-2 text-h2 text-foreground flex items-center">
             {/* Icono decorativo: lo destructivo va en texto+confirmación, no solo en el rojo. */}
-            <AlertTriangle className="size-5 shrink-0 text-danger" aria-hidden="true" />
+            <AlertTriangle className="text-danger size-5 shrink-0" aria-hidden="true" />
             <span>{title}</span>
           </AlertDialogTitle>
           {/* Énfasis: la consecuencia irreversible va en foreground, no en muted. */}
@@ -150,7 +150,7 @@ export function ConfirmDialog({
         </AlertDialogHeader>
 
         {reason && (
-          <div className="grid gap-grid-1">
+          <div className="gap-grid-1 grid">
             <label htmlFor={REASON_FIELD_ID} className="text-label text-foreground">
               {reason.label ?? "Motivo"}
             </label>
@@ -166,9 +166,9 @@ export function ConfirmDialog({
               placeholder={reason.placeholder}
               rows={3}
               className={cn(
-                "min-h-[80px] w-full rounded-md border bg-surface-1 p-grid-2 text-body text-foreground",
+                "bg-surface-1 p-grid-2 text-body text-foreground min-h-[80px] w-full rounded-md border",
                 "placeholder:text-muted-foreground",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
+                "focus-visible:ring-ring focus-visible:ring-offset-surface-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
                 "disabled:cursor-not-allowed disabled:opacity-50",
                 // Sin intento: borde de control reforzado (≥3:1) + helper neutro.
                 // Tras intento vacío: borde danger.
@@ -222,11 +222,11 @@ export function ConfirmDialog({
             aria-disabled={reasonEmpty || undefined}
             aria-describedby={errorMessage ? SERVER_ERROR_ID : undefined}
             className={cn(
-              "min-h-[44px] bg-danger text-danger-foreground",
+              "bg-danger text-danger-foreground min-h-[44px]",
               "hover:bg-danger/90 active:bg-danger/85",
               // El anillo sobre fondo danger sería invisible (≈1.1:1): el offset
               // sobre surface-1 lo hace visible (≥3:1).
-              "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1",
+              "focus-visible:ring-ring focus-visible:ring-offset-surface-1 focus-visible:ring-2 focus-visible:ring-offset-2",
               "disabled:opacity-50",
               reasonEmpty && "opacity-50",
             )}

@@ -129,7 +129,7 @@ function Avatar({
         className={cn(
           px,
           "flex items-center justify-center rounded-full",
-          "bg-secondary text-primary text-[13px] font-semibold leading-none",
+          "bg-secondary text-primary text-[13px] leading-none font-semibold",
         )}
       >
         {iniciales(nombre, email)}
@@ -143,7 +143,7 @@ function Avatar({
       aria-hidden
       className={cn(
         px,
-        "flex items-center justify-center rounded-full bg-surface-2 text-muted-foreground",
+        "bg-surface-2 text-muted-foreground flex items-center justify-center rounded-full",
       )}
     >
       <User className="size-4" />
@@ -188,10 +188,10 @@ export function UserMenu({
             aria-haspopup="menu"
             className={cn(
               "relative inline-flex size-8 items-center justify-center rounded-full p-0",
-              "outline-none transition-colors motion-safe:duration-150",
+              "outline-hidden transition-colors motion-safe:duration-150",
               "before:absolute before:inset-[-6px] before:content-['']",
               "hover:bg-surface-2/60",
-              "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2",
             )}
           >
             <Avatar nombre={nombre} email={email} fotoUrl={fotoUrl} size="trigger" />
@@ -201,20 +201,20 @@ export function UserMenu({
         <DropdownMenuContent
           align="end"
           sideOffset={8}
-          className="min-w-60 max-w-80 rounded-xl shadow-overlay"
+          className="shadow-overlay max-w-80 min-w-60 rounded-xl"
         >
           {/* Cabecera no interactiva: identidad (presentational). */}
           <DropdownMenuLabel className="font-normal">
             <div className="flex items-center gap-3 py-1">
               <Avatar nombre={nombre} email={email} fotoUrl={fotoUrl} size="header" />
               <div className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-semibold text-foreground">
+                <span className="text-foreground truncate text-sm font-semibold">
                   {nombreVisible}
                 </span>
                 {/* Rol = metadato neutro (muted), nunca chip de marca/estado. */}
-                <span className="truncate text-xs text-muted-foreground">{rol}</span>
+                <span className="text-muted-foreground truncate text-xs">{rol}</span>
                 {nombre ? (
-                  <span className="truncate text-xs text-muted-foreground">{email}</span>
+                  <span className="text-muted-foreground truncate text-xs">{email}</span>
                 ) : null}
               </div>
             </div>
@@ -224,23 +224,20 @@ export function UserMenu({
 
           {/* Tema: reutiliza el contrato del átomo ThemeToggle (claro/oscuro/
               sistema). El icono se aloja tras el pl-8 reservado al indicador. */}
-          <DropdownMenuLabel className="px-2 py-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <DropdownMenuLabel className="text-muted-foreground px-2 py-1 text-xs font-medium tracking-wide uppercase">
             {t("tema.titulo")}
           </DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={mounted ? theme : undefined}
-            onValueChange={setTheme}
-          >
+          <DropdownMenuRadioGroup value={mounted ? theme : undefined} onValueChange={setTheme}>
             <DropdownMenuRadioItem value="light" className="cursor-pointer gap-2">
-              <Sun className="size-4 text-muted-foreground" aria-hidden />
+              <Sun className="text-muted-foreground size-4" aria-hidden />
               <span>{t("tema.claro")}</span>
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="dark" className="cursor-pointer gap-2">
-              <Moon className="size-4 text-muted-foreground" aria-hidden />
+              <Moon className="text-muted-foreground size-4" aria-hidden />
               <span>{t("tema.oscuro")}</span>
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="system" className="cursor-pointer gap-2">
-              <Monitor className="size-4 text-muted-foreground" aria-hidden />
+              <Monitor className="text-muted-foreground size-4" aria-hidden />
               <span>{t("tema.sistema")}</span>
             </DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
@@ -257,14 +254,14 @@ export function UserMenu({
                 onCambiarEmpresa();
               }}
             >
-              <RefreshCcw className="size-4 text-muted-foreground" aria-hidden />
+              <RefreshCcw className="text-muted-foreground size-4" aria-hidden />
               <span>{t("layout.cambiarEmpresa")}</span>
             </DropdownMenuItem>
           ) : null}
 
           <DropdownMenuItem asChild className="cursor-pointer">
             <Link href="/ajustes">
-              <Settings className="size-4 text-muted-foreground" aria-hidden />
+              <Settings className="text-muted-foreground size-4" aria-hidden />
               <span>{t("layout.ajustes")}</span>
             </Link>
           </DropdownMenuItem>
@@ -282,9 +279,9 @@ export function UserMenu({
               setConfirmarSalida(true);
             }}
             className={cn(
-              "cursor-pointer text-danger-text",
-              "focus:text-danger-text data-[highlighted]:text-danger-text",
-              "data-[highlighted]:bg-danger/10 dark:data-[highlighted]:bg-danger/15",
+              "text-danger-text cursor-pointer",
+              "focus:text-danger-text data-highlighted:text-danger-text",
+              "data-highlighted:bg-danger/10 dark:data-highlighted:bg-danger/15",
             )}
           >
             <LogOut className="size-4" aria-hidden />

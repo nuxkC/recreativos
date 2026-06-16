@@ -25,11 +25,11 @@ export function CommandMenu({ rol }: { rol: Rol }) {
         onClick={() => setOpen(true)}
         aria-keyshortcuts="Meta+K Control+K"
         aria-label="Buscar o ejecutar una acción"
-        className="bg-muted/40 flex h-9 items-center gap-2 rounded-md border border-input px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-w-44"
+        className="bg-muted/40 border-input text-muted-foreground hover:bg-muted focus-visible:ring-ring flex h-9 items-center gap-2 rounded-md border px-2.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden sm:min-w-44"
       >
         <Search className="size-4 shrink-0" aria-hidden="true" />
         <span className="hidden sm:inline">Buscar o ejecutar…</span>
-        <kbd className="ml-auto hidden rounded border bg-background px-1.5 font-mono text-[10px] text-muted-foreground sm:inline-block">
+        <kbd className="bg-background text-muted-foreground ml-auto hidden rounded border px-1.5 font-mono text-[10px] sm:inline-block">
           ⌘K
         </kbd>
       </button>

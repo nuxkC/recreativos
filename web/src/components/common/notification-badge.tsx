@@ -49,11 +49,11 @@ export function NotificationBadge({
     <span
       aria-hidden
       className={cn(
-        "pointer-events-none absolute -right-1.5 -top-1.5 flex items-center justify-center",
-        "rounded-full ring-[1.5px] ring-background", // halo de recorte = fondo del anfitrión
+        "pointer-events-none absolute -top-1.5 -right-1.5 flex items-center justify-center",
+        "ring-background rounded-full ring-[1.5px]", // halo de recorte = fondo del anfitrión
         dot
           ? "size-2"
-          : "h-[18px] min-w-[18px] px-1 text-[11px] font-semibold tabular-nums [font-family:var(--font-mono)]",
+          : "h-[18px] min-w-[18px] px-1 font-mono text-[11px] font-semibold tabular-nums",
         ROL[rol],
         className,
       )}

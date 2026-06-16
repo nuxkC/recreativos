@@ -21,12 +21,7 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker>;
  * - Dia de hoy: superficie de acento (`accent`).
  * - Navegacion: boton fantasma (`ghost`) reutilizando `buttonVariants`.
  */
-function Calendar({
-  className,
-  classNames,
-  showOutsideDays = true,
-  ...props
-}: CalendarProps) {
+function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (
     <DayPicker
       // `es`: dias/meses/aria en espanol (idioma de UI del proyecto).
@@ -54,10 +49,10 @@ function Calendar({
         // El dia (celda) absorbe los estados de rango para superficies continuas.
         day: cn(
           "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
-          "[&:has([aria-selected])]:bg-accent",
+          "has-aria-[selected]:bg-accent",
           "[&:has([aria-selected].day-range-end)]:rounded-r-md",
           "[&:has([aria-selected].day-outside)]:bg-accent/50",
-          "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+          "first:has-aria-[selected]:rounded-l-md last:has-aria-[selected]:rounded-r-md",
         ),
         day_button: cn(
           buttonVariants({ variant: "ghost", size: "icon" }),

@@ -91,7 +91,7 @@ export function Collapsible({
   const sticky = variant === "sticky";
 
   return (
-    <div className={cn("w-full", sticky ? "bg-surface-2" : "rounded-lg bg-card", className)}>
+    <div className={cn("w-full", sticky ? "bg-surface-2" : "bg-card rounded-lg", className)}>
       <button
         type="button"
         aria-expanded={open}
@@ -102,22 +102,22 @@ export function Collapsible({
           "group flex w-full items-center gap-3 px-4 py-3 text-left",
           dense ? "min-h-11" : "min-h-12",
           // Foco visible (mismo patrón que FieldNum/Botones): ring=primary + 1px offset.
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          "transition-colors duration-150 ease-standard motion-reduce:transition-none",
+          "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
+          "ease-standard transition-colors duration-150 motion-reduce:transition-none",
           sticky
-            ? "hover:bg-surface-2/90 sticky top-0 z-10 border-b border-border bg-surface-2"
-            : "rounded-lg hover:bg-surface-2",
+            ? "hover:bg-surface-2/90 border-border bg-surface-2 sticky top-0 z-10 border-b"
+            : "hover:bg-surface-2 rounded-lg",
           // En variante card, con el panel abierto la cabecera no redondea abajo.
           !sticky && open && "rounded-b-none",
         )}
       >
         {leading ? <span className="flex shrink-0 items-center">{leading}</span> : null}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span id={titleId} className="truncate text-h2 text-foreground">
+          <span id={titleId} className="text-h2 text-foreground truncate">
             {title}
           </span>
           {subtitle ? (
-            <span className="truncate text-caption text-muted-foreground">{subtitle}</span>
+            <span className="text-caption text-muted-foreground truncate">{subtitle}</span>
           ) : null}
         </span>
         {trailing ? <span className="ml-auto flex shrink-0 items-center">{trailing}</span> : null}
@@ -125,8 +125,8 @@ export function Collapsible({
         <ChevronDown
           aria-hidden
           className={cn(
-            "size-4 shrink-0 text-muted-foreground",
-            "transition-transform duration-150 ease-standard motion-reduce:transition-none",
+            "text-muted-foreground size-4 shrink-0",
+            "ease-standard transition-transform duration-150 motion-reduce:transition-none",
             open && "rotate-180",
           )}
         />
@@ -140,7 +140,7 @@ export function Collapsible({
       */}
       <div
         className={cn(
-          "grid transition-[grid-template-rows] duration-150 ease-standard motion-reduce:transition-none",
+          "ease-standard grid transition-[grid-template-rows] duration-150 motion-reduce:transition-none",
           open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         )}
       >
@@ -152,12 +152,12 @@ export function Collapsible({
           inert={open ? undefined : true}
           className={cn(
             "min-h-0 overflow-hidden",
-            "transition-opacity duration-150 ease-standard motion-reduce:transition-none",
+            "ease-standard transition-opacity duration-150 motion-reduce:transition-none",
             open ? "opacity-100" : "opacity-0",
           )}
         >
           {/* Separador cabecera↔contenido (1px border). pt menor: evita doble aire. */}
-          <div className="border-t border-border px-4 pb-4 pt-3">{children}</div>
+          <div className="border-border border-t px-4 pt-3 pb-4">{children}</div>
         </section>
       </div>
     </div>

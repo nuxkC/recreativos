@@ -26,18 +26,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       duration={4500}
       icons={{
-        success: <CheckCircle className="size-5 text-success" aria-hidden="true" />,
-        error: <XCircle className="size-5 text-danger" aria-hidden="true" />,
-        warning: <AlertTriangle className="size-5 text-warning" aria-hidden="true" />,
-        info: <Info className="size-5 text-info" aria-hidden="true" />,
-        loading: <Loader2 className="size-5 text-info motion-safe:animate-spin" aria-hidden="true" />,
+        success: <CheckCircle className="text-success size-5" aria-hidden="true" />,
+        error: <XCircle className="text-danger size-5" aria-hidden="true" />,
+        warning: <AlertTriangle className="text-warning size-5" aria-hidden="true" />,
+        info: <Info className="text-info size-5" aria-hidden="true" />,
+        loading: (
+          <Loader2 className="text-info size-5 motion-safe:animate-spin" aria-hidden="true" />
+        ),
       }}
       toastOptions={{
         classNames: {
           toast: cn(
             "group toast gap-3 rounded-xl border border-border bg-surface-1 text-foreground shadow-lg",
             // El estado nunca va solo por color: el error además hace shake al entrar.
-            "data-[type=error]:motion-safe:animate-danger-shake",
+            "motion-safe:data-[type=error]:animate-danger-shake",
           ),
           title: "text-sm font-medium",
           description: "group-[.toast]:text-muted-foreground",

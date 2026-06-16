@@ -41,7 +41,7 @@ export function KpiCard({
     <Card
       className={cn(
         "relative",
-        href && "group transition-colors hover:border-border-strong",
+        href && "group hover:border-border-strong transition-colors",
         variant === "warning" && "border-warning/40 bg-warning-subtle",
         variant === "destructive" &&
           "border-destructive/40 bg-destructive/5 dark:bg-destructive/10",
@@ -53,11 +53,11 @@ export function KpiCard({
         <Link
           href={href}
           aria-label={ariaLabel ?? title}
-          className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="focus-visible:ring-ring absolute inset-0 z-10 rounded-lg focus-visible:ring-2 focus-visible:outline-hidden"
         />
       ) : null}
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-muted-foreground text-sm font-medium">{title}</CardTitle>
         <span className="relative inline-flex size-4 items-center justify-center">
           <Icon
             className={cn(
@@ -71,7 +71,7 @@ export function KpiCard({
           />
           {href ? (
             <ArrowUpRight
-              className="absolute size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+              className="text-muted-foreground absolute size-4 opacity-0 transition-opacity group-hover:opacity-100"
               aria-hidden
             />
           ) : null}
@@ -79,7 +79,7 @@ export function KpiCard({
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-semibold tabular-nums">{value}</p>
-        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+        {hint ? <p className="text-muted-foreground text-xs">{hint}</p> : null}
         {trendValue ? (
           <div
             className={cn(

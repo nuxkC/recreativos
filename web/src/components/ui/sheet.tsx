@@ -56,7 +56,7 @@ const sheetVariants = cva(
     "transition ease-standard",
     "data-[state=open]:animate-in data-[state=closed]:animate-out",
     "data-[state=open]:duration-200 data-[state=closed]:duration-150",
-    "focus:outline-none",
+    "focus:outline-hidden",
   ),
   {
     variants: {
@@ -82,7 +82,8 @@ const sheetVariants = cva(
 );
 
 interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+  extends
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof sheetVariants> {
   /** Oculta la X por defecto cuando la feature aporta su propio botón de cierre. */
   hideClose?: boolean;
@@ -104,9 +105,9 @@ const SheetContent = React.forwardRef<
         <DialogPrimitive.Close
           // Touch ≥40px (esquina superior derecha); icono 16px centrado.
           className={cn(
-            "absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-md",
+            "absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-md",
             "text-muted-foreground opacity-70 transition-opacity hover:opacity-100",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
             "disabled:pointer-events-none",
           )}
         >
@@ -127,7 +128,7 @@ const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   <div
     className={cn(
       "sticky top-0 z-10 flex min-h-14 shrink-0 flex-col justify-center gap-1",
-      "border-b border-border bg-surface-1 px-6 py-4 pr-12",
+      "border-border bg-surface-1 border-b px-6 py-4 pr-12",
       className,
     )}
     {...props}
@@ -152,7 +153,7 @@ const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   <div
     className={cn(
       "sticky bottom-0 z-10 flex min-h-16 shrink-0 items-center justify-end gap-2",
-      "border-t border-border bg-surface-1 px-6 py-4",
+      "border-border bg-surface-1 border-t px-6 py-4",
       className,
     )}
     {...props}

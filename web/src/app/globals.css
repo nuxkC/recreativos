@@ -1,6 +1,275 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+/* T-257: utilidades animate-in/out, fade/slide/zoom (Radix) en Tailwind v4.
+   Reemplaza a `tailwindcss-animate` (plugin v3, incompatible con v4). */
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-text: var(--primary-text);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-strong: var(--muted-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-text: var(--success-text);
+  --color-success-chip-bg: var(--success-chip-bg);
+  --color-success-chip-fg: var(--success-chip-fg);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-text: var(--warning-text);
+  --color-warning-chip-bg: var(--warning-chip-bg);
+  --color-warning-chip-fg: var(--warning-chip-fg);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-text: var(--danger-text);
+  --color-danger-chip-bg: var(--danger-chip-bg);
+  --color-danger-chip-fg: var(--danger-chip-fg);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-text: var(--info-text);
+  --color-info-chip-bg: var(--info-chip-bg);
+  --color-info-chip-fg: var(--info-chip-fg);
+
+  --color-state-neutral: var(--state-neutral);
+  --color-state-neutral-border: var(--state-neutral-border);
+  --color-state-neutral-foreground: var(--state-neutral-foreground);
+  --color-state-neutral-muted: var(--state-neutral-muted);
+
+  --color-neutral-chip-bg: var(--neutral-chip-bg);
+  --color-neutral-chip-fg: var(--neutral-chip-fg);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --text-kpi: var(--fs-kpi);
+  --text-kpi--line-height: var(--lh-kpi);
+  --text-kpi--font-weight: 600;
+  --text-h1: var(--fs-h1);
+  --text-h1--line-height: var(--lh-h1);
+  --text-h1--font-weight: 600;
+  --text-h2: var(--fs-h2);
+  --text-h2--line-height: var(--lh-h2);
+  --text-h2--font-weight: 600;
+  --text-body: var(--fs-body);
+  --text-body--line-height: var(--lh-body);
+  --text-body--font-weight: 440;
+  --text-body-lg: var(--fs-body-lg);
+  --text-body-lg--line-height: var(--lh-body-lg);
+  --text-body-lg--font-weight: 440;
+  --text-caption: var(--fs-caption);
+  --text-caption--line-height: var(--lh-caption);
+  --text-caption--font-weight: 500;
+  --text-label: var(--fs-label);
+  --text-label--line-height: var(--lh-label);
+  --text-label--font-weight: 600;
+
+  --spacing-grid-1: var(--space-1);
+  --spacing-grid-2: var(--space-2);
+  --spacing-grid-3: var(--space-3);
+  --spacing-grid-4: var(--space-4);
+  --spacing-grid-6: var(--space-6);
+  --spacing-grid-8: var(--space-8);
+
+  --shadow-overlay: var(--elevation-overlay);
+  --shadow-modal: var(--elevation-modal);
+
+  --ease-standard: var(--motion-ease-standard);
+  --ease-accelerate: var(--motion-ease-accelerate);
+  --ease-decelerate: var(--motion-ease-decelerate);
+
+  --transition-duration-fast: 120ms;
+  --default-transition-duration: 150ms;
+  --transition-duration-slow: 180ms;
+
+  --animate-popover-in: recre-popover-in 120ms var(--motion-ease-decelerate) both;
+  --animate-offline-pulse: recre-offline-pulse 1600ms var(--motion-ease-standard) infinite;
+  --animate-sync-spin: recre-sync-spin 900ms linear infinite;
+  --animate-success-flash: recre-success-flash 900ms var(--motion-ease-standard) both;
+  --animate-danger-shake: recre-danger-shake 400ms var(--motion-ease-standard) both;
+
+  @keyframes recre-popover-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--motion-popover-offset));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes recre-offline-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+  @keyframes recre-sync-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes recre-success-flash {
+    0% {
+      background-color: transparent;
+    }
+    30% {
+      background-color: color-mix(in srgb, var(--success) 18%, transparent);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+  @keyframes recre-danger-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    15% {
+      transform: translateX(-8px);
+    }
+    30% {
+      transform: translateX(8px);
+    }
+    50% {
+      transform: translateX(-6px);
+    }
+    70% {
+      transform: translateX(4px);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility num-tabular {
+  /* Cifras tabulares: TODA cifra (importe/contador/%) usa la familia mono con
+   * tnum para que los dígitos no se desplacen en count-up ni descuadres.
+   * El símbolo € va en .text-muted-foreground y el dígito en color foreground. */
+  font-family: var(--font-mono);
+  font-feature-settings:
+    "tnum" 1,
+    "cv01" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-importe {
+  font-family: var(--font-mono);
+  font-size: var(--fs-kpi);
+  line-height: var(--lh-kpi);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-cifra {
+  font-family: var(--font-mono);
+  /* cifra inline (fila de tabla / resumen): 14/20, más ceñido que body 14/22 */
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 440;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-cifra-caption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: 500;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  /* Oculta la scrollbar manteniendo el scroll (filas de chips, carruseles). */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 /* =====================================================================
  * Tokens de marca Recre — "Confianza Industrial" (Fase 3, grupo Color +
@@ -258,58 +527,6 @@
   }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  /* Cifras tabulares: TODA cifra (importe/contador/%) usa la familia mono con
-   * tnum para que los dígitos no se desplacen en count-up ni descuadres.
-   * El símbolo € va en .text-muted-foreground y el dígito en color foreground. */
-  .num-tabular {
-    font-family: var(--font-mono);
-    font-feature-settings:
-      "tnum" 1,
-      "cv01" 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .text-importe {
-    font-family: var(--font-mono);
-    font-size: var(--fs-kpi);
-    line-height: var(--lh-kpi);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    font-feature-settings: "tnum" 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .text-cifra {
-    font-family: var(--font-mono);
-    /* cifra inline (fila de tabla / resumen): 14/20, más ceñido que body 14/22 */
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 440;
-    font-feature-settings: "tnum" 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .text-cifra-caption {
-    font-family: var(--font-mono);
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    font-weight: 500;
-    font-feature-settings: "tnum" 1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Oculta la scrollbar manteniendo el scroll (filas de chips, carruseles). */
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 /* ============================================================================
    Motion — "Confianza Industrial" (Fase 4 · T-231).
    SSOT: .kiro/specs/recre/fase3-design-tokens.md (§ Motion).
@@ -349,90 +566,6 @@
   --motion-transition-popover:
     opacity var(--motion-duration-fast) var(--motion-ease-decelerate),
     transform var(--motion-duration-fast) var(--motion-ease-decelerate);
-}
-
-/* Popover / Cmd+K: aparece 4px y asienta, sin rebote */
-@keyframes recre-popover-in {
-  from {
-    opacity: 0;
-    transform: translateY(var(--motion-popover-offset));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Badge offline-stale (warning/ámbar): pulso lento del opacity */
-@keyframes recre-offline-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-
-/* Spinner de sincronización: giro continuo a velocidad constante */
-@keyframes recre-sync-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Flash success al sincronizar: pico de tinte verde y vuelta (verde solo confirma) */
-@keyframes recre-success-flash {
-  0% {
-    background-color: transparent;
-  }
-  30% {
-    background-color: color-mix(in srgb, var(--success) 18%, transparent);
-  }
-  100% {
-    background-color: transparent;
-  }
-}
-
-/* Shake danger ante descuadre: oscilación horizontal que decae (rojo solo error) */
-@keyframes recre-danger-shake {
-  0% {
-    transform: translateX(0);
-  }
-  15% {
-    transform: translateX(-8px);
-  }
-  30% {
-    transform: translateX(8px);
-  }
-  50% {
-    transform: translateX(-6px);
-  }
-  70% {
-    transform: translateX(4px);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-/* Clases utilitarias (consumen los tokens) */
-.motion-popover-in {
-  animation: recre-popover-in var(--motion-duration-fast) var(--motion-ease-decelerate) both;
-}
-.motion-offline-pulse {
-  animation: recre-offline-pulse var(--motion-duration-offline-pulse) var(--motion-ease-standard)
-    infinite;
-}
-.motion-sync-spin {
-  animation: recre-sync-spin var(--motion-duration-sync-spin) var(--motion-ease-linear) infinite;
-}
-.motion-success-flash {
-  animation: recre-success-flash var(--motion-duration-success-flash) var(--motion-ease-standard)
-    both;
-}
-.motion-danger-shake {
-  animation: recre-danger-shake var(--motion-duration-danger-shake) var(--motion-ease-standard) both;
 }
 
 /* reduced-motion: una sola regla apaga TODO el movimiento decorativo.
