@@ -208,12 +208,12 @@ const FieldDate = React.forwardRef<HTMLButtonElement, FieldDateProps>(
                 controlHeight,
                 // Mismo lenguaje que controlClasses() de field.tsx: surface-2,
                 // radio 8px, sin sombra (elevación por borde 1px), foco ring=primary.
-                "flex w-full items-center justify-between gap-2 rounded-md border border-input bg-surface-2 px-3",
-                "text-left text-body",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                "transition-colors ease-standard",
+                "border-input bg-surface-2 flex w-full items-center justify-between gap-2 rounded-md border px-3",
+                "text-body text-left",
+                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
+                "ease-standard transition-colors",
                 // error: borde danger (nace del aria-invalid, no de una clase suelta).
-                "aria-[invalid=true]:border-danger",
+                "aria-invalid:border-danger",
                 // disabled: atenúa y desactiva (read-only NO entra aquí).
                 "disabled:cursor-not-allowed disabled:opacity-50",
                 // read-only: cursor de lectura, visual = default (sin atenuar).
@@ -232,7 +232,7 @@ const FieldDate = React.forwardRef<HTMLButtonElement, FieldDateProps>(
               </span>
               {/* Icono calendario informativo (adorno derecho); muted-strong
                   (≥7:1, el rol del spec para iconos), sin opacity. */}
-              <CalendarIcon aria-hidden className="size-4 shrink-0 text-muted-strong" />
+              <CalendarIcon aria-hidden className="text-muted-strong size-4 shrink-0" />
             </button>
           </PopoverTrigger>
 
@@ -266,7 +266,7 @@ const FieldDate = React.forwardRef<HTMLButtonElement, FieldDateProps>(
         {/* Pie offline "sin sincronizar": warning ámbar + CloudOff + texto (NUNCA
             danger; offline no es error). Estado nunca solo-color. */}
         {offline ? (
-          <p className="flex items-center gap-1.5 text-caption text-warning-text">
+          <p className="text-caption text-warning-text flex items-center gap-1.5">
             <CloudOff aria-hidden className="size-4 shrink-0" />
             <span>{offlineText}</span>
           </p>

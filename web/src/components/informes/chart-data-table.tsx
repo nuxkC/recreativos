@@ -41,7 +41,7 @@ export function ChartDataTable({ caption, columnas, filas }: ChartDataTableProps
 
   return (
     <details className="mt-4 text-sm">
-      <summary className="cursor-pointer rounded-sm text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <summary className="text-muted-foreground hover:text-foreground focus-visible:ring-ring cursor-pointer rounded-sm text-xs font-medium focus-visible:ring-2 focus-visible:outline-hidden">
         {t("ver")}
       </summary>
       <div className="mt-2">

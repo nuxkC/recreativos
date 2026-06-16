@@ -27,7 +27,7 @@ const PopoverContent = React.forwardRef<
       className={cn(
         // Superficie de overlay: surface-1 + borde 1px + sombra de overlay
         // (la elevación vive en la sombra, no en un borde reforzado).
-        "z-50 w-72 rounded-md border border-border bg-surface-1 p-grid-4 text-popover-foreground shadow-overlay outline-none",
+        "border-border bg-surface-1 p-grid-4 text-popover-foreground shadow-overlay z-50 w-72 rounded-md border outline-hidden",
         // Entrada/salida con tailwindcss-animate, guiadas por data-state/side.
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         className,

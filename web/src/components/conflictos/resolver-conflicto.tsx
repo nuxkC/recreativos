@@ -75,7 +75,7 @@ export function ResolverConflicto({ recaudacionId }: ResolverConflictoProps) {
                       seleccionada
                         ? "bg-primary/5 ring-primary/40 border-primary ring-2"
                         : "hover:bg-accent/50 border-input bg-background",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
                     )}
                   >
                     <span className="flex items-center gap-2 text-sm font-medium">
@@ -85,7 +85,7 @@ export function ResolverConflicto({ recaudacionId }: ResolverConflictoProps) {
                       />
                       <span>{t(`resolucion.${opcion}.label`)}</span>
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       {t(`resolucion.${opcion}.descripcion`)}
                     </span>
                   </button>
@@ -105,7 +105,7 @@ export function ResolverConflicto({ recaudacionId }: ResolverConflictoProps) {
               disabled={pending}
             />
             {notas.length > 2000 ? (
-              <p className="text-[0.8rem] font-medium text-destructive">
+              <p className="text-destructive text-[0.8rem] font-medium">
                 {tValidacion("notasMuyLargas")}
               </p>
             ) : null}

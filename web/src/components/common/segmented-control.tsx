@@ -73,9 +73,9 @@ export function SegmentedControl<T extends string>({
       aria-disabled={disabled || undefined}
       onKeyDown={onKeyDown}
       className={cn(
-        "relative grid h-10 select-none rounded-full bg-surface-2 p-1",
+        "bg-surface-2 relative grid h-10 rounded-full p-1 select-none",
         // borde de control ≥3:1 en light (1.4.11); en dark basta el delta de superficie
-        "border border-border-strong dark:border-border",
+        "border-border-strong dark:border-border border",
         options.length === 2 ? "grid-cols-2" : "grid-cols-3",
         disabled && "pointer-events-none opacity-50",
         className,
@@ -84,7 +84,7 @@ export function SegmentedControl<T extends string>({
       {/* Thumb deslizante: translateX por índice; tonal de marca = bg-secondary. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-y-1 left-1 rounded-full bg-secondary ease-standard motion-safe:transition-transform motion-safe:duration-150"
+        className="bg-secondary ease-standard pointer-events-none absolute inset-y-1 left-1 rounded-full motion-safe:transition-transform motion-safe:duration-150"
         style={{
           width: `calc((100% - 0.5rem) / ${options.length})`,
           transform: `translateX(${idx * 100}%)`,
@@ -106,14 +106,14 @@ export function SegmentedControl<T extends string>({
             onClick={() => !active && onValueChange(o.value)}
             className={cn(
               "relative z-10 inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-3",
-              "whitespace-nowrap text-sm leading-none",
+              "text-sm leading-none whitespace-nowrap",
               "ease-standard motion-safe:transition-colors motion-safe:duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
               "motion-safe:active:scale-[0.98]",
               // activo: foreground + 600 sobre el thumb tonal; inactivo: muted → foreground en hover
               active
-                ? "font-semibold text-foreground"
-                : "font-medium text-muted-foreground hover:text-foreground",
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground hover:text-foreground font-medium",
             )}
           >
             {o.icon ? (

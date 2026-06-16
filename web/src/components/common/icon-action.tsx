@@ -141,7 +141,7 @@ export function IconAction({
 
         // Foco visible: anillo ring 2px offset 2px
         // ring == primary (#0E7490), contraste ≥3:1 contra fondo
-        "focus-visible:outline-none",
+        "focus-visible:outline-hidden",
         "focus-visible:ring-2 focus-visible:ring-offset-2",
         "focus-visible:ring-ring focus-visible:ring-offset-background",
 

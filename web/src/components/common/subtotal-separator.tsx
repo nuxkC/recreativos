@@ -59,7 +59,7 @@ function RecreDivider({
       <Separator
         orientation="horizontal"
         decorative
-        className={cn("h-[1px] bg-border", lineClassName)}
+        className={cn("bg-border h-px", lineClassName)}
       />
     </div>
   );
@@ -98,13 +98,13 @@ function LabeledDivider({
       <Separator
         orientation="horizontal"
         decorative
-        className="h-[1px] min-w-[8px] flex-1 bg-border"
+        className="bg-border h-px min-w-[8px] flex-1"
       />
 
       {/* Label + cifra centrados, padding horizontal space-3 (12px). */}
       <div className="flex flex-col items-center gap-0 px-3">
         {/* Label: muted-foreground, caption size (13sp/500 + mono tabular). */}
-        <div className="text-cifra-caption font-medium text-muted-foreground">{label}</div>
+        <div className="text-cifra-caption text-muted-foreground font-medium">{label}</div>
 
         {/* Cifra (solo si amount está presente): MoneyText neutro, caption size. */}
         {amount && <MoneyText value={amount} size="caption" tone="neutral" />}
@@ -114,7 +114,7 @@ function LabeledDivider({
       <Separator
         orientation="horizontal"
         decorative
-        className="h-[1px] min-w-[8px] flex-1 bg-border"
+        className="bg-border h-px min-w-[8px] flex-1"
       />
     </div>
   );

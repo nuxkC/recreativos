@@ -80,12 +80,12 @@ export function SearchField({
       {isLoading ? (
         <Loader2
           aria-hidden
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-primary motion-reduce:animate-none"
+          className="text-primary pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 animate-spin motion-reduce:animate-none"
         />
       ) : (
         <Search
           aria-hidden
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
       )}
 
@@ -106,9 +106,9 @@ export function SearchField({
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
         className={cn(
-          "flex h-9 w-full rounded-md border border-input bg-surface-2 pl-9 pr-9 text-sm shadow-none transition-colors",
+          "border-input bg-surface-2 flex h-9 w-full rounded-md border pr-9 pl-9 text-sm shadow-none transition-colors",
           "caret-primary placeholder:text-muted-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
           "disabled:cursor-not-allowed disabled:opacity-50",
         )}
       />
@@ -125,11 +125,11 @@ export function SearchField({
           aria-label={clearAriaLabel}
           onClick={handleClear}
           className={cn(
-            "absolute right-1 top-1/2 size-7 -translate-y-1/2",
+            "absolute top-1/2 right-1 size-7 -translate-y-1/2",
             // Target táctil ≥44px sin agrandar el glifo (pseudo-elemento invisible)
             "before:absolute before:-inset-2 before:content-['']",
             "text-muted-foreground hover:bg-accent hover:text-foreground",
-            "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
+            "focus-visible:ring-ring transition-colors duration-150 focus-visible:ring-2",
             "animate-in fade-in zoom-in-95 motion-reduce:animate-none",
           )}
         >

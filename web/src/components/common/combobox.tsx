@@ -111,9 +111,9 @@ export function Combobox({
         className={cn(
           // Mismo lenguaje que Button variant="outline" pero el trigger es un
           // control de formulario: superficie surface-2, no background.
-          "flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-input bg-surface-2 px-3 text-sm font-normal text-foreground transition-colors",
+          "border-input bg-surface-2 text-foreground flex h-11 w-full items-center justify-between gap-2 rounded-lg border px-3 text-sm font-normal transition-colors",
           "hover:bg-accent/40",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
           "disabled:pointer-events-none disabled:opacity-50",
           // Error: borde danger sin depender solo del color (lo refuerza el
           // FormMessage con icono+texto que pone el contenedor de campo).
@@ -124,20 +124,20 @@ export function Combobox({
         {selected ? (
           <span className="truncate">{selected.label}</span>
         ) : (
-          <span className="truncate text-muted-foreground">{placeholder}</span>
+          <span className="text-muted-foreground truncate">{placeholder}</span>
         )}
         {loading ? (
           <Loader2
-            className="size-4 shrink-0 animate-spin text-muted-strong motion-reduce:animate-none"
+            className="text-muted-strong size-4 shrink-0 animate-spin motion-reduce:animate-none"
             aria-hidden="true"
           />
         ) : (
-          <ChevronsUpDown className="size-4 shrink-0 text-muted-strong" aria-hidden="true" />
+          <ChevronsUpDown className="text-muted-strong size-4 shrink-0" aria-hidden="true" />
         )}
       </PopoverTrigger>
       <PopoverContent
         // Ancho = ancho del trigger para que la lista alinee con el control.
-        className="w-[--radix-popover-trigger-width] p-0"
+        className="w-(--radix-popover-trigger-width) p-0"
         align="start"
       >
         <Command>
@@ -154,7 +154,7 @@ export function Combobox({
             {/* Vacío tras filtrar: texto centrado + aria-live para que el lector
                 anuncie que la lista quedó sin coincidencias. */}
             <CommandEmpty
-              className="py-4 text-center text-sm text-muted-strong"
+              className="text-muted-strong py-4 text-center text-sm"
               role="status"
               aria-live="polite"
             >
@@ -179,7 +179,7 @@ export function Combobox({
                 >
                   <Check
                     className={cn(
-                      "mr-2 size-4 text-primary",
+                      "text-primary mr-2 size-4",
                       isSelected ? "opacity-100" : "opacity-0",
                     )}
                     aria-hidden="true"

@@ -76,15 +76,15 @@ export function HeroRecaudacion({
       <Link
         href={href}
         aria-label={`${titulo}: ${brutoAccesible}. ${hintRecuento}`}
-        className="flex h-full flex-col gap-4 rounded-lg p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="focus-visible:ring-ring flex h-full flex-col gap-4 rounded-lg p-6 focus-visible:ring-2 focus-visible:outline-hidden"
       >
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <span className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
             <Coins className="size-4" aria-hidden="true" />
             {titulo}
           </span>
           <ArrowUpRight
-            className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+            className="text-muted-foreground size-4 opacity-0 transition-opacity group-hover:opacity-100"
             aria-hidden="true"
           />
         </div>
@@ -120,7 +120,7 @@ export function HeroRecaudacion({
           <span className="text-muted-foreground">· {hintRecuento}</span>
         </div>
 
-        <div className="-mx-6 -mb-6 mt-auto">
+        <div className="-mx-6 mt-auto -mb-6">
           <Sparkline data={serie} role="primary" height={64} showArea />
         </div>
       </Link>

@@ -75,24 +75,24 @@ export function FilterChip({
         "relative",
 
         // Tipografía del chip (token label: 14/20/600)
-        "gap-1.5 px-3 text-label",
+        "text-label gap-1.5 px-3",
 
         // Reposo: NEUTRO — borde 1px sobre surface-1, texto foreground; hover sube un paso a surface-2
         !selected &&
           !disabled &&
-          "border border-border bg-surface-1 text-foreground hover:bg-surface-2",
+          "border-border bg-surface-1 text-foreground hover:bg-surface-2 border",
 
         // Seleccionado: PRIMARY fill + texto blanco (corrección T-227: "FilterChip seleccionado = primary+blanco")
         selected &&
           !disabled &&
-          "hover:bg-primary/90 border border-primary bg-primary text-primary-foreground",
+          "hover:bg-primary/90 border-primary bg-primary text-primary-foreground border",
 
         // Disabled: opacidad 0.5 sin cambiar rol
         disabled && "cursor-not-allowed opacity-50",
         !disabled && "cursor-pointer",
 
         // Foco visible: ring primary 2px + offset
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
 
         // Feedback de pulsación (tap)
         !selected && "active:bg-primary/10",
@@ -108,7 +108,7 @@ export function FilterChip({
       <span
         aria-hidden
         className={cn(
-          "flex shrink-0 items-center justify-center text-primary-foreground transition-all duration-150 motion-reduce:transition-none",
+          "text-primary-foreground flex shrink-0 items-center justify-center transition-all duration-150 motion-reduce:transition-none",
           selected ? "w-4 opacity-100" : "w-0 opacity-0",
         )}
       >
@@ -199,8 +199,8 @@ export function FilterChipRow({
             selected.forEach((id) => onToggle(id, false));
           }}
           className={cn(
-            "shrink-0 whitespace-nowrap px-2 py-1 text-label text-primary transition-colors",
-            "hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+            "text-label text-primary shrink-0 px-2 py-1 whitespace-nowrap transition-colors",
+            "hover:text-primary/80 focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
             "active:text-primary/60",
           )}
         >
@@ -213,7 +213,7 @@ export function FilterChipRow({
         aria-hidden
         className={cn(
           "pointer-events-none absolute inset-y-0 right-0 w-6",
-          "bg-gradient-to-l from-background to-transparent",
+          "from-background bg-linear-to-l to-transparent",
         )}
       />
     </div>

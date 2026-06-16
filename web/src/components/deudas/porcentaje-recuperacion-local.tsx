@@ -51,7 +51,7 @@ export function PorcentajeRecuperacionLocal({
         <input
           id="recuperacion-heredar"
           type="checkbox"
-          className="size-4 rounded border-input accent-primary"
+          className="border-input accent-primary size-4 rounded"
           checked={heredar}
           onChange={(event) => setHeredar(event.target.checked)}
         />
@@ -68,7 +68,7 @@ export function PorcentajeRecuperacionLocal({
             inputMode="numeric"
             min={0}
             max={100}
-            className="sm:max-w-[10rem]"
+            className="sm:max-w-40"
             value={valor}
             onChange={(event) =>
               setValor(event.target.value === "" ? 0 : Number(event.target.value))

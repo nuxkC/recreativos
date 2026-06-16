@@ -56,7 +56,7 @@ export function OfflineBadge({ staleHours, onClick, className }: OfflineBadgePro
         onClick && [
           "cursor-pointer",
           "min-h-11", // ≥44px área táctil para WCAG 2.5.5 (target 44px)
-          "focus-visible:outline-none",
+          "focus-visible:outline-hidden",
           "focus-visible:ring-2",
           "focus-visible:ring-ring", // anillo de foco primary
         ],
@@ -84,7 +84,7 @@ export function OfflineBadge({ staleHours, onClick, className }: OfflineBadgePro
           - caption 12px/500 (text-xs font-medium)
           - Una sola línea, no truncar (regla 2: no solo-color, siempre icono+texto)
       */}
-      <span className="whitespace-nowrap text-xs font-medium">{label}</span>
+      <span className="text-xs font-medium whitespace-nowrap">{label}</span>
     </div>
   );
 }

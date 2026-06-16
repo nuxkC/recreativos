@@ -62,7 +62,7 @@ function controlClasses(density: FieldDensity): string {
     controlHeight(density),
     "rounded-md bg-surface-2 shadow-none",
     "focus-visible:ring-2 focus-visible:ring-ring",
-    "aria-[invalid=true]:border-danger",
+    "aria-invalid:border-danger",
     "read-only:cursor-default", // read-only ≠ disabled: NO se atenúa, sigue enfocable/copiable
   );
 }
@@ -112,7 +112,7 @@ const FormLabel = React.forwardRef<
     {children}
     {optional ? (
       // "(opcional)" en muted-strong (rol informativo ≥7:1 del spec).
-      <span className="ml-1 font-normal text-muted-strong">(opcional)</span>
+      <span className="text-muted-strong ml-1 font-normal">(opcional)</span>
     ) : null}
   </Label>
 ));
@@ -140,7 +140,7 @@ const FormMessage = React.forwardRef<
     ref={ref}
     role="alert"
     aria-live="polite"
-    className={cn("flex items-center gap-1.5 text-caption text-danger-text", className)}
+    className={cn("text-caption text-danger-text flex items-center gap-1.5", className)}
     {...props}
   >
     <CircleAlert aria-hidden className="size-4 shrink-0" />
@@ -152,7 +152,7 @@ FormMessage.displayName = "FormMessage";
 /** Pie offline "sin sincronizar" — warning ámbar + CloudOff + texto. NUNCA danger. */
 function OfflineNote({ text }: { text: string }) {
   return (
-    <p className="flex items-center gap-1.5 text-caption text-warning-text">
+    <p className="text-caption text-warning-text flex items-center gap-1.5">
       <CloudOff aria-hidden className="size-4 shrink-0" />
       <span>{text}</span>
     </p>
@@ -266,7 +266,7 @@ const FieldText = React.forwardRef<HTMLInputElement, FieldTextProps>(
             className={cn(controlClasses(density), trailing && "pr-11")}
           />
           {loading ? (
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-strong">
+            <span className="text-muted-strong pointer-events-none absolute inset-y-0 right-3 flex items-center">
               <Loader2 aria-hidden className="size-4 animate-spin motion-reduce:animate-none" />
             </span>
           ) : isPassword ? (
@@ -277,8 +277,8 @@ const FieldText = React.forwardRef<HTMLInputElement, FieldTextProps>(
               aria-pressed={visible}
               className={cn(
                 "absolute inset-y-0 right-0 -my-1 flex min-h-11 min-w-11 items-center justify-center",
-                "rounded-md text-muted-foreground",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "text-muted-foreground rounded-md",
+                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
               )}
             >
               {visible ? (
@@ -414,13 +414,13 @@ const FieldNum = React.forwardRef<HTMLInputElement, FieldNumProps>(
             className={cn(controlClasses(density), "num-tabular", trailing && "pr-9")}
           />
           {loading ? (
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-strong">
+            <span className="text-muted-strong pointer-events-none absolute inset-y-0 right-3 flex items-center">
               <Loader2 aria-hidden className="size-4 animate-spin motion-reduce:animate-none" />
             </span>
           ) : suffix != null ? (
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-strong"
+              className="text-muted-strong pointer-events-none absolute inset-y-0 right-3 flex items-center"
             >
               {suffix}
             </span>
@@ -513,8 +513,8 @@ const FieldSelect = React.forwardRef<HTMLButtonElement, FieldSelectProps>(
             aria-describedby={describedBy}
             className={cn(
               controlHeight(density),
-              "rounded-md bg-surface-2 shadow-none",
-              "aria-[invalid=true]:border-danger",
+              "bg-surface-2 rounded-md shadow-none",
+              "aria-invalid:border-danger",
             )}
           >
             <SelectValue placeholder={placeholder} />
