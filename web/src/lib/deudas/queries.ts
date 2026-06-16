@@ -52,16 +52,34 @@ export async function listarLocalesConSaldo(empresaId: string): Promise<LocalCon
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("v_local_saldo")
-    .select("*, local:local_id (nombre)")
+    .select("*")
     .eq("empresa_id", empresaId)
     .order("saldo_total", { ascending: false })
-    .returns<Array<LocalSaldoRow & { local: { nombre: string } | null }>>();
+    .returns<LocalSaldoRow[]>();
   if (error) {
     throw new Error(`No se pudieron cargar los locales con saldo: ${error.message}`);
   }
-  return (data ?? []).map((row) => ({
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  // Los nombres van en una consulta aparte: el embed PostgREST sobre la vista es
+  // ambiguo (v_local_saldo tiene >1 relación hacia `local`: la tabla base y el
+  // join a v_credito_local_saldo) y devolvía 500 "more than one relationship".
+  // La RLS de `local` ya restringe a la empresa del usuario.
+  const ids = rows.map((row) => row.local_id);
+  const { data: locales, error: errNombres } = await supabase
+    .from("local")
+    .select("id, nombre")
+    .in("id", ids)
+    .returns<Array<{ id: string; nombre: string }>>();
+  if (errNombres) {
+    throw new Error(`No se pudieron cargar los locales con saldo: ${errNombres.message}`);
+  }
+  const nombrePorId = new Map((locales ?? []).map((l) => [l.id, l.nombre]));
+
+  return rows.map((row) => ({
     ...mapLocalSaldoRow(row),
-    nombre: row.local?.nombre ?? "—",
+    nombre: nombrePorId.get(row.local_id) ?? "—",
   }));
 }
 
