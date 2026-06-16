@@ -25,9 +25,7 @@ interface RegistrarEmpresaResponse {
   trial_fin: string;
 }
 
-function fieldErrorsFromZod(
-  err: ZodError,
-): Record<string, string[]> {
+function fieldErrorsFromZod(err: ZodError): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const issue of err.issues) {
     if (issue.path.length === 0) continue;

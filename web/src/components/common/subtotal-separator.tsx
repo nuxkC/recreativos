@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 import { Separator } from "@/components/ui/separator";
 import { MoneyText } from "@/components/common/money-text";
 import { cn } from "@/lib/utils";
