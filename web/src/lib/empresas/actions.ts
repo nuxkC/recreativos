@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { EMPRESA_COOKIE_NAME, empresaCookieOptions } from "./cookie";
 
 const SeleccionInputSchema = z.object({
-  empresaId: z.string().uuid(),
+  empresaId: z.string().guid(),
   next: z
     .string()
     .startsWith("/")

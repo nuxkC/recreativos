@@ -20,7 +20,7 @@ export type ActionResult<T = void> =
       };
     };
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 function fieldErrorsFromZod(err: z.ZodError): Record<string, string[]> {
   const out: Record<string, string[]> = {};

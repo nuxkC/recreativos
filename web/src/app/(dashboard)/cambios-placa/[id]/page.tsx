@@ -10,7 +10,7 @@ import { requireMembresiaActiva } from "@/lib/auth/guards";
 import { obtenerCambioPlaca, obtenerSignedUrlFoto } from "@/lib/cambios-placa/queries";
 import { formatDateTime } from "@/lib/recaudaciones/format";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface CambioPlacaDetallePageProps {
   params: Promise<{ id: string }>;

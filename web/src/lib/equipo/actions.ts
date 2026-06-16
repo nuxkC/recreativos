@@ -18,7 +18,7 @@ export type ActionResult<T = void> =
       };
     };
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 const InvitarInputSchema = z.object({
   email: z

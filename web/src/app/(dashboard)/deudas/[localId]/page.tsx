@@ -14,7 +14,7 @@ import {
 } from "@/lib/deudas/queries";
 import { obtenerLocal } from "@/lib/locales/queries";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface DeudasLocalPageProps {
   params: Promise<{ localId: string }>;

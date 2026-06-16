@@ -15,7 +15,7 @@ import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerLocal } from "@/lib/locales/queries";
 import { obtenerTolvaInstalaciones } from "@/lib/tolva/queries";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface LocalDetallePageProps {
   params: Promise<{ id: string }>;

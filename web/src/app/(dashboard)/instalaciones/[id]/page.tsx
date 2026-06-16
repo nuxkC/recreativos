@@ -20,7 +20,7 @@ import {
   obtenerInstalacion,
 } from "@/lib/instalaciones/queries";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface InstalacionDetallePageProps {
   params: Promise<{ id: string }>;
