@@ -30,6 +30,13 @@ Android: catálogo de versiones coherente (KSP prefix == Kotlin), validado por b
 > Nota PRs: #22/#23/#24 quedaron **cerrados** por GitHub al borrar la rama base de #21
 > durante el merge; su contenido **sí está en `main`**. #25–#31 se cierran como *merged*.
 
+## Correcciones post-integración
+
+| PR | Origen | Contenido |
+|----|--------|-----------|
+| #50 | pre-existente | `/deudas`: embed PostgREST ambiguo en `v_local_saldo` → query de nombres aparte |
+| #51 | **regresión T-255** | zod 4 `uuid()` pasó a RFC 4122 estricto y rechazaba los ids de **seed** (versión/variante `0`): **toda pantalla de detalle daba 404** (`notFound`) y las Edge rechazarían esos ids. Fix: `z.string().uuid()` → `z.string().guid()` (18 sitios web + `_shared/schemas.ts`). Verificado: detalle de las 6 secciones → 200; tsc/eslint 0; deno 44/44. En prod los uuid v4 reales no se veían afectados. |
+
 ## Qué queda PENDIENTE (no perder)
 
 ### Rediseño
