@@ -20,7 +20,7 @@ export type ActionResult<T = void> =
       };
     };
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 const AnularInputSchema = z.object({
   motivo: z

@@ -15,7 +15,7 @@ import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerMaquina } from "@/lib/maquinas/queries";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface MaquinaDetallePageProps {
   params: Promise<{ id: string }>;

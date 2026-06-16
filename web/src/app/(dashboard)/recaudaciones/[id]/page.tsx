@@ -19,7 +19,7 @@ import { ROLES_ADMIN } from "@/lib/auth/roles";
 import { formatDate, formatDateTime, formatEur, formatPercent } from "@/lib/recaudaciones/format";
 import { obtenerRecaudacion, obtenerSignedUrlsEvidencia } from "@/lib/recaudaciones/queries";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface RecaudacionDetallePageProps {
   params: Promise<{ id: string }>;

@@ -23,7 +23,7 @@ export type ActionResult<T = void> =
 const RESOLUCIONES = ["aceptada", "sustituida", "anulada"] as const;
 export type ResolucionConflicto = (typeof RESOLUCIONES)[number];
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 const ResolverInputSchema = z.object({
   resolucion: z.enum(RESOLUCIONES),

@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: { code: string } };
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 /**
  * Marca una alerta como leída. Cualquier miembro de la empresa puede

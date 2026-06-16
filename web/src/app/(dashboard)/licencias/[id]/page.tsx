@@ -13,7 +13,7 @@ import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerLicencia } from "@/lib/licencias/queries";
 
-const IdSchema = z.string().uuid();
+const IdSchema = z.string().guid();
 
 interface LicenciaDetallePageProps {
   params: Promise<{ id: string }>;

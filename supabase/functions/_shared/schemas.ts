@@ -24,7 +24,10 @@ export const DenominacionItemSchema = z.object({
 /** Desglose: array de items. */
 export const DesgloseSchema = z.array(DenominacionItemSchema);
 
-const Uuid = z.string().uuid();
+// guid() (no uuid()): zod 4 endurece uuid() a RFC 4122 (versión/variante) y
+// rechazaría ids no-RFC válidos en formato (p. ej. los de seed/dev). guid()
+// valida el formato 8-4-4-4-12 sin exigir versión, como hacía zod 3.
+const Uuid = z.string().guid();
 const IsoDate = z.string().datetime({ offset: true });
 
 /** Input de `calcular-recaudacion`. */
