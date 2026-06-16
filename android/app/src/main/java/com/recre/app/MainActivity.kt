@@ -284,8 +284,12 @@ private fun RecreApp(
             arguments = listOf(
                 navArgument(DeudasLocalViewModel.ARG_LOCAL_ID) { type = NavType.StringType },
             ),
-        ) {
-            DeudasLocalScreen(onBack = { navController.popBackStack() })
+        ) { backStackEntry ->
+            CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
+                val localId = backStackEntry.arguments
+                    ?.getString(DeudasLocalViewModel.ARG_LOCAL_ID).orEmpty()
+                DeudasLocalScreen(localId = localId, onBack = { navController.popBackStack() })
+            }
         }
         composable(
             route = Routes.CAMBIO_PLACA,
@@ -350,10 +354,12 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
 
     // Deudas: tolva y préstamos (T-219)
     composable(Routes.GESTION_DEUDAS) {
-        DeudasGestorScreen(
-            onBack = { navController.popBackStack() },
-            onLocalClick = { localId -> navController.navigate(Routes.localDeudas(localId)) },
-        )
+        CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
+            DeudasGestorScreen(
+                onBack = { navController.popBackStack() },
+                onLocalClick = { localId -> navController.navigate(Routes.localDeudas(localId)) },
+            )
+        }
     }
 
     // Licencias (T-66)
