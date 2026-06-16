@@ -32,7 +32,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -43,10 +46,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.gestion.components.GestionDropdown
 import com.recre.app.feature.gestion.components.GestionTextField
-import com.recre.app.ui.components.FieldDate
 import com.recre.app.feature.gestion.resolveErrorRes
+import com.recre.app.ui.components.FieldDate
+import com.recre.app.ui.components.StepIndicator
 
-/** Form de Instalación (T-69) — alta, edición y cierre. */
+/** Form de Instalación (T-69) — alta (wizard, T-242), edición y cierre. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InstalacionFormScreen(
@@ -113,118 +117,10 @@ fun InstalacionFormScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            if (!state.esEdicion) {
-                AltaPickers(state, viewModel)
-            } else {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(),
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            state.cabecera.ifBlank { stringResource(R.string.gestion_instalacion_editar) },
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                        Text(
-                            stringResource(R.string.gestion_instalacion_fk_inmutables),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            FieldDate(
-                label = stringResource(R.string.gestion_instalacion_fecha_inicio),
-                value = state.fechaInicio,
-                onValueChange = viewModel::onFechaInicioChange,
-                isError = state.errores["fechaInicio"] != null,
-                errorText = state.errores["fechaInicio"]?.let {
-                    stringResource(R.string.gestion_validacion_fecha)
-                },
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                GestionTextField(
-                    label = stringResource(R.string.gestion_instalacion_tasa_semanal),
-                    value = state.tasaSemanal,
-                    onValueChange = viewModel::onTasaChange,
-                    placeholder = "0.00",
-                    keyboardType = KeyboardType.Decimal,
-                    error = state.errores["tasaSemanal"]?.let {
-                        stringResource(R.string.gestion_validacion_tasa)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                GestionTextField(
-                    label = stringResource(R.string.gestion_instalacion_porcentaje_local),
-                    value = state.porcentajeLocal,
-                    onValueChange = viewModel::onPorcentajeChange,
-                    placeholder = "50.00",
-                    keyboardType = KeyboardType.Decimal,
-                    error = state.errores["porcentajeLocal"]?.let {
-                        stringResource(R.string.gestion_validacion_porcentaje)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            if (!state.esEdicion) {
-                GestionTextField(
-                    label = stringResource(R.string.gestion_instalacion_tolva),
-                    value = state.tolva,
-                    onValueChange = viewModel::onTolvaChange,
-                    placeholder = "0.00",
-                    keyboardType = KeyboardType.Decimal,
-                    error = state.errores["tolva"]?.let {
-                        stringResource(R.string.gestion_validacion_tolva)
-                    },
-                )
-                Text(
-                    text = stringResource(R.string.gestion_instalacion_tolva_ayuda),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            GestionTextField(
-                label = stringResource(R.string.gestion_instalacion_notas),
-                value = state.notas,
-                onValueChange = viewModel::onNotasChange,
-                singleLine = false,
-                minLines = 3,
-            )
-
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = viewModel::guardar,
-                enabled = !state.guardando && !state.cerrando && state.online,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.guardando) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.height(20.dp),
-                    )
-                } else {
-                    Text(stringResource(R.string.gestion_guardar))
-                }
-            }
             if (state.esEdicion) {
-                OutlinedButton(
-                    onClick = viewModel::pedirCerrar,
-                    enabled = !state.cerrando && !state.guardando && state.online,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    if (state.cerrando) {
-                        CircularProgressIndicator(
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.height(20.dp),
-                        )
-                    } else {
-                        Text(stringResource(R.string.gestion_instalacion_cerrar))
-                    }
-                }
+                EdicionInstalacionForm(state, viewModel)
+            } else {
+                AltaInstalacionWizard(state, viewModel)
             }
         }
     }
@@ -261,6 +157,202 @@ fun InstalacionFormScreen(
                     Text(stringResource(R.string.action_cancel))
                 }
             },
+        )
+    }
+}
+
+/**
+ * Alta de instalación como wizard de 2 pasos (T-242): primero **qué se instala**
+ * (máquina/licencia/local), luego las **condiciones** (fecha, tasa, %, tolva, notas).
+ * El paso 1 gatea "Siguiente" hasta que los 3 selects están elegidos; el paso 2
+ * delega en `viewModel.guardar()`, que revalida todo antes de persistir.
+ */
+@Composable
+private fun AltaInstalacionWizard(
+    state: InstalacionFormUiState,
+    viewModel: InstalacionFormViewModel,
+) {
+    var paso by rememberSaveable { mutableIntStateOf(0) }
+    val seleccionListos = !state.maquinaId.isNullOrEmpty() &&
+        !state.licenciaId.isNullOrEmpty() &&
+        !state.localId.isNullOrEmpty()
+
+    StepIndicator(
+        current = paso + 1,
+        total = 2,
+        label = stringResource(R.string.wizard_paso),
+        connector = stringResource(R.string.wizard_de),
+    )
+    Text(
+        text = stringResource(
+            if (paso == 0) R.string.wizard_instalacion_paso1
+            else R.string.wizard_instalacion_paso2,
+        ),
+        style = MaterialTheme.typography.titleMedium,
+    )
+
+    if (paso == 0) {
+        AltaPickers(state, viewModel)
+    } else {
+        CamposEconomicos(state, viewModel)
+        GestionTextField(
+            label = stringResource(R.string.gestion_instalacion_tolva),
+            value = state.tolva,
+            onValueChange = viewModel::onTolvaChange,
+            placeholder = "0.00",
+            keyboardType = KeyboardType.Decimal,
+            error = state.errores["tolva"]?.let {
+                stringResource(R.string.gestion_validacion_tolva)
+            },
+        )
+        Text(
+            text = stringResource(R.string.gestion_instalacion_tolva_ayuda),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        GestionTextField(
+            label = stringResource(R.string.gestion_instalacion_notas),
+            value = state.notas,
+            onValueChange = viewModel::onNotasChange,
+            singleLine = false,
+            minLines = 3,
+        )
+    }
+
+    Spacer(Modifier.height(8.dp))
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        if (paso > 0) {
+            OutlinedButton(
+                onClick = { paso-- },
+                enabled = !state.guardando,
+                modifier = Modifier.weight(1f),
+            ) { Text(stringResource(R.string.wizard_atras)) }
+        }
+        if (paso == 0) {
+            Button(
+                onClick = { paso++ },
+                enabled = seleccionListos,
+                modifier = Modifier.weight(1f),
+            ) { Text(stringResource(R.string.wizard_siguiente)) }
+        } else {
+            Button(
+                onClick = viewModel::guardar,
+                enabled = !state.guardando && state.online,
+                modifier = Modifier.weight(1f),
+            ) {
+                if (state.guardando) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.height(20.dp),
+                    )
+                } else {
+                    Text(stringResource(R.string.gestion_guardar))
+                }
+            }
+        }
+    }
+}
+
+/** Edición de una instalación existente: FKs inmutables, sin tolva ni wizard. */
+@Composable
+private fun EdicionInstalacionForm(
+    state: InstalacionFormUiState,
+    viewModel: InstalacionFormViewModel,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(),
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                state.cabecera.ifBlank { stringResource(R.string.gestion_instalacion_editar) },
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                stringResource(R.string.gestion_instalacion_fk_inmutables),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+
+    CamposEconomicos(state, viewModel)
+    GestionTextField(
+        label = stringResource(R.string.gestion_instalacion_notas),
+        value = state.notas,
+        onValueChange = viewModel::onNotasChange,
+        singleLine = false,
+        minLines = 3,
+    )
+
+    Spacer(Modifier.height(8.dp))
+    Button(
+        onClick = viewModel::guardar,
+        enabled = !state.guardando && !state.cerrando && state.online,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        if (state.guardando) {
+            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(20.dp))
+        } else {
+            Text(stringResource(R.string.gestion_guardar))
+        }
+    }
+    OutlinedButton(
+        onClick = viewModel::pedirCerrar,
+        enabled = !state.cerrando && !state.guardando && state.online,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        if (state.cerrando) {
+            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(20.dp))
+        } else {
+            Text(stringResource(R.string.gestion_instalacion_cerrar))
+        }
+    }
+}
+
+/** Campos comunes de alta y edición: fecha de inicio + tasa semanal + % local. */
+@Composable
+private fun CamposEconomicos(
+    state: InstalacionFormUiState,
+    viewModel: InstalacionFormViewModel,
+) {
+    FieldDate(
+        label = stringResource(R.string.gestion_instalacion_fecha_inicio),
+        value = state.fechaInicio,
+        onValueChange = viewModel::onFechaInicioChange,
+        isError = state.errores["fechaInicio"] != null,
+        errorText = state.errores["fechaInicio"]?.let {
+            stringResource(R.string.gestion_validacion_fecha)
+        },
+    )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        GestionTextField(
+            label = stringResource(R.string.gestion_instalacion_tasa_semanal),
+            value = state.tasaSemanal,
+            onValueChange = viewModel::onTasaChange,
+            placeholder = "0.00",
+            keyboardType = KeyboardType.Decimal,
+            error = state.errores["tasaSemanal"]?.let {
+                stringResource(R.string.gestion_validacion_tasa)
+            },
+            modifier = Modifier.weight(1f),
+        )
+        GestionTextField(
+            label = stringResource(R.string.gestion_instalacion_porcentaje_local),
+            value = state.porcentajeLocal,
+            onValueChange = viewModel::onPorcentajeChange,
+            placeholder = "50.00",
+            keyboardType = KeyboardType.Decimal,
+            error = state.errores["porcentajeLocal"]?.let {
+                stringResource(R.string.gestion_validacion_porcentaje)
+            },
+            modifier = Modifier.weight(1f),
         )
     }
 }
