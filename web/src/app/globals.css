@@ -452,4 +452,10 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+  /* T-244: los pseudo-elementos de View Transitions no los cubre `*`. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

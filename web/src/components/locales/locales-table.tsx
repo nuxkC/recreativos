@@ -45,7 +45,12 @@ export function LocalesTable({ locales }: LocalesTableProps) {
           {locales.map((local) => (
             <TableRow key={local.id} className="hover:bg-accent/40">
               <TableCell className="font-medium">
-                <Link href={`/locales/${local.id}`} className="block hover:underline">
+                <Link
+                  href={`/locales/${local.id}`}
+                  className="block hover:underline"
+                  // T-244: par compartido con el <h1> del detalle (morph del nombre).
+                  style={{ viewTransitionName: `local-name-${local.id}` }}
+                >
                   {local.nombre}
                 </Link>
               </TableCell>
