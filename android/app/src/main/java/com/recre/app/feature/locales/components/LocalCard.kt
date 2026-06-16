@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.recre.app.ui.components.recreSharedBounds
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,6 +58,8 @@ fun LocalCard(
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    // T-244: comparte el nombre con el título del detalle (no-op si no hay scopes).
+                    modifier = Modifier.recreSharedBounds("local-nombre-${local.id}"),
                 )
                 if (!local.direccion.isNullOrBlank()) {
                     Spacer(Modifier.height(2.dp))
