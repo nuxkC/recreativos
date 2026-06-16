@@ -28,7 +28,7 @@ async function obtenerSumaRecaudacionesMes(
   inicio: Date,
   finExclusivo: Date,
 ): Promise<RecaudacionMes> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recaudacion")
     .select("recaudacion_bruta, recaudacion_neta, parte_empresa")
@@ -97,7 +97,7 @@ export async function obtenerSerieRecaudacionMensual(
   meses = 6,
   ahora: Date = new Date(),
 ): Promise<number[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const inicio = startOfMonth(subMonths(ahora, meses - 1));
   const finExclusivo = addDays(endOfMonth(ahora), 1);
 
@@ -133,7 +133,7 @@ export interface RecuentoMaquinas {
 }
 
 export async function contarMaquinasPorEstado(empresaId: string): Promise<RecuentoMaquinas> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("maquina")
     .select("estado")
@@ -160,7 +160,7 @@ export async function contarMaquinasPorEstado(empresaId: string): Promise<Recuen
 }
 
 export async function contarConflictosPendientes(empresaId: string): Promise<number> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { count, error } = await supabase
     .from("recaudacion")
     .select("id", { head: true, count: "exact" })
@@ -184,7 +184,7 @@ export async function listarLicenciasProximasACaducar(
   empresaId: string,
   diasAdelante = 30,
 ): Promise<LicenciaPorCaducar[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const hoy = new Date();
   const limite = addDays(hoy, diasAdelante);
   const { data, error } = await supabase
@@ -240,7 +240,7 @@ export async function listarInstalacionesSinRecaudar(
   empresaId: string,
   diasUmbral = 14,
 ): Promise<InstalacionSinRecaudar[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const [instRes, recRes] = await Promise.all([
     supabase
       .from("instalacion")
@@ -318,7 +318,7 @@ export async function listarAlertasPendientes(
   empresaId: string,
   limite = 10,
 ): Promise<AlertaPendiente[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("alerta")
     .select("id, tipo, mensaje, referencia_id, creada_en")

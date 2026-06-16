@@ -11,13 +11,14 @@ import { listarLicencias } from "@/lib/licencias/queries";
 import { isEstadoLicencia, type EstadoLicencia } from "@/lib/licencias/types";
 
 interface LicenciasPageProps {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
     estado?: string;
-  };
+  }>;
 }
 
-export default async function LicenciasPage({ searchParams }: LicenciasPageProps) {
+export default async function LicenciasPage(props: LicenciasPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireMembresiaActiva();
   const t = await getTranslations("licencias");
   const tNav = await getTranslations("nav");

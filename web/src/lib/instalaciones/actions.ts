@@ -105,7 +105,7 @@ export async function crearInstalacion(
   // Edge Function `cerrar-instalacion`, no por el form.
   const input = { ...parsed.data, estado: "activa" as const };
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Verificación defensiva multi-tenant: las 3 FK deben pertenecer a la
   // misma empresa que la membresía activa. RLS también lo bloquearía
@@ -212,7 +212,7 @@ export async function actualizarInstalacion(
   }
   const input = parsed.data;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   // Edición vía RPC SECURITY DEFINER. Las FKs y la base de contadores son
   // inmutables: para reasignar máquina/licencia/local hay que cerrar y crear
   // una nueva instalación (mantiene la historia y la baseline coherentes).
@@ -245,7 +245,7 @@ export async function eliminarInstalacion(instalacionId: string): Promise<Action
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("eliminar_instalacion", {
     p_id: instalacionId,
   });
@@ -294,7 +294,7 @@ export async function cerrarInstalacion(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     code?: string;
     message?: string;
@@ -353,7 +353,7 @@ export async function obtenerSignedUrlBoletin(
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     boletin_signed_url?: string;
     regenerado?: boolean;

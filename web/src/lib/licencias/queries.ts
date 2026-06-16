@@ -26,7 +26,7 @@ export async function listarLicencias(
   empresaId: string,
   filtros: ListarLicenciasFiltros = {},
 ): Promise<Licencia[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("licencia")
     .select("*")
@@ -59,7 +59,7 @@ export async function obtenerLicencia(
   empresaId: string,
   licenciaId: string,
 ): Promise<Licencia | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("licencia")
     .select("*")

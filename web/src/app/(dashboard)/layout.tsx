@@ -9,7 +9,7 @@ import { obtenerSuscripcionEmpresa } from "@/lib/suscripcion/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

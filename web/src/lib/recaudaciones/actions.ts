@@ -69,7 +69,7 @@ export async function anularRecaudacion(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     code?: string;
     message?: string;
@@ -128,7 +128,7 @@ export async function obtenerSignedUrlPdf(
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     pdf_signed_url?: string;
     code?: string;

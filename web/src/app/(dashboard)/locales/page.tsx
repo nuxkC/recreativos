@@ -10,12 +10,13 @@ import { ROLES_GESTION } from "@/lib/auth/roles";
 import { listarLocales } from "@/lib/locales/queries";
 
 interface LocalesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
-  };
+  }>;
 }
 
-export default async function LocalesPage({ searchParams }: LocalesPageProps) {
+export default async function LocalesPage(props: LocalesPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireMembresiaActiva();
   const t = await getTranslations("locales");
   const tNav = await getTranslations("nav");

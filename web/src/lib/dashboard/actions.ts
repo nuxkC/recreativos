@@ -22,7 +22,7 @@ export async function marcarAlertaComoLeida(alertaId: string): Promise<ActionRes
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("marcar_alerta_leida", {
     p_alerta_id: alertaId,
   });

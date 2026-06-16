@@ -14,13 +14,13 @@ import {
 const ESTADO_FILTROS_VALIDOS = [...ESTADOS_RECAUDACION, "conflicto"] as const;
 
 interface RecaudacionesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     estado?: string;
     local?: string;
     desde?: string;
     hasta?: string;
     instalacion?: string;
-  };
+  }>;
 }
 
 function parseEstado(value: string | undefined): EstadoRecaudacion | "conflicto" | null {
@@ -33,7 +33,8 @@ function parseEstado(value: string | undefined): EstadoRecaudacion | "conflicto"
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
-export default async function RecaudacionesPage({ searchParams }: RecaudacionesPageProps) {
+export default async function RecaudacionesPage(props: RecaudacionesPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireMembresiaActiva();
   const tNav = await getTranslations("nav");
 

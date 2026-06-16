@@ -34,7 +34,7 @@ export async function listarRecaudaciones(
   empresaId: string,
   filtros: ListarRecaudacionesFiltros = {},
 ): Promise<Recaudacion[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("recaudacion")
     .select(SELECT_COLUMNS)
@@ -78,7 +78,7 @@ export async function obtenerRecaudacion(
   empresaId: string,
   recaudacionId: string,
 ): Promise<Recaudacion | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recaudacion")
     .select(SELECT_COLUMNS)
@@ -103,7 +103,7 @@ export async function obtenerSignedUrlsEvidencia(recaudacion: Recaudacion): Prom
   fotoEntradas: string | null;
   fotoSalidas: string | null;
 }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const ttl = 600;
   const sign = async (bucket: string, path: string | null): Promise<string | null> => {
     if (!path) return null;
@@ -124,7 +124,7 @@ export async function obtenerSignedUrlsEvidencia(recaudacion: Recaudacion): Prom
 export async function listarLocalesResumen(
   empresaId: string,
 ): Promise<Array<{ id: string; nombre: string }>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("local")
     .select("id, nombre")

@@ -11,13 +11,14 @@ import { listarInstalaciones, listarLocalesResumen } from "@/lib/instalaciones/q
 import { isEstadoInstalacion, type EstadoInstalacion } from "@/lib/instalaciones/types";
 
 interface InstalacionesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     estado?: string;
     local?: string;
-  };
+  }>;
 }
 
-export default async function InstalacionesPage({ searchParams }: InstalacionesPageProps) {
+export default async function InstalacionesPage(props: InstalacionesPageProps) {
+  const searchParams = await props.searchParams;
   const activa = await requireMembresiaActiva();
   const t = await getTranslations("instalaciones");
   const tNav = await getTranslations("nav");

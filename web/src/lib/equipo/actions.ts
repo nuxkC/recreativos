@@ -85,7 +85,7 @@ export async function invitarMiembro(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     code?: string;
     usuario_id?: string;
@@ -145,7 +145,7 @@ export async function cambiarRol(
   // Reglas de negocio:
   // - Nadie cambia su propio rol (evitar quedarse sin admin por error).
   // - Solo owner puede asignar/quitar el rol owner.
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -198,7 +198,7 @@ export async function cambiarActivo(usuarioId: string, activo: boolean): Promise
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

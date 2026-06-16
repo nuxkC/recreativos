@@ -24,7 +24,7 @@ export async function listarCambiosPlaca(
   empresaId: string,
   filtros: ListarCambiosPlacaFiltros = {},
 ): Promise<CambioPlaca[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase
     .from("cambio_placa")
     .select(SELECT_COLUMNS)
@@ -62,7 +62,7 @@ export async function obtenerCambioPlaca(
   empresaId: string,
   cambioId: string,
 ): Promise<CambioPlaca | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("cambio_placa")
     .select(SELECT_COLUMNS)
@@ -82,7 +82,7 @@ export async function obtenerCambioPlaca(
  */
 export async function obtenerSignedUrlFoto(cambio: CambioPlaca): Promise<string | null> {
   if (!cambio.fotoUrl) return null;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.storage
     .from("cambios-placa")
     .createSignedUrl(cambio.fotoUrl, 600);
@@ -93,7 +93,7 @@ export async function obtenerSignedUrlFoto(cambio: CambioPlaca): Promise<string 
 export async function listarLocalesResumen(
   empresaId: string,
 ): Promise<Array<{ id: string; nombre: string }>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("local")
     .select("id, nombre")

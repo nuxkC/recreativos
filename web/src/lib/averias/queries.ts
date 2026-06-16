@@ -15,7 +15,7 @@ export async function listarAveriasMaquina(
   empresaId: string,
   maquinaId: string,
 ): Promise<Averia[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("averia")
     .select(AVERIA_SELECT)
@@ -38,7 +38,7 @@ export async function listarAveriasMaquina(
 export async function contarAveriasAbiertasPorMaquina(
   empresaId: string,
 ): Promise<Record<string, number>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("averia")
     .select("maquina_id")
@@ -67,7 +67,7 @@ export async function maquinaTieneInstalacionActiva(
   empresaId: string,
   maquinaId: string,
 ): Promise<boolean> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("instalacion")
     .select("id")

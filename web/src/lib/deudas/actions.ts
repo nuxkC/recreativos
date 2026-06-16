@@ -85,7 +85,7 @@ export async function crearPrestamo(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_prestamo", {
     p_empresa_id: activa.empresa.id,
     p_local_id: localId,
@@ -130,7 +130,7 @@ export async function registrarRecuperacionEfectivo(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("registrar_recuperacion_efectivo", {
     p_credito_id: creditoId,
     p_importe: parsed.data.importe,
@@ -156,7 +156,7 @@ export async function condonarCredito(creditoId: string, localId: string): Promi
     return { ok: false, error: { code: "idInvalido" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("condonar_credito", {
     p_credito_id: creditoId,
     p_notas: null,
@@ -190,7 +190,7 @@ export async function setPorcentajeRecuperacionLocal(
     return { ok: false, error: { code: "porcentajeRecuperacionRango" } };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.rpc("set_porcentaje_recuperacion_local", {
     p_local_id: localId,
     p_porcentaje: porcentaje,
