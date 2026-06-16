@@ -45,8 +45,8 @@ Android: catálogo de versiones coherente (KSP prefix == Kotlin), validado por b
 - **T-245** barrido WCAG final (EAA).
 
 ### Fase 5 — deps mayores (van DESPUÉS del rediseño, ya en `main`)
-- **T-256** Bloque 10 — React 19 + Next 15→16. **Bloqueador real:** requiere resolver antes
-  `next build` (roto por `@supabase/ssr`) y el test CRLF (deuda de T-246/B0) + **QA visual**.
+- **T-256** Bloque 10 — React 19 + Next 15→16. Baseline B0 ya resuelto (`next build` verde + LF);
+  queda **QA visual** de regresión tras el salto de React/Next.
 - **T-257** Bloque 11 — Tailwind v4. **Bloqueador real:** reescritura CSS-first que debe
   **coordinarse con los tokens de T-227** + QA visual de regresión.
 - **T-258** Bloque 12 — diferidos, cada uno su PR de migración: AGP 9/Gradle 9 (arrastra
@@ -57,12 +57,14 @@ Android: catálogo de versiones coherente (KSP prefix == Kotlin), validado por b
 - **T-253** OCR de contadores (T-100) + push (T-101) en **dispositivo real**.
 - **T-254** `connectedAndroidTest` en **emulador/dispositivo**.
 
-### Deuda técnica heredada (T-246/B0)
-- `next build` roto por `@supabase/ssr` (preexistente) y un test acoplado a CRLF. **Hay que
-  resolverlos antes de T-256.**
+### Deuda técnica heredada (T-246/B0) — ✅ RESUELTA (2026-06-16)
+- `next build`: fallaba por **2 imports sin usar** (`filter-chip`/`subtotal-separator`), no por
+  `@supabase/ssr` (warning de Edge Runtime, no bloquea). Corregidos → build verde.
+- "CRLF": era el fuente `registro/actions.ts` en CRLF (no un test; los CSV usan `\r\n` por
+  RFC 4180) → normalizado a LF + prettier limpio. **Baseline listo para T-256.**
 
 ## Orden recomendado para lo pendiente
-1. T-230 + T-241…T-245 (rediseño restante) — independientes de las deps mayores.
-2. Resolver la deuda de T-246/B0 (`next build` + CRLF).
-3. T-256 (React 19 + Next 16) → T-257 (Tailwind v4) → T-258 (diferidos), en ese orden.
+1. ~~Rediseño F0–F6 (T-227…T-245)~~ — ✅ hecho (swipe descartado; shared-element web pendiente de T-256).
+2. ~~Deuda T-246/B0 (`next build` + CRLF)~~ — ✅ resuelta.
+3. **Siguiente:** T-256 (React 19 + Next 16) → T-257 (Tailwind v4) → T-258 (diferidos), en ese orden.
 4. Verificación en dispositivo de T-253/T-254 cuando haya hardware.
