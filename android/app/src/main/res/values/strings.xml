@@ -12,6 +12,8 @@
     <string name="wizard_atras">Atrás</string>
     <string name="wizard_instalacion_paso1">Qué se instala</string>
     <string name="wizard_instalacion_paso2">Condiciones</string>
+    <string name="wizard_maquina_paso1">Identificación</string>
+    <string name="wizard_maquina_paso2">Datos económicos</string>
 
     <!-- Auth -->
     <string name="auth_login_title">Iniciar sesión</string>
