@@ -99,6 +99,63 @@ class RecaudacionFlowViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(RecaudacionFlowState())
     val state: StateFlow<RecaudacionFlowState> = _uiState.asStateFlow()
 
+    /** Snapshot de la baseline visto en la emisión anterior, para detectar cambios. */
+    private data class BaselineSnapshot(
+        val entradas: Long,
+        val salidas: Long,
+        val refId: String?,
+        val origen: String,
+    )
+
+    private var baselinePrevia: BaselineSnapshot? = null
+
+    /**
+     * Registra la baseline actual y devuelve `true` si CAMBIÓ respecto a la
+     * anterior emisión (otra recaudación / anulación / cambio de placa entró por
+     * un re-sync). Solo el cambio de VALOR; el caller decide si bloquea según si
+     * ya se contaron monedas. Se llama una vez por emisión, fuera de `update`.
+     */
+    private fun registrarYDetectarCambioBaseline(maquina: MaquinaConInstalacion?): Boolean {
+        if (maquina == null) return false
+        val snap = BaselineSnapshot(
+            entradas = maquina.baselineEntradas,
+            salidas = maquina.baselineSalidas,
+            refId = maquina.baselineReferenciaId,
+            origen = maquina.baselineOrigen,
+        )
+        val previa = baselinePrevia
+        baselinePrevia = snap
+        return previa != null && previa != snap
+    }
+
+    /**
+     * (A) El técnico rehace la lectura porque la baseline cambió a mitad del
+     * flujo. Limpia contadores, desglose y firma, re-ancla la baseline a la
+     * actual y quita el bloqueo, para que continúe con las cifras correctas.
+     * La pantalla navega de vuelta al paso de contadores.
+     */
+    fun rehacerLectura() {
+        baselinePrevia = _uiState.value.maquina?.let {
+            BaselineSnapshot(
+                entradas = it.baselineEntradas,
+                salidas = it.baselineSalidas,
+                refId = it.baselineReferenciaId,
+                origen = it.baselineOrigen,
+            )
+        }
+        _uiState.update {
+            it.copy(
+                contadorEntradasInput = "",
+                contadorSalidasInput = "",
+                cifras = null,
+                denominacionesTotal = emptyMap(),
+                denominacionesLocal = emptyMap(),
+                firmaStrokes = emptyList(),
+                baselineCambiada = false,
+            ).conRecuperacion()
+        }
+    }
+
     init {
         val empresaIdFlow = kotlinx.coroutines.flow.flow {
             sessionRepository.state.collect { state ->
@@ -144,12 +201,22 @@ class RecaudacionFlowViewModel @Inject constructor(
                 syncStaleFlow,
             ) { maquina, empresa, stale -> Triple(maquina, empresa, stale) }
                 .collect { (maquina, empresa, stale) ->
+                    // Se evalúa FUERA del update (que puede reintentar su lambda):
+                    // así `baselinePrevia` se actualiza una sola vez por emisión.
+                    val baselineCambioValor = registrarYDetectarCambioBaseline(maquina)
                     _uiState.update { current ->
+                        // Solo bloquea si el técnico YA contó monedas: hasta
+                        // entonces un cambio de baseline es inocuo (los contadores
+                        // se recalculan solos y no hay desglose que invalidar).
+                        val yaContado = current.denominacionesTotal.isNotEmpty() ||
+                            current.denominacionesLocal.isNotEmpty()
                         current.copy(
                             cargando = false,
                             maquina = maquina,
                             empresa = empresa,
                             syncStale = stale,
+                            baselineCambiada = current.baselineCambiada ||
+                                (baselineCambioValor && yaContado),
                             errorCarga = if (maquina == null) "instalacion_no_encontrada" else null,
                             cifras = if (maquina != null && empresa != null) {
                                 calcularSiInputsValidos(
@@ -456,7 +523,11 @@ class RecaudacionFlowViewModel @Inject constructor(
         val maquina = state.maquina ?: return
         val empresaId = (sessionRepository.state.value as? SessionState.Active)?.empresa?.id
             ?: return
-        if (!cifras.procede || state.syncStale || state.firmaStrokes.isEmpty()) return
+        if (!cifras.procede || state.syncStale || state.baselineCambiada ||
+            state.firmaStrokes.isEmpty()
+        ) {
+            return
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(guardando = true) }

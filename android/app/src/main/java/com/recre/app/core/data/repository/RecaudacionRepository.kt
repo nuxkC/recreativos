@@ -7,6 +7,8 @@ import com.recre.app.core.data.local.entity.EstadoRecaudacionPendiente
 import com.recre.app.core.data.local.entity.RecaudacionPendienteEntity
 import com.recre.app.core.data.remote.RecaudacionRemoteDataSource
 import com.recre.app.core.data.remote.RecaudacionRemoteError
+import com.recre.app.core.data.remote.parseErrorCode
+import com.recre.app.core.data.remote.parseErrorMessage
 import com.recre.app.core.data.remote.dto.CrearRecaudacionRequest
 import com.recre.app.core.data.remote.dto.DenominacionItemDto
 import com.recre.app.core.util.DomainError
@@ -45,6 +47,12 @@ interface RecaudacionRepository {
 
     /** Recuento de pendientes (incluye `error` y `subiendo`) para badges. */
     fun observarContadorPendientes(empresaId: String): Flow<Int>
+
+    /**
+     * Recaudaciones que el backend RECHAZÓ (estado='error') con su `ultimoError`.
+     * Alimenta el aviso global al técnico de que algo de la cola no se pudo subir.
+     */
+    fun observarErrores(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
 }
 
 /** Input para encolar una recaudación nueva. */
@@ -173,6 +181,9 @@ class RecaudacionRepositoryImpl @Inject constructor(
     override fun observarContadorPendientes(empresaId: String): Flow<Int> =
         dao.observarContadorPendientes(empresaId)
 
+    override fun observarErrores(empresaId: String): Flow<List<RecaudacionPendienteEntity>> =
+        dao.observarErrores(empresaId)
+
     private fun mapToRequest(entity: RecaudacionPendienteEntity): CrearRecaudacionRequest {
         val desgloseTotal = deserializarDesglose(entity.desgloseTotalJson)
         val desgloseLocal = deserializarDesglose(entity.desgloseLocalJson)
@@ -218,29 +229,34 @@ class RecaudacionRepositoryImpl @Inject constructor(
         )
 
     private fun clasificar(throwable: Throwable): Pair<DomainError, String> {
-        return when (throwable) {
-            is RecaudacionRemoteError -> when (throwable.code) {
-                "validation_error" -> DomainError.Validation(throwable.message ?: "validation_error") to
-                    "validation_error"
-                "forbidden" -> DomainError.Auth(throwable.message ?: "forbidden") to "forbidden"
-                "not_found" -> DomainError.NotFound(throwable.message ?: "not_found") to "not_found"
-                "conflict" -> DomainError.Conflict(throwable.message ?: "conflict") to "conflict"
-                else -> DomainError.Unknown(throwable.code ?: throwable.message) to
-                    (throwable.code ?: "unknown")
-            }
-            else -> {
-                val msg = throwable.message ?: "unknown"
-                if (msg.contains("network", ignoreCase = true) ||
-                    msg.contains("timeout", ignoreCase = true) ||
-                    msg.contains("unable to resolve", ignoreCase = true)
-                ) {
-                    DomainError.Network(msg) to "network"
+        // El cuerpo de error de la Edge viaja en el `message` de la excepción
+        // —ya sea [RecaudacionRemoteError] o la `BadRequestRestException` de
+        // supabase-kt— como `{ error: { code, message } }`. Extraemos AMBOS: el
+        // `code` decide reintento vs fallo, y el `message` legible es lo que se
+        // le enseña al técnico en el aviso (no el JSON crudo ni el código pelado).
+        val raw = throwable.message ?: "unknown"
+        val codigo = (throwable as? RecaudacionRemoteError)?.code ?: parseErrorCode(raw)
+        val legible = parseErrorMessage(raw) ?: raw.take(200)
+        return when (codigo) {
+            "validation_error" -> DomainError.Validation(legible) to legible
+            "forbidden" -> DomainError.Auth(legible) to legible
+            "not_found" -> DomainError.NotFound(legible) to legible
+            "conflict" -> DomainError.Conflict(legible) to legible
+            else ->
+                if (esRedCaida(raw)) {
+                    DomainError.Network(raw) to "network"
                 } else {
-                    DomainError.Unknown(msg) to msg.take(200)
+                    DomainError.Unknown(legible) to legible
                 }
-            }
         }
     }
+
+    /** Heurística de "no había red" (para reintentar en vez de marcar error). */
+    private fun esRedCaida(msg: String): Boolean =
+        msg.contains("network", ignoreCase = true) ||
+            msg.contains("timeout", ignoreCase = true) ||
+            msg.contains("unable to resolve", ignoreCase = true) ||
+            msg.contains("name resolution", ignoreCase = true)
 }
 
 /**

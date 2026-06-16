@@ -183,6 +183,16 @@
     <string name="recaudacion_accion_guardando">Guardando…</string>
     <string name="recaudacion_persistencia_offline">Si no hay red, la recaudación se sube automáticamente cuando vuelva la conexión. La impresión Bluetooth llega en T-62.</string>
 
+    <!-- (A) Baseline cambió a mitad del flujo (otra recaudación / anulación) -->
+    <string name="recaudacion_baseline_cambiada_titulo">Los contadores base han cambiado</string>
+    <string name="recaudacion_baseline_cambiada_mensaje">Mientras recaudabas, otra recaudación de esta máquina o una anulación cambió los contadores de partida. El desglose que has contado ya no cuadra con las cifras nuevas. Rehaz la lectura para guardar con los datos correctos.</string>
+    <string name="recaudacion_baseline_cambiada_accion">Rehacer la lectura</string>
+
+    <!-- (B) Aviso global: una recaudación de la cola fue rechazada por el servidor -->
+    <string name="error_subida_titulo">No se pudo subir una recaudación</string>
+    <string name="error_subida_mensaje">Una recaudación que tenías en la cola no se ha podido guardar en el servidor. Motivo:</string>
+    <string name="error_subida_aceptar">Entendido</string>
+
     <!-- Post-guardado e impresión Bluetooth (T-62) -->
     <string name="recaudacion_post_guardado_titulo">Recaudación guardada</string>
     <string name="recaudacion_post_guardado_online">Subida correctamente al servidor.</string>

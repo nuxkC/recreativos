@@ -29,6 +29,16 @@ data class RecaudacionFlowState(
      */
     val syncStale: Boolean = false,
 
+    /**
+     * `true` si los contadores BASE de la instalación cambiaron a mitad del
+     * flujo —otra recaudación de la misma máquina o una ANULACIÓN desde la web,
+     * que un re-sync trajo en vivo— DESPUÉS de que el técnico ya hubiera contado
+     * las monedas. El desglose contado deja de cuadrar con el bruto recalculado,
+     * así que el guardado se bloquea: hay que rehacer la lectura con la baseline
+     * nueva (si no, el server la rechazaría por "el desglose no coincide").
+     */
+    val baselineCambiada: Boolean = false,
+
     // T-58 — Lock optimista
     val lockState: LockState = LockState.Inactivo,
 
