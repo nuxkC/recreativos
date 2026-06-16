@@ -126,51 +126,6 @@ interface RecaudacionPendienteDao {
     )
     suspend fun rearmarColgadas(empresaId: String)
 
-    /**
-     * Detecta un doble-guardado: una recaudación aún no enviada con los MISMOS
-     * contadores físicos para la misma instalación. Evita encolar duplicados
-     * (que crearían dos recaudaciones / un conflicto en el servidor).
-     */
-    @Query(
-        """
-        SELECT * FROM recaudacion_pendiente
-        WHERE empresa_id = :empresaId AND instalacion_id = :instalacionId
-          AND contador_entradas_actual = :entradas
-          AND contador_salidas_actual = :salidas
-          AND estado IN ('pendiente', 'subiendo', 'error', 'fallida')
-        LIMIT 1
-        """,
-    )
-    suspend fun buscarNoEnviadaConContadores(
-        empresaId: String,
-        instalacionId: String,
-        entradas: Long,
-        salidas: Long,
-    ): RecaudacionPendienteEntity?
-
-    /**
-     * Igual que [buscarNoEnviadaConContadores] pero buscando una gemela YA enviada
-     * (excluyendo la propia fila): detecta un doble-guardado cuyo gemelo ya subió,
-     * para descartar el duplicado en vez de crear una segunda recaudación.
-     */
-    @Query(
-        """
-        SELECT * FROM recaudacion_pendiente
-        WHERE empresa_id = :empresaId AND instalacion_id = :instalacionId
-          AND contador_entradas_actual = :entradas
-          AND contador_salidas_actual = :salidas
-          AND estado = 'enviada' AND id != :exceptoId
-        LIMIT 1
-        """,
-    )
-    suspend fun buscarEnviadaConContadores(
-        empresaId: String,
-        instalacionId: String,
-        entradas: Long,
-        salidas: Long,
-        exceptoId: String,
-    ): RecaudacionPendienteEntity?
-
     @Query(
         """
         SELECT COUNT(*) FROM recaudacion_pendiente

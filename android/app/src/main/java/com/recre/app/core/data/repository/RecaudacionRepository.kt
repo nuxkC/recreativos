@@ -101,16 +101,6 @@ class RecaudacionRepositoryImpl @Inject constructor(
         input: EncolarRecaudacionInput,
     ): DomainResult<RecaudacionPendienteEntity> {
         val now = Instant.now()
-        // Evita el doble-guardado: si ya hay una recaudación NO enviada con los
-        // mismos contadores físicos para esta instalación, devolvemos esa en vez
-        // de duplicar (dos filas → dos recaudaciones / un conflicto en servidor).
-        dao.buscarNoEnviadaConContadores(
-            empresaId = input.empresaId,
-            instalacionId = input.instalacionId,
-            entradas = input.contadorEntradasActual,
-            salidas = input.contadorSalidasActual,
-        )?.let { return DomainResult.Success(it) }
-
         val entity = RecaudacionPendienteEntity(
             id = UUID.randomUUID().toString(),
             empresaId = input.empresaId,
@@ -164,21 +154,6 @@ class RecaudacionRepositoryImpl @Inject constructor(
     ): DomainResult<RecaudacionPendienteEntity?> {
         val pendiente = dao.siguientePendiente(empresaId)
             ?: return DomainResult.Success(null)
-
-        // Doble-guardado: si una recaudación IDÉNTICA (misma instalación + mismos
-        // contadores físicos) ya se subió, esta es un duplicado de un doble-tap.
-        // La descartamos en vez de crear una segunda recaudación / un conflicto.
-        dao.buscarEnviadaConContadores(
-            empresaId = pendiente.empresaId,
-            instalacionId = pendiente.instalacionId,
-            entradas = pendiente.contadorEntradasActual,
-            salidas = pendiente.contadorSalidasActual,
-            exceptoId = pendiente.id,
-        )?.let { gemela ->
-            dao.descartar(pendiente.id)
-            Timber.i("Recaudación %s descartada: duplicada de %s (ya enviada)", pendiente.id, gemela.id)
-            return DomainResult.Success(pendiente.copy(estado = EstadoRecaudacionPendiente.ENVIADA))
-        }
 
         val now = Instant.now()
         dao.marcarSubiendo(pendiente.id, now)
