@@ -1,6 +1,7 @@
 package com.recre.app.feature.deudas
 
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.components.recreSharedBounds
 import com.recre.app.ui.components.formatEur
 
 import androidx.compose.foundation.layout.Arrangement
@@ -115,7 +116,12 @@ fun DeudasGestorScreen(
                         onClick = { onLocalClick(local.localId) },
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = local.nombre, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                text = local.nombre,
+                                style = MaterialTheme.typography.titleSmall,
+                                // T-244: comparte el nombre con la cabecera del detalle de deudas.
+                                modifier = Modifier.recreSharedBounds("deuda-nombre-${local.localId}"),
+                            )
                             Text(
                                 text = eur(local.saldoTotal),
                                 style = MaterialTheme.typography.titleMedium.copy(

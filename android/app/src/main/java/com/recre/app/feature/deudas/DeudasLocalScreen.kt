@@ -2,6 +2,7 @@ package com.recre.app.feature.deudas
 
 import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.components.recreSharedBounds
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -66,6 +67,7 @@ import java.math.RoundingMode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeudasLocalScreen(
+    localId: String,
     onBack: () -> Unit,
     viewModel: DeudasLocalViewModel = hiltViewModel(),
 ) {
@@ -90,7 +92,9 @@ fun DeudasLocalScreen(
             TopAppBar(
                 title = {
                     Text(
-                        state.nombreLocal.ifBlank { stringResource(R.string.deudas_titulo) },
+                        text = state.nombreLocal.ifBlank { stringResource(R.string.deudas_titulo) },
+                        // T-244: par compartido con el nombre de la card de la lista de deudas.
+                        modifier = Modifier.recreSharedBounds("deuda-nombre-$localId"),
                     )
                 },
                 navigationIcon = {
