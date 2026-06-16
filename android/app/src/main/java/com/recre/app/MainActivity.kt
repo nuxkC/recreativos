@@ -540,6 +540,8 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
                     saltarOTerminarCadena(navController, flowVm)
                 },
                 onBack = { navController.popBackStack() },
+                // (A) Ya está en contadores: basta con reiniciar la lectura.
+                onRehacer = { flowVm.rehacerLectura() },
             )
         }
         composable(Routes.RECAUDACION_DENOMINACIONES_TOTAL) { backStackEntry ->
@@ -549,6 +551,10 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
                 modo = ModoDenominaciones.Total,
                 onContinuar = { navController.navigate(Routes.RECAUDACION_DENOMINACIONES_LOCAL) },
                 onBack = { navController.popBackStack() },
+                onRehacer = {
+                    flowVm.rehacerLectura()
+                    navController.popBackStack(Routes.RECAUDACION_CONTADORES, inclusive = false)
+                },
             )
         }
         composable(Routes.RECAUDACION_DENOMINACIONES_LOCAL) { backStackEntry ->
@@ -558,6 +564,10 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
                 modo = ModoDenominaciones.Local,
                 onContinuar = { navController.navigate(Routes.RECAUDACION_CONFIRMACION) },
                 onBack = { navController.popBackStack() },
+                onRehacer = {
+                    flowVm.rehacerLectura()
+                    navController.popBackStack(Routes.RECAUDACION_CONTADORES, inclusive = false)
+                },
             )
         }
         composable(Routes.RECAUDACION_CONFIRMACION) { backStackEntry ->

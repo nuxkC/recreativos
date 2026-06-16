@@ -44,6 +44,7 @@ import com.recre.app.R
 import com.recre.app.core.locks.LockState
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
+import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 
 /**
@@ -64,9 +65,16 @@ fun ContadoresScreen(
     onContinuar: () -> Unit,
     onLecturaNoRecaudada: () -> Unit,
     onBack: () -> Unit,
+    onRehacer: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val maquina = state.maquina
+
+    BaselineCambiadaDialog(
+        visible = state.baselineCambiada && !state.avisoBaselineVisto,
+        onMarcarVisto = viewModel::marcarAvisoBaselineVisto,
+        onRehacer = onRehacer,
+    )
     val cifras = state.cifras
 
     val lockOcupado = state.lockState is LockState.Ocupado

@@ -39,6 +39,13 @@ data class RecaudacionFlowState(
      */
     val baselineCambiada: Boolean = false,
 
+    /**
+     * `true` cuando el aviso emergente de [baselineCambiada] ya se le mostró al
+     * técnico en este flujo, para no repetirlo al navegar entre pasos. El bloqueo
+     * de guardado y el aviso inline de confirmación siguen activos igualmente.
+     */
+    val avisoBaselineVisto: Boolean = false,
+
     // T-58 — Lock optimista
     val lockState: LockState = LockState.Inactivo,
 

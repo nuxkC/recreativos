@@ -47,6 +47,7 @@ import com.recre.app.core.printer.PrinterError
 import com.recre.app.feature.recaudacion.RecaudacionFlowState
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
+import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.SignaturePad
@@ -74,6 +75,12 @@ fun ConfirmacionScreen(
     onRehacer: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    BaselineCambiadaDialog(
+        visible = state.baselineCambiada && !state.avisoBaselineVisto,
+        onMarcarVisto = viewModel::marcarAvisoBaselineVisto,
+        onRehacer = onRehacer,
+    )
 
     Scaffold(
         topBar = {
