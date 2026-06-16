@@ -56,6 +56,7 @@ import com.recre.app.core.calculo.DENOMINACIONES_PERMITIDAS
 import com.recre.app.core.calculo.importesIguales
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
+import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.ui.components.Keypad
 import com.recre.app.ui.components.MoneyText
@@ -96,9 +97,16 @@ fun DenominacionesScreen(
     modo: ModoDenominaciones,
     onContinuar: () -> Unit,
     onBack: () -> Unit,
+    onRehacer: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val cifras = state.cifras
+
+    BaselineCambiadaDialog(
+        visible = state.baselineCambiada && !state.avisoBaselineVisto,
+        onMarcarVisto = viewModel::marcarAvisoBaselineVisto,
+        onRehacer = onRehacer,
+    )
     val target: BigDecimal? =
         when (modo) {
             ModoDenominaciones.Total -> cifras?.bruto

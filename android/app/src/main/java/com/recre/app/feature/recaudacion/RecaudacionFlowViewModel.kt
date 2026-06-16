@@ -152,8 +152,18 @@ class RecaudacionFlowViewModel @Inject constructor(
                 denominacionesLocal = emptyMap(),
                 firmaStrokes = emptyList(),
                 baselineCambiada = false,
+                avisoBaselineVisto = false,
             ).conRecuperacion()
         }
+    }
+
+    /**
+     * El técnico ya vio el aviso emergente de baseline cambiada (A): no se
+     * repite al navegar entre pasos. No levanta el bloqueo —ese solo cae al
+     * rehacer la lectura— solo silencia el popup.
+     */
+    fun marcarAvisoBaselineVisto() {
+        _uiState.update { it.copy(avisoBaselineVisto = true) }
     }
 
     init {
