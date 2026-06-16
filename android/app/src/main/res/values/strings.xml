@@ -5,6 +5,14 @@
     <!-- Común -->
     <string name="cargando">Cargando…</string>
 
+    <!-- Wizards multipaso (T-242) -->
+    <string name="wizard_paso">"Paso "</string>
+    <string name="wizard_de">" de "</string>
+    <string name="wizard_siguiente">Siguiente</string>
+    <string name="wizard_atras">Atrás</string>
+    <string name="wizard_instalacion_paso1">Qué se instala</string>
+    <string name="wizard_instalacion_paso2">Condiciones</string>
+
     <!-- Auth -->
     <string name="auth_login_title">Iniciar sesión</string>
     <string name="auth_login_description">Accede para ver tus locales y recaudar.</string>
