@@ -45,14 +45,23 @@ interface RecaudacionRepository {
 
     fun observarPendientes(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
 
-    /** Recuento de pendientes (incluye `error` y `subiendo`) para badges. */
+    /** Recuento de no-enviadas (`pendiente`/`error`/`subiendo`/`fallida`) para badges. */
     fun observarContadorPendientes(empresaId: String): Flow<Int>
 
     /**
-     * Recaudaciones que el backend RECHAZÓ (estado='error') con su `ultimoError`.
-     * Alimenta el aviso global al técnico de que algo de la cola no se pudo subir.
+     * Recaudaciones BLOQUEADAS (estado IN 'error','fallida') con su `ultimoError`.
+     * Alimenta el aviso global y el panel de subidas (Reintentar/Descartar).
      */
-    fun observarErrores(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
+    fun observarBloqueadas(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
+
+    /** Reintento manual desde el panel: devuelve la fila a 'pendiente'. */
+    suspend fun reintentar(id: String): DomainResult<Unit>
+
+    /** Descarte manual desde el panel: elimina la fila de la cola. */
+    suspend fun descartar(id: String): DomainResult<Unit>
+
+    /** Recupera filas colgadas en 'subiendo' de una ejecución abortada. */
+    suspend fun recuperarColgadas(empresaId: String)
 }
 
 /** Input para encolar una recaudación nueva. */
@@ -85,10 +94,23 @@ class RecaudacionRepositoryImpl @Inject constructor(
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** Reintentos de RED antes de marcar la fila como terminal ('fallida'). */
+    private val maxIntentosRed = 8
+
     override suspend fun encolar(
         input: EncolarRecaudacionInput,
     ): DomainResult<RecaudacionPendienteEntity> {
         val now = Instant.now()
+        // Evita el doble-guardado: si ya hay una recaudación NO enviada con los
+        // mismos contadores físicos para esta instalación, devolvemos esa en vez
+        // de duplicar (dos filas → dos recaudaciones / un conflicto en servidor).
+        dao.buscarNoEnviadaConContadores(
+            empresaId = input.empresaId,
+            instalacionId = input.instalacionId,
+            entradas = input.contadorEntradasActual,
+            salidas = input.contadorSalidasActual,
+        )?.let { return DomainResult.Success(it) }
+
         val entity = RecaudacionPendienteEntity(
             id = UUID.randomUUID().toString(),
             empresaId = input.empresaId,
@@ -143,6 +165,21 @@ class RecaudacionRepositoryImpl @Inject constructor(
         val pendiente = dao.siguientePendiente(empresaId)
             ?: return DomainResult.Success(null)
 
+        // Doble-guardado: si una recaudación IDÉNTICA (misma instalación + mismos
+        // contadores físicos) ya se subió, esta es un duplicado de un doble-tap.
+        // La descartamos en vez de crear una segunda recaudación / un conflicto.
+        dao.buscarEnviadaConContadores(
+            empresaId = pendiente.empresaId,
+            instalacionId = pendiente.instalacionId,
+            entradas = pendiente.contadorEntradasActual,
+            salidas = pendiente.contadorSalidasActual,
+            exceptoId = pendiente.id,
+        )?.let { gemela ->
+            dao.descartar(pendiente.id)
+            Timber.i("Recaudación %s descartada: duplicada de %s (ya enviada)", pendiente.id, gemela.id)
+            return DomainResult.Success(pendiente.copy(estado = EstadoRecaudacionPendiente.ENVIADA))
+        }
+
         val now = Instant.now()
         dao.marcarSubiendo(pendiente.id, now)
 
@@ -167,8 +204,26 @@ class RecaudacionRepositoryImpl @Inject constructor(
             },
             onFailure = { throwable ->
                 val (error, mensaje) = clasificar(throwable)
-                dao.marcarError(pendiente.id, mensaje, Instant.now())
-                Timber.w(throwable, "Fallo subiendo recaudacion %s: %s", pendiente.id, mensaje)
+                val ahora = Instant.now()
+                // Solo un fallo de RED es transitorio: la fila sigue 'error' y se
+                // reintenta. Cualquier otro (validación/auth/not_found/conflicto…)
+                // NO se arregla reintentando el MISMO payload congelado → 'fallida'
+                // (terminal, fuera del drenado) para no bloquear la cola. Una fila
+                // que agota los reintentos de red también pasa a terminal.
+                val terminal = error !is DomainError.Network ||
+                    pendiente.intentos + 1 >= maxIntentosRed
+                if (terminal) {
+                    dao.marcarFallida(pendiente.id, mensaje, ahora)
+                } else {
+                    dao.marcarError(pendiente.id, mensaje, ahora)
+                }
+                Timber.w(
+                    throwable,
+                    "Fallo subiendo %s (%s): %s",
+                    pendiente.id,
+                    if (terminal) "terminal/fallida" else "reintentable",
+                    mensaje,
+                )
                 DomainResult.Failure(error)
             },
         )
@@ -181,8 +236,25 @@ class RecaudacionRepositoryImpl @Inject constructor(
     override fun observarContadorPendientes(empresaId: String): Flow<Int> =
         dao.observarContadorPendientes(empresaId)
 
-    override fun observarErrores(empresaId: String): Flow<List<RecaudacionPendienteEntity>> =
-        dao.observarErrores(empresaId)
+    override fun observarBloqueadas(empresaId: String): Flow<List<RecaudacionPendienteEntity>> =
+        dao.observarBloqueadas(empresaId)
+
+    override suspend fun reintentar(id: String): DomainResult<Unit> =
+        runCatching { dao.reencolar(id) }.fold(
+            onSuccess = { DomainResult.Success(Unit) },
+            onFailure = { DomainResult.Failure(DomainError.Unknown(it.message)) },
+        )
+
+    override suspend fun descartar(id: String): DomainResult<Unit> =
+        runCatching { dao.descartar(id) }.fold(
+            onSuccess = { DomainResult.Success(Unit) },
+            onFailure = { DomainResult.Failure(DomainError.Unknown(it.message)) },
+        )
+
+    override suspend fun recuperarColgadas(empresaId: String) {
+        runCatching { dao.rearmarColgadas(empresaId) }
+            .onFailure { Timber.w(it, "No se pudieron rearmar colgadas de %s", empresaId) }
+    }
 
     private fun mapToRequest(entity: RecaudacionPendienteEntity): CrearRecaudacionRequest {
         val desgloseTotal = deserializarDesglose(entity.desgloseTotalJson)

@@ -189,10 +189,13 @@
     <string name="recaudacion_baseline_cambiada_accion">Rehacer la lectura</string>
     <string name="recaudacion_baseline_cambiada_descartar">Entendido</string>
 
-    <!-- (B) Aviso global: una recaudación de la cola fue rechazada por el servidor -->
-    <string name="error_subida_titulo">No se pudo subir una recaudación</string>
-    <string name="error_subida_mensaje">Una recaudación que tenías en la cola no se ha podido guardar en el servidor. Motivo:</string>
-    <string name="error_subida_aceptar">Entendido</string>
+    <!-- (C) Panel global: recaudaciones de la cola que no se pudieron subir -->
+    <string name="cola_bloqueadas_titulo">Recaudaciones sin subir (%1$d)</string>
+    <string name="cola_bloqueadas_intro">Estas recaudaciones no se pudieron subir al servidor. Revisa el motivo y reinténtalas, o descártalas si ya no aplican.</string>
+    <string name="cola_bloqueadas_importe">Importe: %1$s €</string>
+    <string name="cola_bloqueadas_reintentar">Reintentar</string>
+    <string name="cola_bloqueadas_descartar">Descartar</string>
+    <string name="cola_bloqueadas_cerrar">Cerrar</string>
 
     <!-- Post-guardado e impresión Bluetooth (T-62) -->
     <string name="recaudacion_post_guardado_titulo">Recaudación guardada</string>
