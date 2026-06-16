@@ -80,10 +80,101 @@ interface RecaudacionPendienteDao {
     )
     suspend fun marcarError(id: String, error: String, ahora: Instant)
 
+    /**
+     * Marca una fila como TERMINAL ('fallida'): error no recuperable reintentando.
+     * Sale del conjunto de drenado ([siguientePendiente]) para no bloquear la cola.
+     */
+    @Query(
+        """
+        UPDATE recaudacion_pendiente
+        SET estado = 'fallida',
+            intentos = intentos + 1,
+            ultimo_error = :error,
+            ultimo_intento_at = :ahora
+        WHERE id = :id
+        """,
+    )
+    suspend fun marcarFallida(id: String, error: String, ahora: Instant)
+
+    /** Reintento manual desde el panel: vuelve a 'pendiente' y resetea el contador. */
+    @Query(
+        """
+        UPDATE recaudacion_pendiente
+        SET estado = 'pendiente',
+            intentos = 0,
+            ultimo_error = NULL
+        WHERE id = :id
+        """,
+    )
+    suspend fun reencolar(id: String)
+
+    /** Descarte manual desde el panel: elimina definitivamente la fila. */
+    @Query("DELETE FROM recaudacion_pendiente WHERE id = :id")
+    suspend fun descartar(id: String)
+
+    /**
+     * Recupera filas colgadas en 'subiendo' de una ejecución anterior abortada
+     * (proceso muerto a mitad de subida): las devuelve a 'pendiente' para que el
+     * worker las vuelva a drenar. Se llama al arrancar [doWork].
+     */
+    @Query(
+        """
+        UPDATE recaudacion_pendiente
+        SET estado = 'pendiente'
+        WHERE empresa_id = :empresaId AND estado = 'subiendo'
+        """,
+    )
+    suspend fun rearmarColgadas(empresaId: String)
+
+    /**
+     * Detecta un doble-guardado: una recaudación aún no enviada con los MISMOS
+     * contadores físicos para la misma instalación. Evita encolar duplicados
+     * (que crearían dos recaudaciones / un conflicto en el servidor).
+     */
+    @Query(
+        """
+        SELECT * FROM recaudacion_pendiente
+        WHERE empresa_id = :empresaId AND instalacion_id = :instalacionId
+          AND contador_entradas_actual = :entradas
+          AND contador_salidas_actual = :salidas
+          AND estado IN ('pendiente', 'subiendo', 'error', 'fallida')
+        LIMIT 1
+        """,
+    )
+    suspend fun buscarNoEnviadaConContadores(
+        empresaId: String,
+        instalacionId: String,
+        entradas: Long,
+        salidas: Long,
+    ): RecaudacionPendienteEntity?
+
+    /**
+     * Igual que [buscarNoEnviadaConContadores] pero buscando una gemela YA enviada
+     * (excluyendo la propia fila): detecta un doble-guardado cuyo gemelo ya subió,
+     * para descartar el duplicado en vez de crear una segunda recaudación.
+     */
+    @Query(
+        """
+        SELECT * FROM recaudacion_pendiente
+        WHERE empresa_id = :empresaId AND instalacion_id = :instalacionId
+          AND contador_entradas_actual = :entradas
+          AND contador_salidas_actual = :salidas
+          AND estado = 'enviada' AND id != :exceptoId
+        LIMIT 1
+        """,
+    )
+    suspend fun buscarEnviadaConContadores(
+        empresaId: String,
+        instalacionId: String,
+        entradas: Long,
+        salidas: Long,
+        exceptoId: String,
+    ): RecaudacionPendienteEntity?
+
     @Query(
         """
         SELECT COUNT(*) FROM recaudacion_pendiente
-        WHERE empresa_id = :empresaId AND estado IN ('pendiente', 'error', 'subiendo')
+        WHERE empresa_id = :empresaId AND estado IN ('pendiente', 'error', 'subiendo', 'fallida')
         """,
     )
     fun observarContadorPendientes(empresaId: String): Flow<Int>
@@ -91,9 +182,9 @@ interface RecaudacionPendienteDao {
     @Query(
         """
         SELECT * FROM recaudacion_pendiente
-        WHERE empresa_id = :empresaId AND estado = 'error'
+        WHERE empresa_id = :empresaId AND estado IN ('error', 'fallida')
         ORDER BY ultimo_intento_at DESC
         """,
     )
-    fun observarErrores(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
+    fun observarBloqueadas(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
 }

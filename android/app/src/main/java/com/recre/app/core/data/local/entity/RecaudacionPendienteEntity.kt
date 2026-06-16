@@ -147,5 +147,19 @@ object EstadoRecaudacionPendiente {
     const val PENDIENTE = "pendiente"
     const val SUBIENDO = "subiendo"
     const val ENVIADA = "enviada"
+
+    /**
+     * Fallo TRANSITORIO (red caída). La fila sigue elegible para el drenado y se
+     * reintenta automáticamente con backoff.
+     */
     const val ERROR = "error"
+
+    /**
+     * Terminal: la subida falló por una causa que NO se arregla reintentando el
+     * mismo payload congelado (validación de desglose, auth, not_found, conflicto,
+     * o agotó los reintentos de red). Sale del drenado para no bloquear a las
+     * recaudaciones VÁLIDAS que tiene detrás (cabeza de cola), y se muestra en el
+     * panel de subidas con acciones Reintentar/Descartar.
+     */
+    const val FALLIDA = "fallida"
 }
