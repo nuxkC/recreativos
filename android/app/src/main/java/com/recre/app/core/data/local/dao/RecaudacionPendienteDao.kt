@@ -87,4 +87,13 @@ interface RecaudacionPendienteDao {
         """,
     )
     fun observarContadorPendientes(empresaId: String): Flow<Int>
+
+    @Query(
+        """
+        SELECT * FROM recaudacion_pendiente
+        WHERE empresa_id = :empresaId AND estado = 'error'
+        ORDER BY ultimo_intento_at DESC
+        """,
+    )
+    fun observarErrores(empresaId: String): Flow<List<RecaudacionPendienteEntity>>
 }

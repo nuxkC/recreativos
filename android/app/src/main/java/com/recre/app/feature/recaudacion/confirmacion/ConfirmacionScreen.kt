@@ -71,6 +71,7 @@ fun ConfirmacionScreen(
     viewModel: RecaudacionFlowViewModel,
     onFinalizar: () -> Unit,
     onBack: () -> Unit,
+    onRehacer: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -109,14 +110,18 @@ fun ConfirmacionScreen(
                     onContinuar = onFinalizar,
                 )
             } else {
-                FormularioBlock(state = state, viewModel = viewModel)
+                FormularioBlock(state = state, viewModel = viewModel, onRehacer = onRehacer)
             }
         }
     }
 }
 
 @Composable
-private fun FormularioBlock(state: RecaudacionFlowState, viewModel: RecaudacionFlowViewModel) {
+private fun FormularioBlock(
+    state: RecaudacionFlowState,
+    viewModel: RecaudacionFlowViewModel,
+    onRehacer: () -> Unit,
+) {
     val cifras = state.cifras
     if (cifras == null) {
         Text(
@@ -174,13 +179,19 @@ private fun FormularioBlock(state: RecaudacionFlowState, viewModel: RecaudacionF
         }
     }
 
+    if (state.baselineCambiada) {
+        Spacer(Modifier.height(16.dp))
+        BaselineCambiadaAviso(onRehacer = onRehacer)
+    }
+
     Spacer(Modifier.height(24.dp))
     Button(
         onClick = viewModel::onGuardar,
         modifier = Modifier
             .fillMaxWidth()
             .testTag(RecaudacionTestTags.CONFIRMACION_GUARDAR),
-        enabled = state.firmaStrokes.isNotEmpty() && !state.guardando && !state.syncStale,
+        enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
+            !state.syncStale && !state.baselineCambiada,
     ) {
         if (state.guardando) {
             Box(modifier = Modifier.size(20.dp)) {
@@ -378,4 +389,41 @@ private fun printerErrorTexto(error: PrinterError): String = when (error) {
         stringResource(R.string.impresora_error_conexion)
     is PrinterError.ImpresionFallida ->
         stringResource(R.string.impresora_error_impresion)
+}
+
+/**
+ * (A) Aviso bloqueante cuando la baseline cambió a mitad del flujo. Explica el
+ * porqué y ofrece rehacer la lectura desde el paso de contadores —única salida
+ * segura: guardar con un desglose obsoleto haría que el server lo rechazara—.
+ */
+@Composable
+private fun BaselineCambiadaAviso(onRehacer: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Filled.Warning, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.recaudacion_baseline_cambiada_titulo),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.recaudacion_baseline_cambiada_mensaje),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(onClick = onRehacer, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.recaudacion_baseline_cambiada_accion))
+            }
+        }
+    }
 }

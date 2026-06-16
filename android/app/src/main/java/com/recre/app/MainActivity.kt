@@ -40,6 +40,7 @@ import com.recre.app.core.session.SessionState
 import com.recre.app.core.data.repository.TipoAlerta
 import com.recre.app.feature.ajustes.AjustesScreen
 import com.recre.app.feature.alertas.AlertasScreen
+import com.recre.app.feature.shell.ErroresSubidaDialogHost
 import com.recre.app.feature.auth.LoginScreen
 import com.recre.app.feature.auth.LoginViewModel
 import com.recre.app.feature.averias.AveriasMaquinaScreen
@@ -324,6 +325,11 @@ private fun RecreApp(
     }
       }
     }
+
+    // Aviso global (B): si una recaudación de la cola fue RECHAZADA por el
+    // backend, un popup central explica al técnico qué pasó y por qué. Se monta
+    // sobre el NavHost para que aparezca esté en la pantalla que esté.
+    ErroresSubidaDialogHost()
 }
 
 /**
@@ -562,6 +568,12 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
                     saltarOTerminarCadena(navController, flowVm)
                 },
                 onBack = { navController.popBackStack() },
+                // (A) Baseline cambió a mitad: reinicia la lectura y vuelve al
+                // paso de contadores (el ViewModel del graph sobrevive).
+                onRehacer = {
+                    flowVm.rehacerLectura()
+                    navController.popBackStack(Routes.RECAUDACION_CONTADORES, inclusive = false)
+                },
             )
         }
     }
