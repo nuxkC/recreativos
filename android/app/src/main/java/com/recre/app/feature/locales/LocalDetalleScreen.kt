@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.recre.app.ui.components.recreSharedBounds
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,7 @@ import com.recre.app.feature.locales.components.MaquinaCard
 @Composable
 fun LocalDetalleScreen(
     viewModel: LocalDetalleViewModel,
+    localId: String,
     onBack: () -> Unit,
     onRecaudarMaquina: (String) -> Unit,
     onCambioPlaca: (String) -> Unit,
@@ -58,7 +60,12 @@ fun LocalDetalleScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(state.detalle?.local?.nombre ?: stringResource(R.string.local_detalle_titulo))
+                    Text(
+                        text = state.detalle?.local?.nombre
+                            ?: stringResource(R.string.local_detalle_titulo),
+                        // T-244: par compartido con el nombre de la card de la lista.
+                        modifier = Modifier.recreSharedBounds("local-nombre-$localId"),
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

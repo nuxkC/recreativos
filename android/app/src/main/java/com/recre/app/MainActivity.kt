@@ -27,6 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -52,6 +55,8 @@ import com.recre.app.feature.empresa.SeleccionarEmpresaScreen
 import com.recre.app.feature.empresa.SeleccionarEmpresaViewModel
 import com.recre.app.feature.empresa.SinAccesoScreen
 import com.recre.app.feature.gestion.GestionScreen
+import com.recre.app.ui.components.LocalNavAnimatedVisibilityScope
+import com.recre.app.ui.components.LocalSharedTransitionScope
 import com.recre.app.ui.components.navigateTab
 import com.recre.app.feature.gestion.instalaciones.InstalacionFormScreen
 import com.recre.app.feature.gestion.instalaciones.InstalacionFormViewModel
@@ -121,6 +126,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun RecreApp(
     deepLinkRecaudacionId: StateFlow<String?> = MutableStateFlow(null),
@@ -154,6 +160,8 @@ private fun RecreApp(
         }
     }
 
+    SharedTransitionLayout {
+      CompositionLocalProvider(LocalSharedTransitionScope provides this) {
     NavHost(
         navController = navController,
         startDestination = Routes.SPLASH,
@@ -180,17 +188,19 @@ private fun RecreApp(
             SinAccesoScreen()
         }
         composable(Routes.LOCALES) {
-            val vm: LocalesViewModel = hiltViewModel()
-            LocalesScreen(
-                viewModel = vm,
-                onLocalClick = { localId ->
-                    navController.navigate(Routes.localDetalle(localId))
-                },
-                onAlertasClick = {
-                    navController.navigate(Routes.ALERTAS)
-                },
-                onSelectTab = { dest -> navController.navigateTab(dest) },
-            )
+            CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
+                val vm: LocalesViewModel = hiltViewModel()
+                LocalesScreen(
+                    viewModel = vm,
+                    onLocalClick = { localId ->
+                        navController.navigate(Routes.localDetalle(localId))
+                    },
+                    onAlertasClick = {
+                        navController.navigate(Routes.ALERTAS)
+                    },
+                    onSelectTab = { dest -> navController.navigateTab(dest) },
+                )
+            }
         }
         composable(Routes.IMPRESORA) {
             ImpresoraScreen(onBack = { navController.popBackStack() })
@@ -243,11 +253,13 @@ private fun RecreApp(
                 },
             ),
         ) { backStackEntry ->
+            CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
             val vm: LocalDetalleViewModel = hiltViewModel()
             val localId = backStackEntry.arguments
                 ?.getString(LocalDetalleViewModel.ARG_LOCAL_ID).orEmpty()
             LocalDetalleScreen(
                 viewModel = vm,
+                localId = localId,
                 onBack = { navController.popBackStack() },
                 onRecaudarMaquina = { instalacionId ->
                     navController.navigate(Routes.recaudacion(instalacionId))
@@ -265,6 +277,7 @@ private fun RecreApp(
                 },
                 onVerDeudas = { navController.navigate(Routes.localDeudas(localId)) },
             )
+            }
         }
         composable(
             route = Routes.LOCAL_DEUDAS,
@@ -304,6 +317,8 @@ private fun RecreApp(
         }
         recaudacionGraph(navController)
         gestionRoutes(navController)
+    }
+      }
     }
 }
 
