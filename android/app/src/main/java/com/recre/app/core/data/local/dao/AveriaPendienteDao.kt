@@ -78,11 +78,67 @@ interface AveriaPendienteDao {
     )
     suspend fun marcarError(id: String, error: String, ahora: Instant)
 
+    /**
+     * Marca una fila como TERMINAL ('fallida'): error no recuperable reintentando.
+     * Sale del conjunto de drenado ([siguientePendiente]) para no bloquear la cola.
+     */
+    @Query(
+        """
+        UPDATE averia_pendiente
+        SET estado = 'fallida', intentos = intentos + 1,
+            ultimo_error = :error, ultimo_intento_at = :ahora
+        WHERE id = :id
+        """,
+    )
+    suspend fun marcarFallida(id: String, error: String, ahora: Instant)
+
+    /** Reintento manual desde el panel: vuelve a 'pendiente' y resetea el contador. */
+    @Query(
+        """
+        UPDATE averia_pendiente
+        SET estado = 'pendiente', intentos = 0, ultimo_error = NULL
+        WHERE id = :id
+        """,
+    )
+    suspend fun reencolar(id: String)
+
+    /** Descarte manual desde el panel: elimina definitivamente la fila. */
+    @Query("DELETE FROM averia_pendiente WHERE id = :id")
+    suspend fun descartar(id: String)
+
+    /**
+     * Recupera filas colgadas en 'subiendo' de una ejecución anterior abortada
+     * (proceso muerto a mitad de subida): las devuelve a 'pendiente' para que el
+     * worker las vuelva a drenar. Se llama al arrancar [doWork].
+     */
+    @Query(
+        """
+        UPDATE averia_pendiente
+        SET estado = 'pendiente'
+        WHERE empresa_id = :empresaId AND estado = 'subiendo'
+        """,
+    )
+    suspend fun rearmarColgadas(empresaId: String)
+
     @Query(
         """
         SELECT COUNT(*) FROM averia_pendiente
-        WHERE empresa_id = :empresaId AND estado IN ('pendiente', 'error', 'subiendo')
+        WHERE empresa_id = :empresaId AND estado IN ('pendiente', 'error', 'subiendo', 'fallida')
         """,
     )
     fun observarContadorPendientes(empresaId: String): Flow<Int>
+
+    /**
+     * Averías BLOQUEADAS (estado IN 'error','fallida') con su `ultimoError`.
+     * Alimenta el Centro de Incidencias (Reintentar/Descartar), gemelo de
+     * [RecaudacionPendienteDao.observarBloqueadas].
+     */
+    @Query(
+        """
+        SELECT * FROM averia_pendiente
+        WHERE empresa_id = :empresaId AND estado IN ('error', 'fallida')
+        ORDER BY ultimo_intento_at DESC
+        """,
+    )
+    fun observarBloqueadas(empresaId: String): Flow<List<AveriaPendienteEntity>>
 }

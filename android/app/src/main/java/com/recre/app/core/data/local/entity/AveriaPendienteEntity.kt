@@ -95,5 +95,19 @@ object EstadoAveriaPendiente {
     const val PENDIENTE = "pendiente"
     const val SUBIENDO = "subiendo"
     const val ENVIADA = "enviada"
+
+    /**
+     * Fallo TRANSITORIO (red caída). La fila sigue elegible para el drenado y se
+     * reintenta automáticamente con backoff.
+     */
     const val ERROR = "error"
+
+    /**
+     * Terminal: la subida falló por una causa que NO se arregla reintentando la
+     * misma avería congelada (validación, permiso, not_found, o agotó los
+     * reintentos de red). Sale del drenado para no bloquear a las averías VÁLIDAS
+     * que tiene detrás (cabeza de cola), igual que [EstadoRecaudacionPendiente.FALLIDA]
+     * (T-63). Se muestra en el Centro de Incidencias con acciones Reintentar/Descartar.
+     */
+    const val FALLIDA = "fallida"
 }

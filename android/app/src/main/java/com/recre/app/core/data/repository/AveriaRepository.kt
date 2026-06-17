@@ -43,8 +43,23 @@ interface AveriaRepository {
     /** Reportes de una máquina aún no subidos (pendientes/error), para la UI. */
     fun observarPendientesPorMaquina(maquinaId: String): Flow<List<AveriaPendienteEntity>>
 
-    /** Recuento de pendientes (incluye `error`/`subiendo`) para badges. */
+    /** Recuento de no-enviadas (`pendiente`/`error`/`subiendo`/`fallida`) para badges. */
     fun observarContadorPendientes(empresaId: String): Flow<Int>
+
+    /**
+     * Averías BLOQUEADAS (estado IN 'error','fallida') con su `ultimoError`.
+     * Alimenta el Centro de Incidencias y el badge de incidencias (Reintentar/Descartar).
+     */
+    fun observarBloqueadas(empresaId: String): Flow<List<AveriaPendienteEntity>>
+
+    /** Reintento manual desde el panel: devuelve la fila a 'pendiente'. */
+    suspend fun reintentar(id: String): DomainResult<Unit>
+
+    /** Descarte manual desde el panel: elimina la fila de la cola. */
+    suspend fun descartar(id: String): DomainResult<Unit>
+
+    /** Recupera filas colgadas en 'subiendo' de una ejecución abortada. */
+    suspend fun recuperarColgadas(empresaId: String)
 
     /** Historial en línea por máquina (hoja de vida, gestión). */
     suspend fun historial(empresaId: String, maquinaId: String): GestionResult<List<AveriaHistorial>>
@@ -106,6 +121,9 @@ class AveriaRepositoryImpl @Inject constructor(
 ) : AveriaRepository {
 
     private val json = Json { ignoreUnknownKeys = true }
+
+    /** Reintentos de RED antes de marcar la fila como terminal ('fallida'). */
+    private val maxIntentosRed = 8
 
     override suspend fun encolar(input: ReportarAveriaInput): DomainResult<Unit> {
         val now = Instant.now()
@@ -194,8 +212,26 @@ class AveriaRepositoryImpl @Inject constructor(
             },
             onFailure = { throwable ->
                 val (error, code) = clasificarErrorGestion(throwable)
-                dao.marcarError(pendiente.id, code, Instant.now())
-                Timber.w(throwable, "Fallo subiendo avería %s: %s", pendiente.id, code)
+                val ahora = Instant.now()
+                // Solo un fallo de RED es transitorio: la fila sigue 'error' y se
+                // reintenta. Cualquier otro (validación/auth/not_found…) NO se
+                // arregla reintentando la MISMA avería congelada → 'fallida'
+                // (terminal, fuera del drenado) para no bloquear la cola. Una fila
+                // que agota los reintentos de red también pasa a terminal.
+                val terminal = error !is DomainError.Network ||
+                    pendiente.intentos + 1 >= maxIntentosRed
+                if (terminal) {
+                    dao.marcarFallida(pendiente.id, code, ahora)
+                } else {
+                    dao.marcarError(pendiente.id, code, ahora)
+                }
+                Timber.w(
+                    throwable,
+                    "Fallo subiendo avería %s (%s): %s",
+                    pendiente.id,
+                    if (terminal) "terminal/fallida" else "reintentable",
+                    code,
+                )
                 DomainResult.Failure(error)
             },
         )
@@ -207,6 +243,26 @@ class AveriaRepositoryImpl @Inject constructor(
 
     override fun observarContadorPendientes(empresaId: String): Flow<Int> =
         dao.observarContadorPendientes(empresaId)
+
+    override fun observarBloqueadas(empresaId: String): Flow<List<AveriaPendienteEntity>> =
+        dao.observarBloqueadas(empresaId)
+
+    override suspend fun reintentar(id: String): DomainResult<Unit> =
+        runCatching { dao.reencolar(id) }.fold(
+            onSuccess = { DomainResult.Success(Unit) },
+            onFailure = { DomainResult.Failure(DomainError.Unknown(it.message)) },
+        )
+
+    override suspend fun descartar(id: String): DomainResult<Unit> =
+        runCatching { dao.descartar(id) }.fold(
+            onSuccess = { DomainResult.Success(Unit) },
+            onFailure = { DomainResult.Failure(DomainError.Unknown(it.message)) },
+        )
+
+    override suspend fun recuperarColgadas(empresaId: String) {
+        runCatching { dao.rearmarColgadas(empresaId) }
+            .onFailure { Timber.w(it, "No se pudieron rearmar colgadas de %s", empresaId) }
+    }
 
     override suspend fun historial(
         empresaId: String,
