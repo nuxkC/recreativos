@@ -249,7 +249,7 @@ resolver). Cada tarea = su propio PR pequeño; se construye por fases para revis
   `error/fallida`) → abre Incidencias. Nuevo campo `incidencias` en `ShellUiState`/`ShellViewModel`
   separado de `totalAlertas`; propagar `onIncidenciasClick` por las 4 pantallas (patrón de
   `onAlertasClick`).
-- [ ] **T-262** *(aparte)* Servidor — detección de **tramos de contador solapados** ("caso 8"):
+- [x] **T-262** *(aparte)* Servidor — detección de **tramos de contador solapados** ("caso 8"):
   cuando una recaudación nueva pisa el rango de contador de otra ya firme (por subidas
   desordenadas de la cola offline), hoy se aceptan ambas y se **cuenta dos veces** el tramo común,
   en silencio. En vez de aceptar a ciegas, **marcarla como conflicto** (reutilizando el canal
