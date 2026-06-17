@@ -278,6 +278,7 @@
     <string name="sync_hours_ago">Sincronizado hace %1$d h</string>
     <string name="sync_days_ago">Sincronizado hace %1$d días</string>
     <string name="sync_force">Sincronizar ahora</string>
+    <string name="offline_banner">Sin conexión · se subirá al recuperar la red</string>
 
     <!-- Validation -->
     <string name="validation_email_required">El correo es obligatorio</string>

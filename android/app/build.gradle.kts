@@ -182,6 +182,8 @@ dependencies {
 
     // Imágenes
     implementation(libs.coil.compose)
+    // Ilustraciones animadas propias (rediseño F0)
+    implementation(libs.lottie.compose)
 
     // OCR on-device — contadores en vivo (T-100): ML Kit sobre el preview de CameraX
     implementation(libs.mlkit.text.recognition)

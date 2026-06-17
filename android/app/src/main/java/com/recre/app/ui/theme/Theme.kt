@@ -98,9 +98,12 @@ fun RecreTheme(
         // Vocabulario de motion (T-230). Sustituirá a MaterialTheme.motionScheme
         // cuando material3 1.5.0 lo haga público (BOM 2026.x, T-258). Ver Motion.kt.
         LocalRecreMotion provides ExpressiveRecreMotion,
+        // Escala de espaciado de marca (rediseño F0). Ver Spacing.kt.
+        LocalRecreSpacing provides RecreSpacing,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
+            shapes = RecreShapes, // grupo Forma (radios 12/16/20) → rediseño F0
             typography = Typography, // grupo Tipografía (Geist) → T-228
             content = content,
         )

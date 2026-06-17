@@ -1,5 +1,6 @@
 package com.recre.app.ui.theme
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
@@ -70,3 +71,39 @@ object RecreMotion {
         @Composable @ReadOnlyComposable
         get() = LocalRecreMotion.current
 }
+
+/**
+ * Duraciones de las animaciones de FIRMA del plan (§5). Son tiempos literales en ms
+ * para los efectos que dan personalidad —distintos de los muelles espaciales, que
+ * viven en [RecreMotionScheme]—: el dinero cuenta hacia arriba, el éxito destella,
+ * el error vibra, lo offline pulsa, lo que sincroniza gira. Regla: solo se anima lo
+ * que aclara, guía o confirma; el SO respeta "quitar animaciones".
+ */
+object RecreMotionDurations {
+    /** Tap / chip / thumb: vida mínima. */
+    const val FAST_MS = 120
+
+    /** Color / opacidad / crossfade por defecto. */
+    const val DEFAULT_MS = 250
+
+    /** Transición espacial lenta (hoja, expand). */
+    const val SLOW_MS = 400
+
+    /** Conteo del importe al confirmar (cifra protagonista). */
+    const val COUNT_UP_MS = 600
+
+    /** Destello de éxito (recaudación firme, cuadra). */
+    const val SUCCESS_FLASH_MS = 900
+
+    /** Vibración de error / descuadre. */
+    const val DANGER_SHAKE_MS = 400
+
+    /** Pulso "sin conexión" (respira mientras hay cola). */
+    const val OFFLINE_PULSE_MS = 1600
+
+    /** Giro de "sincronizando". */
+    const val SYNC_SPIN_MS = 900
+}
+
+/** Curva de marca `cubic-bezier(0.2, 0, 0, 1)`: entra rápido, asienta suave. */
+val RecreStandardEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)

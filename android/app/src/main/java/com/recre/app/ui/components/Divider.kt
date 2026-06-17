@@ -1,10 +1,12 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
@@ -14,7 +16,9 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -63,6 +67,36 @@ fun RecreDivider(
     color: Color = RecreColors.current.border, // border = outlineVariant; NO rol semantico
 ) {
     HorizontalDivider(modifier = modifier, thickness = 1.dp, color = color)
+}
+
+/**
+ * Regla horizontal PUNTEADA de 1dp — el corte "perforado" de un ticket/recibo
+ * (estetica del detalle de historico, rediseño F0). Mismo rol que [RecreDivider]:
+ * ESTRUCTURA PURA, color = border (nunca rol semantico). Decorativa: se excluye de
+ * a11y. El guion/hueco van en px del propio trazo para que escale con la densidad.
+ */
+@Composable
+fun RecreDottedDivider(
+    modifier: Modifier = Modifier,
+    color: Color = RecreColors.current.border,
+) {
+    Canvas(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .clearAndSetSemantics {}, // decorativa
+    ) {
+        val dash = 3.dp.toPx()
+        val gap = 3.dp.toPx()
+        drawLine(
+            color = color,
+            start = Offset(0f, size.height / 2f),
+            end = Offset(size.width, size.height / 2f),
+            strokeWidth = size.height,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, gap), 0f),
+        )
+    }
 }
 
 /**
@@ -204,6 +238,7 @@ private fun DividerPreviewContent() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         RecreDivider()
+        RecreDottedDivider()
         RecreLabeledDivider(label = "o introducir a mano")
         RecreLabeledDivider(
             label = "subtotal billetes",
