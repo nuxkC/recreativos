@@ -14,22 +14,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,8 +47,10 @@ import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.SignaturePad
 import com.recre.app.ui.components.CountUpText
 import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.PasoTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.ui.draw.clip
 
@@ -90,22 +86,14 @@ fun ConfirmacionScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.recaudacion_paso_confirmacion)) },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (!state.guardado) viewModel.liberarLockAlSalir()
-                            onBack()
-                        },
-                        enabled = !state.guardando && !state.imprimiendo,
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
+            PasoTopBar(
+                titulo = stringResource(R.string.recaudacion_paso_confirmacion),
+                pasoActual = 3,
+                onBack = {
+                    if (!state.guardado) viewModel.liberarLockAlSalir()
+                    onBack()
                 },
+                backEnabled = !state.guardando && !state.imprimiendo,
             )
         },
     ) { padding ->
@@ -235,11 +223,11 @@ private fun PostGuardadoBlock(
         }
     }
 
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-        ),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = RecreShapes.medium,
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -279,13 +267,11 @@ private fun PostGuardadoBlock(
     )
 
     Spacer(Modifier.height(24.dp))
-    Button(
+    RecrePrimaryButton(
+        text = stringResource(R.string.recaudacion_post_guardado_continuar),
         onClick = onContinuar,
-        modifier = Modifier.fillMaxWidth(),
         enabled = !state.imprimiendo,
-    ) {
-        Text(stringResource(R.string.recaudacion_post_guardado_continuar))
-    }
+    )
 }
 
 @Composable
@@ -304,9 +290,11 @@ private fun ImpresionStatusCard(
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        color = containerColor,
+        contentColor = onContainer,
+        shape = RecreShapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -363,9 +351,11 @@ private fun ImpresionStatusCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    OutlinedButton(onClick = onReintentar, enabled = !imprimiendo) {
-                        Text(stringResource(R.string.recaudacion_impresion_reintentar))
-                    }
+                    RecreTonalButton(
+                        text = stringResource(R.string.recaudacion_impresion_reintentar),
+                        onClick = onReintentar,
+                        enabled = !imprimiendo,
+                    )
                 }
             }
         }
@@ -397,12 +387,11 @@ private fun printerErrorTexto(error: PrinterError): String = when (error) {
  */
 @Composable
 private fun BaselineCambiadaAviso(onRehacer: () -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -420,9 +409,11 @@ private fun BaselineCambiadaAviso(onRehacer: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = onRehacer, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.recaudacion_baseline_cambiada_accion))
-            }
+            RecreTonalButton(
+                text = stringResource(R.string.recaudacion_baseline_cambiada_accion),
+                onClick = onRehacer,
+                fullWidth = true,
+            )
         }
     }
 }

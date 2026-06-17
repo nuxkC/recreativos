@@ -10,20 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +43,9 @@ import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.ui.components.Keypad
 import com.recre.app.ui.components.MoneyText
 import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.PasoTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.formatEur
@@ -131,40 +128,23 @@ fun DenominacionesScreen(
     // Back de hardware: misma confirmación que la flecha (no perder el conteo).
     BackHandler(enabled = hayPiezas) { showDiscard = true }
 
+    val tituloPaso =
+        when (modo) {
+            ModoDenominaciones.Total -> stringResource(R.string.recaudacion_denominaciones_total_titulo)
+            ModoDenominaciones.Local -> stringResource(R.string.recaudacion_denominaciones_local_titulo)
+        }
+    val subtituloObjetivo =
+        target?.let {
+            stringResource(R.string.recaudacion_denominaciones_objetivo, formatEur(it.toPlainString()))
+        }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            when (modo) {
-                                ModoDenominaciones.Total ->
-                                    stringResource(R.string.recaudacion_denominaciones_total_titulo)
-                                ModoDenominaciones.Local ->
-                                    stringResource(R.string.recaudacion_denominaciones_local_titulo)
-                            },
-                        )
-                        if (target != null) {
-                            Text(
-                                text =
-                                    stringResource(
-                                        R.string.recaudacion_denominaciones_objetivo,
-                                        formatEur(target.toPlainString()),
-                                    ),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = ::intentarSalir) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            PasoTopBar(
+                titulo = tituloPaso,
+                pasoActual = 2,
+                onBack = ::intentarSalir,
+                subtitulo = subtituloObjetivo,
             )
         },
     ) { padding ->
@@ -254,17 +234,19 @@ fun DenominacionesScreen(
             title = { Text(stringResource(R.string.recaudacion_denominaciones_descartar_titulo)) },
             text = { Text(stringResource(R.string.recaudacion_denominaciones_descartar_mensaje)) },
             confirmButton = {
-                TextButton(
+                RecreTextButton(
+                    text = stringResource(R.string.recaudacion_denominaciones_descartar_confirmar),
                     onClick = {
                         showDiscard = false
                         onBack()
                     },
-                ) { Text(stringResource(R.string.recaudacion_denominaciones_descartar_confirmar)) }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showDiscard = false }) {
-                    Text(stringResource(R.string.action_cancel))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.action_cancel),
+                    onClick = { showDiscard = false },
+                )
             },
         )
     }

@@ -61,11 +61,11 @@ class SinMaterialPeladoTest {
             "feature/locales/LocalesScreen.kt",
             "feature/recaudacion/components/CifrasResumenCard.kt",
             "feature/recaudacion/components/RecuperacionResumenCard.kt",
-            "feature/recaudacion/confirmacion/ConfirmacionScreen.kt",
-            "feature/recaudacion/contadores/ContadoresScreen.kt",
+            // Migradas a chrome propio (PasoTopBar) + átomos en rediseño F1·Task 7;
+            // fuera de la allowlist. Quedan ContadorOcrCapture/EscanerContadoresScreen
+            // (cámara/OCR) pendientes de una fase posterior.
             "feature/recaudacion/contadores/ContadorOcrCapture.kt",
             "feature/recaudacion/contadores/EscanerContadoresScreen.kt",
-            "feature/recaudacion/denominaciones/DenominacionesScreen.kt",
             "feature/shell/ErroresSubidaDialog.kt",
         )
 

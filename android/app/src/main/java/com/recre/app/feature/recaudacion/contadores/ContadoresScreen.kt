@@ -10,21 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +36,11 @@ import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.Keypad
+import com.recre.app.ui.components.PasoTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreType
 
 /**
@@ -87,43 +83,24 @@ fun ContadoresScreen(
     // Campo activo que dirige el keypad (entradas o salidas); el IME del sistema nunca aparece.
     var activeCampo by remember { mutableStateOf(CampoContador.Entradas) }
 
+    val cadena = state.cadena
+    val tituloPaso =
+        if (cadena != null) {
+            stringResource(R.string.recaudacion_paso_contadores_cadena, cadena.posicion, cadena.total)
+        } else {
+            stringResource(R.string.recaudacion_paso_contadores)
+        }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        val cadena = state.cadena
-                        Text(
-                            text = if (cadena != null) {
-                                stringResource(
-                                    R.string.recaudacion_paso_contadores_cadena,
-                                    cadena.posicion,
-                                    cadena.total,
-                                )
-                            } else {
-                                stringResource(R.string.recaudacion_paso_contadores)
-                            },
-                        )
-                        if (maquina != null) {
-                            Text(
-                                text = maquina.numeroSerie,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
+            PasoTopBar(
+                titulo = tituloPaso,
+                pasoActual = 1,
+                onBack = {
+                    viewModel.liberarLockAlSalir()
+                    onBack()
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        viewModel.liberarLockAlSalir()
-                        onBack()
-                    }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+                subtitulo = maquina?.numeroSerie,
             )
         },
     ) { padding ->
@@ -364,36 +341,30 @@ private fun Acciones(
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         if (cifrasNoProcede) {
-            OutlinedButton(
+            RecreTonalButton(
+                text = stringResource(R.string.recaudacion_accion_lectura_no_recaudada),
                 onClick = onLecturaNoRecaudada,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(RecaudacionTestTags.CONTADORES_LECTURA_NO_RECAUDADA),
-            ) {
-                Text(stringResource(R.string.recaudacion_accion_lectura_no_recaudada))
-            }
+                fullWidth = true,
+                modifier = Modifier.testTag(RecaudacionTestTags.CONTADORES_LECTURA_NO_RECAUDADA),
+            )
         } else {
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.recaudacion_accion_continuar),
                 onClick = onContinuar,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(RecaudacionTestTags.CONTADORES_CONTINUAR),
                 enabled = cifrasOk && !bloqueadoPorLock,
-            ) {
-                Text(stringResource(R.string.recaudacion_accion_continuar))
-            }
+                modifier = Modifier.testTag(RecaudacionTestTags.CONTADORES_CONTINUAR),
+            )
         }
     }
 }
 
 @Composable
 private fun SyncStaleBlocker(onBack: () -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -406,12 +377,10 @@ private fun SyncStaleBlocker(onBack: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(16.dp))
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.recaudacion_stale_volver),
                 onClick = onBack,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.recaudacion_stale_volver))
-            }
+            )
         }
     }
 }
@@ -431,14 +400,16 @@ private fun LockOcupadoDialog(
             Text(stringResource(R.string.recaudacion_lock_descripcion))
         },
         confirmButton = {
-            Button(onClick = onForzar) {
-                Text(stringResource(R.string.recaudacion_lock_forzar))
-            }
+            RecreTextButton(
+                text = stringResource(R.string.recaudacion_lock_forzar),
+                onClick = onForzar,
+            )
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) {
-                Text(stringResource(R.string.recaudacion_lock_cancelar))
-            }
+            RecreTextButton(
+                text = stringResource(R.string.recaudacion_lock_cancelar),
+                onClick = onCancelar,
+            )
         },
     )
 }

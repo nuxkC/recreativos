@@ -111,6 +111,10 @@
     <string name="recaudacion_paso_contadores">Contadores</string>
     <string name="recaudacion_paso_contadores_cadena">Contadores · máquina %1$d de %2$d</string>
     <string name="recaudacion_paso_confirmacion">Confirmar y firmar</string>
+    <!-- Indicador de pasos del flujo (StepIndicator · M1). Comillas para preservar el espacio. -->
+    <string name="recaudacion_step_label">"Paso "</string>
+    <string name="recaudacion_step_connector">" de "</string>
+    <string name="recaudacion_step_descripcion">Paso %1$d de %2$d</string>
     <string name="recaudacion_error_cargar">No se puede iniciar la recaudación: la instalación no está disponible.</string>
 
     <string name="recaudacion_label_contador_entradas">Contador entradas</string>
