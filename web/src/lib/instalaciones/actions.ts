@@ -42,6 +42,10 @@ function parseInstalacionForm(formData: FormData): Record<string, unknown> {
     tolva: formData.get("tolva") ?? "",
     estado: formData.get("estado") ?? "activa",
     notas: formData.get("notas") ?? "",
+    // Calendario de recaudación del local (Planificación P1). Ausentes en el
+    // form de edición → "" → null (no se toca el calendario al editar).
+    cadenciaSemanas: formData.get("cadenciaSemanas") ?? "",
+    fechaInicioRecaudacion: formData.get("fechaInicioRecaudacion") ?? "",
   };
 }
 
@@ -170,6 +174,11 @@ export async function crearInstalacion(
     // La tolva (dinero físico dejado en la máquina) viaja como string numérico.
     // El servidor crea la deuda del local por la tolva = porcentaje_local × tolva.
     p_tolva: input.tolva,
+    // Calendario de recaudación del local (Planificación P1): al instalar se fija
+    // de una vez cada cuántas semanas y desde qué fecha se recauda este local.
+    // null = no se toca (el local conserva el que tenga, o sigue sin planificar).
+    p_cadencia_semanas: input.cadenciaSemanas,
+    p_fecha_inicio_recaudacion: input.fechaInicioRecaudacion,
   });
 
   if (error) {
