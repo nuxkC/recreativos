@@ -179,7 +179,7 @@ private fun Contenido(
             // el sync no está stale. Saltamos a la primera por orden.
             item("recaudar-todas") {
                 val instaladas = detalle.maquinas.filter { it.estado == "instalada" }
-                if (instaladas.isNotEmpty()) {
+                if (mostrarRecaudarTodas(instaladas.size)) {
                     Button(
                         onClick = { onRecaudarTodas(instaladas.first().instalacionId) },
                         modifier = Modifier.fillMaxWidth(),
@@ -294,3 +294,6 @@ private fun SinMaquinas() {
         )
     }
 }
+
+/** "Recaudar todas" (modo cadena) solo tiene sentido con 2+ maquinas instaladas. */
+internal fun mostrarRecaudarTodas(maquinasInstaladas: Int): Boolean = maquinasInstaladas > 1
