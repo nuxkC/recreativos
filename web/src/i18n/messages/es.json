@@ -72,9 +72,11 @@
       "ajustes": "Datos fiscales, logo, configuración del ticket y preferencias.",
       "informes": "Gráficas históricas de recaudación por mes, local y máquina.",
       "auditoria": "Bitácora de eventos del sistema por empresa.",
-      "deudas": "Tolva y préstamos de los locales"
+      "deudas": "Tolva y préstamos de los locales",
+      "operarios": "Locales que lleva cada operario."
     },
-    "deudas": "Deudas"
+    "deudas": "Deudas",
+    "operarios": "Operarios"
   },
   "layout": {
     "sidebarLabel": "Navegación principal",
@@ -461,6 +463,24 @@
       "titulo": "Datos del local",
       "descripcion": "Datos de contacto y titularidad del establecimiento donde se instalan las máquinas."
     },
+    "calendario": {
+      "titulo": "Recaudación",
+      "descripcion": "Cada cuántas semanas y desde qué fecha se recauda este local, y quién lo lleva.",
+      "cadencia": "Cada cuántas semanas",
+      "fechaInicio": "Primera recaudación (fecha de inicio)",
+      "operario": "Operario asignado",
+      "sinOperario": "Sin asignar",
+      "sinPlanificar": "Sin planificar",
+      "presetSemanal": "Cada semana",
+      "presetQuincenal": "Cada 2 semanas",
+      "presetMensual": "Cada 4 semanas (mensual)",
+      "presetOtro": "Otra cadencia…",
+      "cadenciaLibre": "Número de semanas",
+      "guardar": "Guardar recaudación",
+      "guardando": "Guardando…",
+      "guardadoOk": "Recaudación actualizada.",
+      "guardarError": "No se pudo guardar. Inténtalo de nuevo."
+    },
     "eliminar": {
       "titulo": "¿Eliminar el local?",
       "descripcion": "El local {nombre} se borrará permanentemente. Si tiene instalaciones asociadas, primero deberás cerrarlas."
@@ -473,7 +493,10 @@
       "titularNombreMuyLargo": "El nombre del titular no puede tener más de 150 caracteres.",
       "telefonoMuyLargo": "El teléfono no puede tener más de 30 caracteres.",
       "emailInvalido": "El correo electrónico no tiene un formato válido.",
-      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres."
+      "notasMuyLargas": "Las notas no pueden tener más de 2000 caracteres.",
+      "cadenciaInvalida": "La cadencia debe ser un número de semanas mayor que 0.",
+      "calendarioIncompleto": "Indica la cadencia y la fecha de inicio, o deja ambas vacías.",
+      "uuidInvalido": "Selección inválida."
     },
     "errores": {
       "validacion": "Hay campos sin completar correctamente.",
@@ -619,7 +642,9 @@
       "tolvaAyuda": "Dinero físico que dejas dentro de la máquina para que pueda pagar premios. El local te deberá su parte (porcentaje del local × tolva); el resto es capital tuyo en la calle. Déjalo en 0 si no dejas tolva.",
       "estado": "Estado",
       "notas": "Notas",
-      "notasCierre": "Notas del cierre"
+      "notasCierre": "Notas del cierre",
+      "cadenciaSemanas": "Cada cuántas semanas se recauda",
+      "fechaInicioRecaudacion": "Primera recaudación (fecha de inicio)"
     },
     "estado": {
       "activa": "Activa",
@@ -689,7 +714,24 @@
       "maquinaConInstalacionActiva": "Esta máquina ya tiene una instalación activa.",
       "licenciaInvalida": "Selecciona una licencia válida de la empresa.",
       "maquinaInvalida": "Selecciona una máquina válida de la empresa.",
-      "localInvalido": "Selecciona un local válido de la empresa."
+      "localInvalido": "Selecciona un local válido de la empresa.",
+      "cadenciaInvalida": "La cadencia debe ser un número de semanas mayor que 0.",
+      "calendarioIncompleto": "Indica la cadencia y la fecha de inicio, o deja ambas vacías.",
+      "calendarioRequerido": "Indica cada cuántas semanas y desde qué fecha se recauda este local."
+    },
+    "calendario": {
+      "seccion": "Planificación de la recaudación",
+      "ayuda": "Cada cuántas semanas y desde qué día se pasará a recaudar este local. Se aplica a todas sus máquinas.",
+      "presetPlaceholder": "Elige la cadencia",
+      "presetSemanal": "Cada semana",
+      "presetQuincenal": "Cada 2 semanas",
+      "presetMensual": "Cada 4 semanas (mensual)",
+      "presetOtro": "Otra cadencia…",
+      "cadenciaLibre": "Número de semanas",
+      "avisoTitulo": "Este local ya tiene una planificación",
+      "avisoDescripcion": "{nombre} ya se recauda cada {semanas} semana(s) desde el {fecha}. Si lo cambias aquí, cambia para TODAS sus máquinas, no solo para esta.",
+      "avisoConfirmar": "Sí, cambiar la planificación",
+      "avisoCancelar": "Mantener la actual"
     },
     "errores": {
       "validacion": "Hay campos sin completar correctamente.",
@@ -1167,6 +1209,14 @@
       "titulo": "¡Bienvenido a Recre!",
       "descripcion": "Tu empresa ya está creada y estás en periodo de prueba. Empieza dando de alta tus licencias, máquinas y locales."
     }
+  },
+  "operarios": {
+    "titulo": "Operarios y rutas",
+    "subtitulo": "Locales que lleva cada operario. Asigna o cambia el operario desde la ficha de cada local.",
+    "sinAsignar": "Sin asignar",
+    "localesCount": "{count, plural, =0 {Sin locales} one {# local} other {# locales}}",
+    "operarioVacio": "Este operario aún no lleva ningún local.",
+    "sinAsignarVacio": "Todos los locales tienen operario asignado."
   },
   "trial": {
     "etiqueta": "Prueba gratuita:",
