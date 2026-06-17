@@ -41,7 +41,7 @@ Que el sistema sepa **qué recaudar, cuándo y quién**, de forma que:
 
 Migración aditiva (`ALTER TABLE public.local`):
 
-- `cadencia_semanas smallint NULL` — cada cuántas semanas se recauda. `CHECK (cadencia_semanas IS NULL OR cadencia_semanas > 0)`. UI con presets 1 (semanal) / 2 (quincenal) / 4 (cada 4 semanas) pero el valor es libre.
+- `cadencia_semanas smallint NULL` — cada cuántas semanas se recauda. `CHECK (cadencia_semanas IS NULL OR cadencia_semanas > 0)`. UI: número libre **+ atajos** 1 (semanal) / 2 (quincenal) / 4 (cada 4 semanas). **"Mensual" se modela como cada 4 semanas** (mantiene el día de la semana fijo y el cálculo por semanas limpio); el mes de calendario real queda fuera de v1.
 - `fecha_inicio_recaudacion date NULL` — fecha ancla. El día de la semana de las recaudaciones sale de aquí (todas las fechas programadas caen en su mismo día, porque la cadencia es en semanas enteras).
 - `operario_id uuid NULL REFERENCES public.usuario(id)` — responsable del local (uno). NULL = sin asignar.
 
@@ -64,7 +64,7 @@ Para un local *planificado* con fecha de inicio `F` y cadencia `C` (semanas), ev
 
 "Pendiente" = `toca_hoy ∪ atrasado`. Un local pendiente sigue apareciendo hasta que se visita (no se "salta" al siguiente ciclo sin atender). El héroe **"X por recaudar"** = nº de locales del operario con estado pendiente.
 
-> Nota de definición: "atendido = cualquier máquina del local visitada en el ciclo". Es pragmático (el operario hace el local entero de una). Afinar a "todas las máquinas" se deja para una iteración futura si hace falta.
+> Nota de definición (DECIDIDO): "atendido = **cualquier** máquina del local visitada en el ciclo". Razón: el operario hace el local entero en una sola visita —no es óptimo volver otro día al mismo bar—, así que se entiende que si fue, recaudó todas. Basta una recaudación firme o `lectura_no_recaudada` en el ciclo para dar el local por atendido. No se exige máquina por máquina.
 
 Esta derivación se expone vía una **vista o RPC** (`v_agenda_operario` / `agenda_operario(p_empresa_id)`) que devuelve, por local visible para el usuario: `local_id`, nombre, `operario_id`, `cadencia_semanas`, `fecha_inicio_recaudacion`, `fecha_programada_vigente`, `estado` (sin_planificar/al_dia/toca_hoy/atrasado), y nº de máquinas. Respeta la RLS (un técnico solo ve sus locales). La función SQL crítica lleva tests pgTAP.
 
@@ -93,7 +93,9 @@ Helper SQL nuevo recomendado para no repetir el subquery: `usuario_ve_local(p_lo
   - Si **ya** lo tiene → se muestran rellenos; editarlos dispara aviso de confirmación ("cambia para todas las máquinas del local").
   - La RPC `crear_instalacion` se amplía (o se acompaña de `configurar_calendario_local`) para fijar/actualizar el calendario del local de forma transaccional. (Forma exacta en el plan; valida `usuario_es_gestor`.)
 - **Ficha del local** (`web/.../locales/[id]`): ve y edita `cadencia` + `fecha_inicio` + `operario_id` (desplegable de técnicos de la empresa). RPC nueva `actualizar_calendario_local(p_local_id, p_cadencia_semanas, p_fecha_inicio_recaudacion, p_operario_id)` (`SECURITY DEFINER`, valida gestor + que el operario sea técnico activo de la empresa).
-- **Vista "operarios / rutas"**: lista de operarios con cuántos/qué locales lleva, para repartir y reasignar de un vistazo. (Página nueva en el back-office.)
+- **Vista "operarios / rutas"**: lista de operarios con cuántos/qué locales lleva, para repartir y reasignar de un vistazo (parte de **P1**). En **P3**, cuando ya existe el cálculo de la agenda, esta vista se convierte en el **panel de control del gestor**: muestra además qué locales de la empresa están **pendientes/atrasados y quién los lleva** ("8 locales atrasados: 5 de Juan, 3 de Pedro"), para que el jefe vigile que nadie se queda atrás.
+
+> **Operario asignable:** `operario_id` puede ser cualquier miembro **activo** de la empresa con rol operativo (`tecnico`+, incluidos gestores/admin que también hagan ruta). El desplegable de la ficha del local lista esos miembros.
 
 ### 6.2 Android — agenda del técnico (P3)
 
@@ -107,7 +109,7 @@ Helper SQL nuevo recomendado para no repetir el subquery: `usuario_ve_local(p_lo
 
 - **P1 — Datos + configuración** (base de datos + web). Campos en `local`, RPCs de calendario/asignación, formulario de instalación y ficha de local, vista de operarios. **No cambia las lecturas** (solo añade): no rompe nada. Entregable: los gestores ya planifican y asignan.
 - **P2 — Lecturas estrictas por operario** (base de datos + verificación sync Android). Policies RLS estrictas + helper `usuario_ve_local` + pgTAP. Entregable: cada quien ve lo suyo; cerrado el agujero. (Depende de la asignación de P1.)
-- **P3 — La agenda** (vista/RPC `agenda_operario` + home Android). Cálculo del estado + home como agenda con héroe y estados. Entregable: el técnico abre la app y ve su ruta. (Depende del calendario de P1 y, para filtrar a lo suyo, de la RLS de P2.)
+- **P3 — La agenda** (vista/RPC `agenda_operario` + home Android + panel del gestor web). Cálculo del estado + home como agenda con héroe y estados + **panel de control del gestor** (web) que reusa el mismo cálculo (qué hay pendiente/atrasado en la empresa y quién lo lleva). Entregable: el técnico abre la app y ve su ruta, y el gestor vigila a todos. (Depende del calendario de P1 y, para filtrar a lo suyo, de la RLS de P2.)
 
 Cada fase: su rama, sus PRs (<400 líneas, squash) y su mini-plan vía writing-plans. Tareas `T-XX` nuevas en `.kiro/specs/recre/tasks.md`.
 
@@ -115,7 +117,8 @@ Cada fase: su rama, sus PRs (<400 líneas, squash) y su mini-plan vía writing-p
 
 - Notificaciones push ("hoy te tocan 5 locales").
 - "Día de recaudación por defecto" a nivel empresa (el día sale de la fecha de inicio; se puede añadir como ayuda de UI más tarde).
-- Afinar "atendido" a "todas las máquinas del local" (v1 = cualquier visita en el ciclo).
+- Exigir "todas las máquinas del local" para dar el ciclo por atendido: **descartado** (v1 = cualquier visita en el ciclo, porque el operario hace el local entero en una visita).
+- Mes de calendario real (v1 = "mensual" se trata como cada 4 semanas).
 - Poda de la cola de subida local (`recaudacion_pendiente`/`averia_pendiente`) — deuda técnica separada (memoria `cola-subida-sin-poda`).
 - El "Histórico v2 a escala" — feature separada, pendiente.
 
