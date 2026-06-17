@@ -2,7 +2,6 @@ package com.recre.app.feature.locales.components
 
 import com.recre.app.ui.components.formatEur
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,13 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +19,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.recre.app.R
 import com.recre.app.core.data.repository.MaquinaConInstalacion
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.OverflowAccion
+import com.recre.app.ui.components.RecreDivider
+import com.recre.app.ui.components.RecreOverflowMenu
+import com.recre.app.ui.components.RecrePrimaryButton
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
@@ -52,13 +51,18 @@ fun MaquinaCard(
     onReportarAveriaClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    // Acciones SECUNDARIAS al overflow ⋮ (P3: la tarjeta lidera con estado+acción).
+    // "Reportar avería" (T-222) siempre disponible: offline-first, aplica a
+    // cualquier estado. "Cambio de placa" (T-61) requiere máquina instalada.
+    val accionesSecundarias =
+        buildList {
+            add(OverflowAccion(stringResource(R.string.maquina_accion_reportar_averia), onReportarAveriaClick))
+            if (maquina.estado == "instalada") {
+                add(OverflowAccion(stringResource(R.string.maquina_accion_cambio_placa), onCambioPlacaClick))
+            }
+        }
+    AppCard(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -81,10 +85,14 @@ fun MaquinaCard(
                 }
                 Spacer(Modifier.width(8.dp))
                 EstadoMaquinaBadge(estado = maquina.estado)
+                RecreOverflowMenu(
+                    contentDescription = stringResource(R.string.maquina_mas_acciones, maquina.numeroSerie),
+                    acciones = accionesSecundarias,
+                )
             }
 
             Spacer(Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            RecreDivider()
             Spacer(Modifier.height(12.dp))
 
             DatoLinea(
@@ -124,30 +132,11 @@ fun MaquinaCard(
             )
 
             Spacer(Modifier.height(12.dp))
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.maquina_accion_recaudar),
                 onClick = onRecaudarClick,
-                modifier = Modifier.fillMaxWidth(),
                 enabled = maquina.estado == "instalada" && !syncStale,
-            ) {
-                Text(stringResource(R.string.maquina_accion_recaudar))
-            }
-            // Acciones secundarias. "Reportar avería" (T-222) está siempre
-            // disponible: es offline-first (se encola y sube luego) y aplica a
-            // cualquier estado de la máquina. "Cambio de placa" (T-61) requiere
-            // máquina instalada y red (produce una baseline nueva).
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onReportarAveriaClick) {
-                    Text(stringResource(R.string.maquina_accion_reportar_averia))
-                }
-                if (maquina.estado == "instalada") {
-                    TextButton(onClick = onCambioPlacaClick) {
-                        Text(stringResource(R.string.maquina_accion_cambio_placa))
-                    }
-                }
-            }
+            )
         }
     }
 }
