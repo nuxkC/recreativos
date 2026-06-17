@@ -189,13 +189,39 @@
     <string name="recaudacion_baseline_cambiada_accion">Rehacer la lectura</string>
     <string name="recaudacion_baseline_cambiada_descartar">Entendido</string>
 
-    <!-- (C) Panel global: recaudaciones de la cola que no se pudieron subir -->
-    <string name="cola_bloqueadas_titulo">Recaudaciones sin subir (%1$d)</string>
-    <string name="cola_bloqueadas_intro">Estas recaudaciones no se pudieron subir al servidor. Revisa el motivo y reinténtalas, o descártalas si ya no aplican.</string>
+    <!-- Etiquetas compartidas de filas bloqueadas de la cola (reusadas por Incidencias) -->
     <string name="cola_bloqueadas_importe">Importe: %1$s €</string>
     <string name="cola_bloqueadas_reintentar">Reintentar</string>
     <string name="cola_bloqueadas_descartar">Descartar</string>
-    <string name="cola_bloqueadas_cerrar">Cerrar</string>
+
+    <!-- Centro de Incidencias del técnico (T-260): recaudaciones + averías sin subir -->
+    <string name="incidencias_titulo">Incidencias</string>
+    <string name="incidencias_vacio">No tienes incidencias. Todo se ha subido.</string>
+    <string name="incidencias_seccion_bloqueadas">Sin resolver</string>
+    <string name="incidencias_bloqueadas_intro">Estas no se pudieron subir. Resuélvelas:</string>
+    <string name="incidencias_seccion_encola">En cola</string>
+    <plurals name="incidencias_encola">
+        <item quantity="one">%1$d subiéndose · se completará sola</item>
+        <item quantity="other">%1$d subiéndose · se completarán solas</item>
+    </plurals>
+    <string name="incidencias_tipo_recaudacion">Recaudación</string>
+    <string name="incidencias_tipo_averia">Avería</string>
+    <string name="incidencias_averia_categoria">Avería: %1$s</string>
+    <string name="incidencias_rehacer">Rehacer</string>
+    <string name="incidencias_terminal_recaudacion">Reintentar no la arreglará: vuelve a contarla.</string>
+    <string name="incidencias_terminal_averia">Reintentar no la arreglará: vuelve a reportarla.</string>
+    <plurals name="incidencias_intentos">
+        <item quantity="one">%1$d intento</item>
+        <item quantity="other">%1$d intentos</item>
+    </plurals>
+    <!-- Aviso ligero raíz (degradado del antiguo popup): enlaza al Centro de Incidencias -->
+    <string name="incidencias_aviso_titulo">Tienes incidencias sin resolver</string>
+    <plurals name="incidencias_aviso_texto">
+        <item quantity="one">%1$d cosa no se ha subido al servidor.</item>
+        <item quantity="other">%1$d cosas no se han subido al servidor.</item>
+    </plurals>
+    <string name="incidencias_aviso_ver">Ver incidencias</string>
+    <string name="incidencias_aviso_ahora_no">Ahora no</string>
 
     <!-- Post-guardado e impresión Bluetooth (T-62) -->
     <string name="recaudacion_post_guardado_titulo">Recaudación guardada</string>

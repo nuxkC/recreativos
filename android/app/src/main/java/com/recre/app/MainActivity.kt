@@ -40,6 +40,7 @@ import com.recre.app.core.session.SessionState
 import com.recre.app.core.data.repository.TipoAlerta
 import com.recre.app.feature.ajustes.AjustesScreen
 import com.recre.app.feature.alertas.AlertasScreen
+import com.recre.app.feature.incidencias.IncidenciasScreen
 import com.recre.app.feature.shell.ErroresSubidaDialogHost
 import com.recre.app.feature.auth.LoginScreen
 import com.recre.app.feature.auth.LoginViewModel
@@ -246,6 +247,19 @@ private fun RecreApp(
                 },
             )
         }
+        composable(Routes.INCIDENCIAS) {
+            IncidenciasScreen(
+                onBack = { navController.popBackStack() },
+                // "Rehacer": reabrir el flujo para que el técnico recree el dato
+                // correcto (la fila rota, terminal, sigue en el panel para descartar).
+                onRehacerRecaudacion = { instalacionId ->
+                    navController.navigate(Routes.recaudacion(instalacionId))
+                },
+                onRehacerAveria = { maquinaId ->
+                    navController.navigate(Routes.reportarAveria(maquinaId))
+                },
+            )
+        }
         composable(
             route = Routes.LOCAL_DETALLE,
             arguments = listOf(
@@ -326,10 +340,13 @@ private fun RecreApp(
       }
     }
 
-    // Aviso global (B): si una recaudación de la cola fue RECHAZADA por el
-    // backend, un popup central explica al técnico qué pasó y por qué. Se monta
-    // sobre el NavHost para que aparezca esté en la pantalla que esté.
-    ErroresSubidaDialogHost()
+    // Aviso global ligero (T-260): si hay incidencias sin resolver (recaudaciones o
+    // averías que no se subieron), un aviso breve lo señala y ENLAZA al Centro de
+    // Incidencias —ya no es un modal con acciones que salta solo—. Se monta sobre el
+    // NavHost para que aparezca esté en la pantalla que esté.
+    ErroresSubidaDialogHost(
+        onVerIncidencias = { navController.navigate(Routes.INCIDENCIAS) },
+    )
 }
 
 /**
@@ -693,6 +710,7 @@ private object Routes {
     const val AJUSTES = "ajustes"
     const val HISTORICO = "historico"
     const val ALERTAS = "alertas"
+    const val INCIDENCIAS = "incidencias"
     const val HISTORICO_DETALLE =
         "historico/{${HistoricoDetalleViewModel.ARG_RECAUDACION_ID}}"
 
