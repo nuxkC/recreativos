@@ -167,7 +167,9 @@ export async function listarLocalesResumen(empresaId: string): Promise<LocalResu
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("local")
-    .select("id, nombre")
+    .select(
+      "id, nombre, cadenciaSemanas:cadencia_semanas, fechaInicioRecaudacion:fecha_inicio_recaudacion",
+    )
     .eq("empresa_id", empresaId)
     .order("nombre", { ascending: true })
     .returns<LocalResumen[]>();

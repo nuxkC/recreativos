@@ -6,6 +6,7 @@ import {
   History,
   LayoutDashboard,
   Replace,
+  Route,
   ScrollText,
   Settings,
   Store,
@@ -75,6 +76,12 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         href: "/deudas",
         i18nKey: "deudas",
         icon: HandCoins,
+        roles: ROLES_GESTION,
+      },
+      {
+        href: "/operarios",
+        i18nKey: "operarios",
+        icon: Route,
         roles: ROLES_GESTION,
       },
       {

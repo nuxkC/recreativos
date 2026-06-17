@@ -115,4 +115,8 @@ export interface MaquinaResumen {
 export interface LocalResumen {
   id: string;
   nombre: string;
+  // Calendario de recaudación del local (Planificación P1). Permite al form de
+  // instalación precargar y avisar si el local ya tiene un calendario fijado.
+  cadenciaSemanas: number | null;
+  fechaInicioRecaudacion: string | null;
 }

@@ -7,7 +7,7 @@ import { ROLES_GESTION } from "@/lib/auth/roles";
 import { requireRol } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 
-import { LocalInputSchema } from "./schemas";
+import { CalendarioLocalInputSchema, LocalInputSchema } from "./schemas";
 
 /**
  * Resultado serializable que se devuelve al cliente. Convención común
@@ -174,5 +174,54 @@ export async function eliminarLocal(localId: string): Promise<ActionResult> {
   revalidatePath("/locales");
   // Igual que en crear: devolvemos el resultado y el cliente navega. Con
   // redirect() el NEXT_REDIRECT no llegaría al await del componente.
+  return { ok: true, data: undefined };
+}
+
+// -----------------------------------------------------------------------------
+// actualizarCalendarioLocal — calendario de recaudación + operario (Planificación P1)
+// -----------------------------------------------------------------------------
+
+function parseCalendarioForm(formData: FormData): Record<string, unknown> {
+  return {
+    localId: formData.get("localId") ?? "",
+    cadenciaSemanas: formData.get("cadenciaSemanas") ?? "",
+    fechaInicioRecaudacion: formData.get("fechaInicioRecaudacion") ?? "",
+    operarioId: formData.get("operarioId") ?? "",
+  };
+}
+
+export async function actualizarCalendarioLocal(
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireRol(ROLES_GESTION);
+
+  const parsed = CalendarioLocalInputSchema.safeParse(parseCalendarioForm(formData));
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: {
+        code: "validacion",
+        fieldErrors: fieldErrorsFromZod(parsed.error),
+      },
+    };
+  }
+
+  const supabase = await createClient();
+  // La RPC valida rol gestor + tenant + operario operativo activo + coherencia.
+  const { error } = await supabase.rpc("actualizar_calendario_local", {
+    p_local_id: parsed.data.localId,
+    p_cadencia_semanas: parsed.data.cadenciaSemanas,
+    p_fecha_inicio_recaudacion: parsed.data.fechaInicioRecaudacion,
+    p_operario_id: parsed.data.operarioId,
+  });
+
+  if (error) {
+    return { ok: false, error: { code: "guardarFallido" } };
+  }
+
+  revalidatePath("/locales");
+  revalidatePath(`/locales/${parsed.data.localId}`);
+  revalidatePath("/operarios");
   return { ok: true, data: undefined };
 }

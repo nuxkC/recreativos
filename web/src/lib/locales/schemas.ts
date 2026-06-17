@@ -38,3 +38,50 @@ export const LocalInputSchema = z.object({
 });
 
 export type LocalInput = z.infer<typeof LocalInputSchema>;
+
+// -----------------------------------------------------------------------------
+// Calendario de recaudación del local + operario (Planificación P1).
+// -----------------------------------------------------------------------------
+
+const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Cadencia en semanas (>0). Vacío = null (sin planificar). */
+const cadenciaSemanasNullable = z.preprocess(
+  (v) => (v === "" || v == null ? null : v),
+  z.coerce
+    .number({ message: "cadenciaInvalida" })
+    .int({ message: "cadenciaInvalida" })
+    .positive({ message: "cadenciaInvalida" })
+    .nullable(),
+);
+
+/** Fecha de inicio del calendario (ISO YYYY-MM-DD). Vacío = null. */
+const isoDateNullable = z.preprocess(
+  (v) => (typeof v === "string" && v.trim().length === 0 ? null : v),
+  z.string().trim().regex(isoDateRegex, { message: "fechaInvalida" }).nullable(),
+);
+
+/** UUID opcional (vacío = null). `.guid()` porque zod 4 `.uuid()` rechaza ids de seed (regresión T-255). */
+const uuidNullable = z.preprocess(
+  (v) => (v === "" || v == null ? null : v),
+  z.string().guid({ message: "uuidInvalido" }).nullable(),
+);
+
+/**
+ * Calendario de recaudación de un local + operario asignado. Lo usan el form de
+ * la ficha de local y la Server Action `actualizarCalendarioLocal`. Coherencia:
+ * cadencia y fecha van juntas (ambas o ninguna); el operario es independiente.
+ */
+export const CalendarioLocalInputSchema = z
+  .object({
+    localId: z.string().guid({ message: "uuidInvalido" }),
+    cadenciaSemanas: cadenciaSemanasNullable,
+    fechaInicioRecaudacion: isoDateNullable,
+    operarioId: uuidNullable,
+  })
+  .refine((d) => (d.cadenciaSemanas == null) === (d.fechaInicioRecaudacion == null), {
+    message: "calendarioIncompleto",
+    path: ["cadenciaSemanas"],
+  });
+
+export type CalendarioLocalInput = z.infer<typeof CalendarioLocalInputSchema>;

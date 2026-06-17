@@ -9,6 +9,16 @@ import { useForm, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
 import { FieldDate } from "@/components/common/date-field";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -50,6 +60,10 @@ type InstalacionFormValues = {
   porcentajeLocal: string;
   tolva: string;
   notas: string;
+  // Calendario de recaudación del local (Planificación P1): valores en string
+  // (vacío = sin fijar). Solo se editan en el alta; en la ficha del local después.
+  cadenciaSemanas: string;
+  fechaInicioRecaudacion: string;
 };
 
 interface InstalacionFormProps {
@@ -58,6 +72,13 @@ interface InstalacionFormProps {
   licencias: LicenciaResumen[];
   maquinas: MaquinaResumen[];
   locales: LocalResumen[];
+}
+
+/** "YYYY-MM-DD" → "DD/MM/YYYY" para los avisos. Sin librería: es solo display. */
+function formatFechaInicio(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : iso;
 }
 
 function defaults(instalacion?: Instalacion): InstalacionFormValues {
@@ -71,6 +92,8 @@ function defaults(instalacion?: Instalacion): InstalacionFormValues {
     // La tolva solo se fija en el alta; en edición el campo no se muestra.
     tolva: "0",
     notas: instalacion?.notas ?? "",
+    cadenciaSemanas: "",
+    fechaInicioRecaudacion: "",
   };
 }
 
@@ -91,8 +114,14 @@ export function InstalacionForm({
   const tCampos = useTranslations("instalaciones.campos");
   const tValidacion = useTranslations("instalaciones.validacion");
   const tErrores = useTranslations("instalaciones.errores");
+  const tCal = useTranslations("instalaciones.calendario");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  // Cuando hay aviso de "2ª máquina" guardamos aquí los valores a confirmar.
+  const [confirmacionPendiente, setConfirmacionPendiente] =
+    useState<InstalacionFormValues | null>(null);
+  // Modo "cadencia libre": el usuario eligió "Otra…" en el select de cadencia.
+  const [cadenciaLibre, setCadenciaLibre] = useState(false);
 
   const isEdit = mode === "edit";
   const isClosed = isEdit && instalacion?.estado === "cerrada";
@@ -102,6 +131,12 @@ export function InstalacionForm({
     resolver: zodResolver(InstalacionInputSchema, undefined, { raw: true }),
     defaultValues: defaults(instalacion),
   });
+
+  const watchedLocalId = form.watch("localId");
+  const localSeleccionado = locales.find((l) => l.id === watchedLocalId) ?? null;
+  // ¿El local ya tiene un calendario fijado? (entonces añadir una máquina y
+  // cambiarlo afecta a todas las máquinas de ese local: hay que avisar.)
+  const localTeniaCalendario = localSeleccionado?.cadenciaSemanas != null;
 
   function applyServerErrors(fieldErrors: Record<string, string[]> | undefined): boolean {
     if (!fieldErrors) return false;
@@ -118,7 +153,8 @@ export function InstalacionForm({
     return applied;
   }
 
-  async function onSubmit(values: InstalacionFormValues) {
+  // Envío real al servidor (tras pasar validación y, si procede, confirmación).
+  async function enviar(values: InstalacionFormValues) {
     setSubmitting(true);
     try {
       const fd = buildFormData(values);
@@ -155,6 +191,38 @@ export function InstalacionForm({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // Puerta previa al envío: en el alta el calendario es obligatorio y, si el
+  // local ya tenía uno distinto, se confirma el cambio antes de enviar.
+  async function onSubmit(values: InstalacionFormValues) {
+    if (mode === "create") {
+      const faltaCadencia = !values.cadenciaSemanas;
+      const faltaFecha = !values.fechaInicioRecaudacion;
+      if (faltaCadencia || faltaFecha) {
+        if (faltaCadencia) {
+          form.setError("cadenciaSemanas", {
+            type: "validate",
+            message: tValidacion("calendarioRequerido"),
+          });
+        }
+        if (faltaFecha) {
+          form.setError("fechaInicioRecaudacion", {
+            type: "validate",
+            message: tValidacion("calendarioRequerido"),
+          });
+        }
+        return;
+      }
+      const cambia =
+        values.cadenciaSemanas !== String(localSeleccionado?.cadenciaSemanas ?? "") ||
+        values.fechaInicioRecaudacion !== (localSeleccionado?.fechaInicioRecaudacion ?? "");
+      if (localTeniaCalendario && cambia) {
+        setConfirmacionPendiente(values);
+        return;
+      }
+    }
+    await enviar(values);
   }
 
   function onInvalid(errors: FieldErrors<InstalacionFormValues>) {
@@ -255,7 +323,20 @@ export function InstalacionForm({
                   <FormLabel>{tCampos("local")}</FormLabel>
                   <Select
                     value={field.value || undefined}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Al elegir local, precarga su calendario (si lo tiene) en
+                      // los campos de planificación; si no, los deja vacíos.
+                      const l = locales.find((x) => x.id === value);
+                      form.setValue(
+                        "cadenciaSemanas",
+                        l?.cadenciaSemanas != null ? String(l.cadenciaSemanas) : "",
+                      );
+                      form.setValue("fechaInicioRecaudacion", l?.fechaInicioRecaudacion ?? "");
+                      setCadenciaLibre(
+                        l?.cadenciaSemanas != null && ![1, 2, 4].includes(l.cadenciaSemanas),
+                      );
+                    }}
                     disabled={fkDisabled}
                   >
                     <FormControl>
@@ -354,6 +435,83 @@ export function InstalacionForm({
                 )}
               />
             ) : null}
+
+            {/* Planificación de la recaudación (solo en el alta) -------------- */}
+            {mode === "create" ? (
+              <div className="space-y-4 rounded-lg border border-border/60 bg-muted/30 p-4 sm:col-span-2">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium">{tCal("seccion")}</h3>
+                  <p className="text-sm text-muted-foreground">{tCal("ayuda")}</p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="cadenciaSemanas"
+                    render={({ field }) => {
+                      const esPreset = ["1", "2", "4"].includes(field.value);
+                      const enLibre = cadenciaLibre || (field.value !== "" && !esPreset);
+                      return (
+                        <FormItem>
+                          <FormLabel>{tCampos("cadenciaSemanas")}</FormLabel>
+                          <Select
+                            value={enLibre ? "otro" : field.value || undefined}
+                            onValueChange={(v) => {
+                              if (v === "otro") {
+                                setCadenciaLibre(true);
+                                field.onChange("");
+                              } else {
+                                setCadenciaLibre(false);
+                                field.onChange(v);
+                              }
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={tCal("presetPlaceholder")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="1">{tCal("presetSemanal")}</SelectItem>
+                              <SelectItem value="2">{tCal("presetQuincenal")}</SelectItem>
+                              <SelectItem value="4">{tCal("presetMensual")}</SelectItem>
+                              <SelectItem value="otro">{tCal("presetOtro")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {enLibre ? (
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min={1}
+                                step={1}
+                                inputMode="numeric"
+                                placeholder={tCal("cadenciaLibre")}
+                                value={field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                              />
+                            </FormControl>
+                          ) : null}
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="fechaInicioRecaudacion"
+                    render={({ field, fieldState }) => (
+                      <FieldDate
+                        label={tCampos("fechaInicioRecaudacion")}
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={fieldState.error?.message}
+                        density="compact"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            ) : null}
+
             <FormField
               control={form.control}
               name="notas"
@@ -390,6 +548,39 @@ export function InstalacionForm({
           </Button>
         </div>
       </form>
+
+      {/* Aviso de 2ª máquina: el local ya tenía calendario y se está cambiando. */}
+      <AlertDialog
+        open={confirmacionPendiente !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmacionPendiente(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tCal("avisoTitulo")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tCal("avisoDescripcion", {
+                nombre: localSeleccionado?.nombre ?? "",
+                semanas: localSeleccionado?.cadenciaSemanas ?? 0,
+                fecha: formatFechaInicio(localSeleccionado?.fechaInicioRecaudacion),
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCal("avisoCancelar")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const v = confirmacionPendiente;
+                setConfirmacionPendiente(null);
+                if (v) void enviar(v);
+              }}
+            >
+              {tCal("avisoConfirmar")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Form>
   );
 }
