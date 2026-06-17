@@ -15,6 +15,7 @@ import { ZodError } from "zod";
 import { requireRolEnEmpresa, requireUser } from "../_shared/auth.ts";
 import { calcularRecaudacion, importesIguales, sumarDesglose } from "../_shared/calculo.ts";
 import { type CreditoAbierto, planificarRecuperacion } from "../_shared/recuperacion.ts";
+import { detectarSolapeContador, type TramoFirme } from "../_shared/solape.ts";
 import { getServiceClient } from "../_shared/db.ts";
 import { jsonResponse, makeError } from "../_shared/errors.ts";
 import { withHandler } from "../_shared/handler.ts";
@@ -128,6 +129,22 @@ Deno.serve(withHandler(async (req: Request) => {
       salidas: baselineActual.salidas,
     },
   );
+
+  // Caso 8 (T-262): ¿el tramo de contador de esta recaudación pisa el de otra
+  // recaudación firme? Pasa con subidas DESORDENADAS de la cola offline: una con
+  // fecha posterior se persiste antes y `obtener_baseline` (que elige por fecha)
+  // le da una baseline que solapa el tramo de otra → el segmento común se contaría
+  // dos veces. No se rechaza —el dinero de la caja no se pierde—: se marca como
+  // conflicto para que el gestor lo resuelva (anular/sustituir) en web.
+  const tramosFirmes = await fetchTramosFirmes(supabase, input.instalacion_id, input.fecha);
+  const solapeIds = detectarSolapeContador(
+    {
+      entradasAnterior: input.baseline_entradas,
+      entradasActual: input.contador_entradas_actual,
+    },
+    tramosFirmes,
+  );
+  const hayConflicto = conflicto || solapeIds.length > 0;
 
   // `resultado` es el reparto OFICIAL: lo que se persiste en las columnas
   // principales y se imprime en el ticket que firma el titular.
@@ -276,7 +293,7 @@ Deno.serve(withHandler(async (req: Request) => {
     fotoEntradasUrl,
     fotoSalidasUrl,
     pdfPath,
-    conflicto,
+    conflicto: hayConflicto,
     recuperadoTotal: planRecuperacion.recuperado_total,
   });
 
@@ -297,20 +314,24 @@ Deno.serve(withHandler(async (req: Request) => {
     throw makeError("internal_error", "No se pudo guardar la recaudación", insertError.message);
   }
 
-  // Si hay conflicto, registramos una alerta para el admin.
-  if (conflicto) {
+  // Si hay conflicto (baseline distinta y/o tramo de contador solapado),
+  // registramos una alerta para que el gestor lo revise y resuelva en web.
+  if (hayConflicto) {
     await service.from("alerta").insert({
       empresa_id: ctx.empresa.id,
       tipo: "recaudacion_conflicto",
       referencia_id: recaudacionId,
-      mensaje: "Recaudación creada con baseline distinta a la actual del servidor",
+      mensaje: mensajeConflicto(conflicto, solapeIds),
     });
   }
 
   // Devolvemos signed URLs para que el cliente pueda mostrar el PDF.
   const pdfSignedUrl = await createSignedUrl(supabase, "tickets", pdfPath);
 
-  return jsonResponse({ recaudacion: row, pdf_signed_url: pdfSignedUrl, conflicto }, 201);
+  return jsonResponse(
+    { recaudacion: row, pdf_signed_url: pdfSignedUrl, conflicto: hayConflicto },
+    201,
+  );
 }));
 
 // ----------------------------------------------------------------------------- helpers
@@ -385,6 +406,59 @@ async function loadInstalacionContext(
     empresa,
     instalacion: data as unknown as InstalacionContext,
   };
+}
+
+/**
+ * Tramos de contador de las recaudaciones FIRMES de una instalación en el epoch
+ * de contador actual: las posteriores al último cambio de placa <= `fecha` (un
+ * reset de placa reinicia el contador, así que comparar entre epochs daría falsos
+ * solapes). Alimenta la detección del caso 8 (T-262).
+ */
+async function fetchTramosFirmes(
+  supabase: ReturnType<typeof getServiceClient>,
+  instalacionId: string,
+  fecha: string,
+): Promise<TramoFirme[]> {
+  const { data: cambioPlaca } = await supabase
+    .from("cambio_placa")
+    .select("fecha")
+    .eq("instalacion_id", instalacionId)
+    .lte("fecha", fecha)
+    .order("fecha", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let query = supabase
+    .from("recaudacion")
+    .select("id, contador_entradas_anterior, contador_entradas_actual")
+    .eq("instalacion_id", instalacionId)
+    .eq("estado", "firme");
+  if (cambioPlaca?.fecha) {
+    query = query.gte("fecha", cambioPlaca.fecha);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    throw makeError("internal_error", "No se pudieron leer los tramos firmes", error.message);
+  }
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    entradasAnterior: Number(r.contador_entradas_anterior),
+    entradasActual: Number(r.contador_entradas_actual),
+  }));
+}
+
+/** Mensaje de la alerta de conflicto, según su causa (baseline y/o solape). */
+function mensajeConflicto(baselineDistinta: boolean, solapeIds: string[]): string {
+  if (solapeIds.length > 0) {
+    const solapeMsg =
+      `Tramo de contador solapado con otra recaudación firme (${solapeIds.join(", ")}); ` +
+      "posible doble conteo, revisar.";
+    return baselineDistinta
+      ? `${solapeMsg} Además, la baseline difiere de la actual del servidor.`
+      : solapeMsg;
+  }
+  return "Recaudación creada con baseline distinta a la actual del servidor";
 }
 
 async function fetchBaseline(
