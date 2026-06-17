@@ -186,6 +186,64 @@ class AveriaRepositoryImplTest {
         assertTrue(result is DomainResult.Failure)
         assertTrue((result as DomainResult.Failure).error is DomainError.Network)
         coVerify(exactly = 1) { dao.marcarError("p-1", any(), any()) }
+        coVerify(exactly = 0) { dao.marcarFallida(any(), any(), any()) }
         coVerify(exactly = 0) { dao.marcarEnviada(any(), any()) }
+    }
+
+    @Test
+    fun `subirSiguiente con fallo permanente (no red) marca fallida y no bloquea la cola`() =
+        runTest {
+            // Un fallo que NO se arregla reintingando la misma avería congelada
+            // (validación/permiso/…) → terminal: sale del drenado para no bloquear
+            // a las averías VÁLIDAS que tiene detrás (T-63).
+            coEvery { dao.siguientePendiente("emp-1") } returns pendiente()
+            coEvery { remote.crearAveria(any<CrearAveriaParams>()) } throws
+                RuntimeException("boom")
+
+            val result = repo().subirSiguiente("emp-1")
+
+            assertTrue(result is DomainResult.Failure)
+            assertTrue((result as DomainResult.Failure).error !is DomainError.Network)
+            coVerify(exactly = 1) { dao.marcarFallida("p-1", any(), any()) }
+            coVerify(exactly = 0) { dao.marcarError(any(), any(), any()) }
+            coVerify(exactly = 0) { dao.marcarEnviada(any(), any()) }
+        }
+
+    @Test
+    fun `subirSiguiente con red agotada (maxIntentosRed) pasa a fallida`() = runTest {
+        // Tras agotar los reintentos de red, una fila de red también pasa a terminal
+        // para no quedarse reintentando eternamente.
+        coEvery { dao.siguientePendiente("emp-1") } returns pendiente().copy(intentos = 7)
+        coEvery { remote.crearAveria(any<CrearAveriaParams>()) } throws IOException("sin red")
+
+        val result = repo().subirSiguiente("emp-1")
+
+        assertTrue(result is DomainResult.Failure)
+        assertTrue((result as DomainResult.Failure).error is DomainError.Network)
+        coVerify(exactly = 1) { dao.marcarFallida("p-1", any(), any()) }
+        coVerify(exactly = 0) { dao.marcarError(any(), any(), any()) }
+    }
+
+    @Test
+    fun `reintentar reencola la fila`() = runTest {
+        val result = repo().reintentar("p-1")
+
+        assertEquals(DomainResult.Success(Unit), result)
+        coVerify(exactly = 1) { dao.reencolar("p-1") }
+    }
+
+    @Test
+    fun `descartar elimina la fila de la cola`() = runTest {
+        val result = repo().descartar("p-1")
+
+        assertEquals(DomainResult.Success(Unit), result)
+        coVerify(exactly = 1) { dao.descartar("p-1") }
+    }
+
+    @Test
+    fun `recuperarColgadas rearma las filas colgadas en subiendo`() = runTest {
+        repo().recuperarColgadas("emp-1")
+
+        coVerify(exactly = 1) { dao.rearmarColgadas("emp-1") }
     }
 }
