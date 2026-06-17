@@ -50,6 +50,7 @@
     <string name="nav_gestion">Gestión</string>
     <string name="nav_ajustes">Ajustes</string>
     <string name="nav_alertas_badge">Alertas</string>
+    <string name="nav_incidencias_badge">Incidencias sin resolver</string>
     <plurals name="alertas_sync_pendiente">
         <item quantity="one">%1$d elemento sin sincronizar</item>
         <item quantity="other">%1$d elementos sin sincronizar</item>

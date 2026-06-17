@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.CircularProgressIndicator
@@ -102,15 +103,20 @@ fun RecreBottomBar(
  * Acciones GLOBALES del top bar (se colocan en `TopAppBar(actions = { ... })`):
  *  - ↻ Sincronizar: spinner mientras hay sync en curso, si no un botón que la
  *    fuerza (mismo efecto que el pull-to-refresh de Locales).
- *  - 🔔 Campana de alertas con badge de conteo (→ [onAlertasClick]).
+ *  - ⚠️ Incidencias (T-261): badge ROJO (DANGER) con el nº de recaudaciones+averías
+ *    BLOQUEADAS que el técnico debe resolver (→ [onIncidenciasClick]). Solo aparece
+ *    si hay alguna (count==0 lo oculta).
+ *  - 🔔 Campana de alertas (→ [onAlertasClick]): ahora SOLO los avisos del gestor
+ *    ([ShellUiState.alertasBackend]); lo accionable se separó al badge de incidencias.
  *
- * Lee [ShellViewModel] (Hilt) para el conteo y el estado de sync, y recuenta al
+ * Lee [ShellViewModel] (Hilt) para los conteos y el estado de sync, y recuenta al
  * volver el foco a la pestaña. Como cada pestaña la instancia por separado, el
  * VM se scopea a cada back-stack entry pero observa los mismos flujos: coherente.
  */
 @Composable
 fun RecreTopBarActions(
     onAlertasClick: () -> Unit,
+    onIncidenciasClick: () -> Unit,
     viewModel: ShellViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -133,7 +139,15 @@ fun RecreTopBarActions(
     }
 
     NotificationBadge(
-        count = state.totalAlertas,
+        count = state.incidencias,
+        contentDescription = stringResource(R.string.nav_incidencias_badge),
+        onClick = onIncidenciasClick,
+        role = BadgeRole.DANGER,
+        icon = Icons.Filled.Warning,
+    )
+
+    NotificationBadge(
+        count = state.alertasBackend,
         contentDescription = stringResource(R.string.nav_alertas_badge),
         onClick = onAlertasClick,
     )

@@ -200,6 +200,7 @@ private fun RecreApp(
                     onAlertasClick = {
                         navController.navigate(Routes.ALERTAS)
                     },
+                    onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
                     onSelectTab = { dest -> navController.navigateTab(dest) },
                 )
             }
@@ -212,12 +213,14 @@ private fun RecreApp(
                 onSelectTab = { dest -> navController.navigateTab(dest) },
                 onImpresoraClick = { navController.navigate(Routes.IMPRESORA) },
                 onAlertasClick = { navController.navigate(Routes.ALERTAS) },
+                onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
             )
         }
         composable(Routes.HISTORICO) {
             HistoricoScreen(
                 onSelectTab = { dest -> navController.navigateTab(dest) },
                 onAlertasClick = { navController.navigate(Routes.ALERTAS) },
+                onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
                 onRecaudacionClick = { id ->
                     navController.navigate(Routes.historicoDetalle(id))
                 },
@@ -365,6 +368,7 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
         GestionScreen(
             onSelectTab = { dest -> navController.navigateTab(dest) },
             onAlertasClick = { navController.navigate(Routes.ALERTAS) },
+            onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
             onLicenciasClick = { navController.navigate(Routes.GESTION_LICENCIAS) },
             onMaquinasClick = { navController.navigate(Routes.GESTION_MAQUINAS) },
             onLocalesClick = { navController.navigate(Routes.GESTION_LOCALES) },
