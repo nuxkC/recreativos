@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,6 +43,9 @@ import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Keypad
+import com.recre.app.ui.theme.RecreType
 
 /**
  * Paso 1 del flujo de recaudación (T-54).
@@ -84,6 +84,8 @@ fun ContadoresScreen(
     // flujo solo recibe los valores confirmados vía `aplicarLecturaOcr`.
     var mostrarEscaner by remember { mutableStateOf(false) }
     var permisoCamaraDenegado by remember { mutableStateOf(false) }
+    // Campo activo que dirige el keypad (entradas o salidas); el IME del sistema nunca aparece.
+    var activeCampo by remember { mutableStateOf(CampoContador.Entradas) }
 
     Scaffold(
         topBar = {
@@ -128,9 +130,7 @@ fun ContadoresScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(padding),
         ) {
             when {
                 state.cargando -> Mensaje(stringResource(R.string.local_detalle_cargando))
@@ -143,45 +143,127 @@ fun ContadoresScreen(
                     })
                 }
                 else -> {
-                    BaselineHint(
-                        baselineEntradas = maquina.baselineEntradas,
-                        baselineSalidas = maquina.baselineSalidas,
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    CamposContadores(
-                        entradas = state.contadorEntradasInput,
-                        salidas = state.contadorSalidasInput,
-                        baselineEntradas = maquina.baselineEntradas,
-                        baselineSalidas = maquina.baselineSalidas,
-                        onEntradasChange = viewModel::onContadorEntradasChange,
-                        onSalidasChange = viewModel::onContadorSalidasChange,
-                        permisoCamaraDenegado = permisoCamaraDenegado,
-                        onEscanear = {
-                            permisoCamaraDenegado = false
-                            mostrarEscaner = true
-                        },
-                        onPermisoCamaraDenegado = { permisoCamaraDenegado = true },
-                    )
-                    if (cifras != null) {
+                    val entradasError = state.contadorEntradasInput.isNotBlank() &&
+                        (state.contadorEntradasInput.toLongOrNull() ?: -1) < maquina.baselineEntradas
+                    val salidasError = state.contadorSalidasInput.isNotBlank() &&
+                        (state.contadorSalidasInput.toLongOrNull() ?: -1) < maquina.baselineSalidas
+                    // Contenido scrolleable; el keypad queda anclado abajo (sticky).
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        BaselineHint(
+                            baselineEntradas = maquina.baselineEntradas,
+                            baselineSalidas = maquina.baselineSalidas,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.recaudacion_ocr_ayuda),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        ContadorOcrBoton(
+                            label = stringResource(R.string.recaudacion_ocr_escanear_contadores),
+                            testTag = RecaudacionTestTags.OCR_ESCANEAR,
+                            onEscanear = {
+                                permisoCamaraDenegado = false
+                                mostrarEscaner = true
+                            },
+                            onPermisoDenegado = { permisoCamaraDenegado = true },
+                        )
+                        if (permisoCamaraDenegado) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.recaudacion_ocr_error_permiso_camara),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                         Spacer(Modifier.height(16.dp))
-                        CifrasResumenCard(
-                            cifras = cifras,
-                            recuperacion = state.recuperacion,
-                            modifier = Modifier.testTag(RecaudacionTestTags.CIFRAS_RESUMEN),
+                        CeldaContador(
+                            label = stringResource(R.string.recaudacion_label_contador_entradas),
+                            valor = state.contadorEntradasInput,
+                            activa = activeCampo == CampoContador.Entradas,
+                            error = entradasError,
+                            errorText = stringResource(
+                                R.string.recaudacion_error_contador_menor,
+                                maquina.baselineEntradas,
+                            ),
+                            onActivar = { activeCampo = CampoContador.Entradas },
+                            testTag = RecaudacionTestTags.CONTADOR_ENTRADAS,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        CeldaContador(
+                            label = stringResource(R.string.recaudacion_label_contador_salidas),
+                            valor = state.contadorSalidasInput,
+                            activa = activeCampo == CampoContador.Salidas,
+                            error = salidasError,
+                            errorText = stringResource(
+                                R.string.recaudacion_error_contador_menor,
+                                maquina.baselineSalidas,
+                            ),
+                            onActivar = { activeCampo = CampoContador.Salidas },
+                            testTag = RecaudacionTestTags.CONTADOR_SALIDAS,
+                        )
+                        if (cifras != null) {
+                            Spacer(Modifier.height(16.dp))
+                            CifrasResumenCard(
+                                cifras = cifras,
+                                recuperacion = state.recuperacion,
+                                modifier = Modifier.testTag(RecaudacionTestTags.CIFRAS_RESUMEN),
+                            )
+                        }
+                        Spacer(Modifier.height(24.dp))
+                        Acciones(
+                            cifrasOk = cifras != null && cifras.procede,
+                            cifrasNoProcede = cifras != null && !cifras.procede,
+                            // Si el lock está ocupado por otro técnico, deshabilitamos
+                            // 'Continuar' hasta que el usuario lo fuerce desde el dialog.
+                            bloqueadoPorLock = lockOcupado,
+                            onContinuar = onContinuar,
+                            onLecturaNoRecaudada = {
+                                viewModel.liberarLockAlSalir()
+                                onLecturaNoRecaudada()
+                            },
                         )
                     }
-                    Spacer(Modifier.height(24.dp))
-                    Acciones(
-                        cifrasOk = cifras != null && cifras.procede,
-                        cifrasNoProcede = cifras != null && !cifras.procede,
-                        // Si el lock está ocupado por otro técnico, deshabilitamos
-                        // 'Continuar' hasta que el usuario lo fuerce desde el dialog.
-                        bloqueadoPorLock = lockOcupado,
-                        onContinuar = onContinuar,
-                        onLecturaNoRecaudada = {
-                            viewModel.liberarLockAlSalir()
-                            onLecturaNoRecaudada()
+                    // (R5) Keypad propio anclado abajo: única entrada, sin IME del sistema.
+                    Keypad(
+                        onDigit = { d ->
+                            when (activeCampo) {
+                                CampoContador.Entradas ->
+                                    viewModel.onContadorEntradasChange(state.contadorEntradasInput + d)
+                                CampoContador.Salidas ->
+                                    viewModel.onContadorSalidasChange(state.contadorSalidasInput + d)
+                            }
                         },
+                        onBackspace = {
+                            when (activeCampo) {
+                                CampoContador.Entradas ->
+                                    viewModel.onContadorEntradasChange(
+                                        state.contadorEntradasInput.dropLast(1),
+                                    )
+                                CampoContador.Salidas ->
+                                    viewModel.onContadorSalidasChange(
+                                        state.contadorSalidasInput.dropLast(1),
+                                    )
+                            }
+                        },
+                        onNext = {
+                            activeCampo =
+                                if (activeCampo == CampoContador.Entradas) {
+                                    CampoContador.Salidas
+                                } else {
+                                    CampoContador.Entradas
+                                }
+                        },
+                        nextLabel = stringResource(R.string.recaudacion_keypad_siguiente),
+                        backspaceContentDescription = stringResource(R.string.recaudacion_keypad_borrar),
+                        nextContentDescription = stringResource(R.string.recaudacion_keypad_siguiente),
                     )
                 }
             }
@@ -226,89 +308,50 @@ private fun BaselineHint(baselineEntradas: Long, baselineSalidas: Long) {
 }
 
 @Composable
-private fun CamposContadores(
-    entradas: String,
-    salidas: String,
-    baselineEntradas: Long,
-    baselineSalidas: Long,
-    onEntradasChange: (String) -> Unit,
-    onSalidasChange: (String) -> Unit,
-    permisoCamaraDenegado: Boolean,
-    onEscanear: () -> Unit,
-    onPermisoCamaraDenegado: () -> Unit,
+private fun CeldaContador(
+    label: String,
+    valor: String,
+    activa: Boolean,
+    error: Boolean,
+    errorText: String,
+    onActivar: () -> Unit,
+    testTag: String,
+    modifier: Modifier = Modifier,
 ) {
-    val entradasError = entradas.isNotBlank() &&
-        (entradas.toLongOrNull() ?: -1) < baselineEntradas
-    val salidasError = salidas.isNotBlank() &&
-        (salidas.toLongOrNull() ?: -1) < baselineSalidas
-
-    Text(
-        text = stringResource(R.string.recaudacion_ocr_ayuda),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(8.dp))
-
-    // Un único botón abre el escáner en vivo, que detecta ambos contadores.
-    ContadorOcrBoton(
-        label = stringResource(R.string.recaudacion_ocr_escanear_contadores),
-        testTag = RecaudacionTestTags.OCR_ESCANEAR,
-        onEscanear = onEscanear,
-        onPermisoDenegado = onPermisoCamaraDenegado,
-    )
-    if (permisoCamaraDenegado) {
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.recaudacion_ocr_error_permiso_camara),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error,
-        )
+    Column(modifier) {
+        AppCard(
+            onClick = onActivar,
+            selected = activa,
+            contentDescription = "$label: ${valor.ifBlank { "vacío" }}",
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(testTag),
+        ) {
+            Column {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(4.dp))
+                // Lectura en grande (Geist Mono tabular). "—" si aún no hay dígitos.
+                Text(
+                    text = valor.ifBlank { "—" },
+                    style = RecreType.importeMedium,
+                    color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+        if (error) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = errorText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 4.dp),
+            )
+        }
     }
-    Spacer(Modifier.height(12.dp))
-
-    OutlinedTextField(
-        value = entradas,
-        onValueChange = onEntradasChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(RecaudacionTestTags.CONTADOR_ENTRADAS),
-        label = { Text(stringResource(R.string.recaudacion_label_contador_entradas)) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
-        isError = entradasError,
-        supportingText = {
-            if (entradasError) {
-                Text(
-                    stringResource(
-                        R.string.recaudacion_error_contador_menor,
-                        baselineEntradas,
-                    ),
-                )
-            }
-        },
-    )
-    Spacer(Modifier.height(16.dp))
-    OutlinedTextField(
-        value = salidas,
-        onValueChange = onSalidasChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(RecaudacionTestTags.CONTADOR_SALIDAS),
-        label = { Text(stringResource(R.string.recaudacion_label_contador_salidas)) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
-        isError = salidasError,
-        supportingText = {
-            if (salidasError) {
-                Text(
-                    stringResource(
-                        R.string.recaudacion_error_contador_menor,
-                        baselineSalidas,
-                    ),
-                )
-            }
-        },
-    )
 }
 
 @Composable
@@ -415,3 +458,5 @@ private fun Mensaje(text: String) {
         )
     }
 }
+
+enum class CampoContador { Entradas, Salidas }
