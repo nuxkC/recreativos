@@ -27,6 +27,11 @@ export interface Local {
   notas: string | null;
   /** Override del % de recuperación de deuda. NULL = hereda el de la empresa. */
   porcentajeRecuperacion: number | null;
+  /** Calendario de recaudación (Planificación P1). cadencia + fecha van juntas. */
+  cadenciaSemanas: number | null;
+  fechaInicioRecaudacion: string | null;
+  /** Operario asignado (usuario). NULL = sin asignar. */
+  operarioId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +48,9 @@ export interface LocalRow {
   email: string | null;
   notas: string | null;
   porcentaje_recuperacion: number | null;
+  cadencia_semanas: number | null;
+  fecha_inicio_recaudacion: string | null;
+  operario_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -59,6 +67,9 @@ export function mapLocalRow(row: LocalRow): Local {
     email: row.email,
     notas: row.notas,
     porcentajeRecuperacion: row.porcentaje_recuperacion,
+    cadenciaSemanas: row.cadencia_semanas,
+    fechaInicioRecaudacion: row.fecha_inicio_recaudacion,
+    operarioId: row.operario_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

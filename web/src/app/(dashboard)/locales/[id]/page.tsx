@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 
+import { CalendarioLocalForm } from "@/components/locales/calendario-local-form";
 import { EliminarLocal } from "@/components/locales/eliminar-local";
 import { LocalForm } from "@/components/locales/local-form";
 import { TolvaInstalaciones } from "@/components/tolva/tolva-instalaciones";
@@ -13,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
 import { obtenerLocal } from "@/lib/locales/queries";
+import { listarOperarios } from "@/lib/operarios/queries";
 import { obtenerTolvaInstalaciones } from "@/lib/tolva/queries";
 
 const IdSchema = z.string().guid();
@@ -46,6 +48,7 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
   }
 
   const tolvaInstalaciones = await obtenerTolvaInstalaciones(local.id);
+  const operarios = await listarOperarios(activa.empresa.id);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -79,6 +82,22 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
         </CardHeader>
         <CardContent>
           <LocalForm mode="edit" local={local} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">{t("calendario.titulo")}</CardTitle>
+          <CardDescription>{t("calendario.descripcion")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CalendarioLocalForm
+            localId={local.id}
+            cadenciaSemanas={local.cadenciaSemanas}
+            fechaInicioRecaudacion={local.fechaInicioRecaudacion}
+            operarioId={local.operarioId}
+            operarios={operarios}
+          />
         </CardContent>
       </Card>
 
