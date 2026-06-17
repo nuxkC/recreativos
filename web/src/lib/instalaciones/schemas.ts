@@ -67,17 +67,46 @@ const decimalTolvaOpcional = z
   .refine((d) => d.lte(99999999.99), { message: "tolvaFueraDeRango" })
   .transform((d) => d.toFixed(2));
 
-export const InstalacionInputSchema = z.object({
-  maquinaId: Uuid,
-  licenciaId: Uuid,
-  localId: Uuid,
-  fechaInicio: isoDateRequired,
-  tasaSemanal: decimalNoNegativo,
-  porcentajeLocal: decimalPorcentaje,
-  tolva: decimalTolvaOpcional,
-  estado: z.enum(ESTADOS_INSTALACION).default("activa"),
-  notas: trimmedString.pipe(z.string().max(2000, { message: "notasMuyLargas" }).nullable()),
-});
+/**
+ * Cadencia de recaudación del local: cada N semanas (>0). Opcional: vacío = null
+ * (sin planificar). Va de la mano con `fechaInicioRecaudacion` (ver refine). El
+ * cálculo de "¿toca hoy?" vive en el servidor (P3); aquí solo se captura el dato.
+ */
+const cadenciaSemanasNullable = z.preprocess(
+  (v) => (v === "" || v == null ? null : v),
+  z.coerce
+    .number({ message: "cadenciaInvalida" })
+    .int({ message: "cadenciaInvalida" })
+    .positive({ message: "cadenciaInvalida" })
+    .nullable(),
+);
+
+/** Fecha de inicio del calendario (ISO YYYY-MM-DD). Opcional: vacío = null. */
+const isoDateNullable = z.preprocess(
+  (v) => (typeof v === "string" && v.trim().length === 0 ? null : v),
+  z.string().trim().regex(isoDateRegex, { message: "fechaInvalida" }).nullable(),
+);
+
+export const InstalacionInputSchema = z
+  .object({
+    maquinaId: Uuid,
+    licenciaId: Uuid,
+    localId: Uuid,
+    fechaInicio: isoDateRequired,
+    tasaSemanal: decimalNoNegativo,
+    porcentajeLocal: decimalPorcentaje,
+    tolva: decimalTolvaOpcional,
+    estado: z.enum(ESTADOS_INSTALACION).default("activa"),
+    notas: trimmedString.pipe(z.string().max(2000, { message: "notasMuyLargas" }).nullable()),
+    // Calendario de recaudación del local (Planificación P1). Se fija al instalar
+    // la 1ª máquina; luego se edita en la ficha del local. Ambas o ninguna.
+    cadenciaSemanas: cadenciaSemanasNullable,
+    fechaInicioRecaudacion: isoDateNullable,
+  })
+  .refine((d) => (d.cadenciaSemanas == null) === (d.fechaInicioRecaudacion == null), {
+    message: "calendarioIncompleto",
+    path: ["cadenciaSemanas"],
+  });
 
 export type InstalacionInput = z.infer<typeof InstalacionInputSchema>;
 
