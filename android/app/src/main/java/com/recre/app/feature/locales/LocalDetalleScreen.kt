@@ -11,21 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -40,6 +30,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.repository.LocalDetalle
 import com.recre.app.feature.locales.components.MaquinaCard
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreShapes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,26 +52,11 @@ fun LocalDetalleScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = state.detalle?.local?.nombre
-                            ?: stringResource(R.string.local_detalle_titulo),
-                        // T-244: par compartido con el nombre de la card de la lista.
-                        modifier = Modifier.recreSharedBounds("local-nombre-$localId"),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+            RecreDetailTopBar(
+                titulo = state.detalle?.local?.nombre ?: stringResource(R.string.local_detalle_titulo),
+                onBack = onBack,
+                // T-244: par compartido con el nombre de la card de la lista.
+                tituloModifier = Modifier.recreSharedBounds("local-nombre-$localId"),
             )
         },
     ) { padding ->
@@ -167,12 +146,11 @@ private fun Contenido(
             CabeceraLocal(detalle = detalle)
         }
         item("deudas") {
-            OutlinedButton(
+            RecreTonalButton(
+                text = stringResource(R.string.local_detalle_ver_deudas),
                 onClick = onVerDeudas,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.local_detalle_ver_deudas))
-            }
+                fullWidth = true,
+            )
         }
         if (detalle.maquinas.isNotEmpty() && !syncStale) {
             // Botón "Recaudar todas" disponible cuando hay máquinas activas y
@@ -180,17 +158,10 @@ private fun Contenido(
             item("recaudar-todas") {
                 val instaladas = detalle.maquinas.filter { it.estado == "instalada" }
                 if (mostrarRecaudarTodas(instaladas.size)) {
-                    Button(
+                    RecrePrimaryButton(
+                        text = stringResource(R.string.local_detalle_recaudar_todas, instaladas.size),
                         onClick = { onRecaudarTodas(instaladas.first().instalacionId) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = stringResource(
-                                R.string.local_detalle_recaudar_todas,
-                                instaladas.size,
-                            ),
-                        )
-                    }
+                    )
                 }
             }
         }
@@ -214,12 +185,11 @@ private fun Contenido(
 
 @Composable
 private fun SyncStaleBanner(onSincronizar: () -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -232,9 +202,10 @@ private fun SyncStaleBanner(onSincronizar: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(Modifier.height(8.dp))
-            TextButton(onClick = onSincronizar) {
-                Text(stringResource(R.string.sync_force))
-            }
+            RecreTonalButton(
+                text = stringResource(R.string.sync_force),
+                onClick = onSincronizar,
+            )
         }
     }
 }

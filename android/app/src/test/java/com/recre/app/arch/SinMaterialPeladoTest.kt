@@ -56,7 +56,6 @@ class SinMaterialPeladoTest {
             "feature/historico/HistoricoScreen.kt",
             "feature/impresora/ImpresoraScreen.kt",
             "feature/incidencias/IncidenciasScreen.kt",
-            "feature/locales/LocalDetalleScreen.kt",
             "feature/recaudacion/components/CifrasResumenCard.kt",
             "feature/recaudacion/components/RecuperacionResumenCard.kt",
             // Migradas a chrome propio (PasoTopBar) + átomos en rediseño F1·Task 7;
