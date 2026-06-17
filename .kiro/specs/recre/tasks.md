@@ -254,6 +254,22 @@ resolver). Cada tarea = su propio PR pequeño; se construye por fases para revis
   desordenadas de la cola offline), hoy se aceptan ambas y se **cuenta dos veces** el tramo común,
   en silencio. En vez de aceptar a ciegas, **marcarla como conflicto** (reutilizando el canal
   `conflicto` + alerta que ya existe → la resuelve el gestor en web). Es raro; va por libre.
+- [x] **T-263** Planificación de recaudación **P1 (backend)** — calendario por local: columnas
+  `cadencia_semanas`/`fecha_inicio_recaudacion`/`operario_id` en `local` (CHECK de coherencia +
+  índice parcial), RPC `actualizar_calendario_local` (valida gestor + tenant + operario operativo
+  activo) y `crear_instalacion` (firma 10→12 args) que fija el calendario al instalar. — **Hecho**
+  (PR #78, mergeado). `supabase db reset` + `test db` verdes (pgTAP `14_calendario_local`, 15
+  asserts; `08_lockdown` 54→56). Spec/plan en `docs/superpowers/`.
+- [x] **T-264** Planificación de recaudación **P1 (web)** — config por local: el alta de instalación
+  pide cadencia (presets 1/2/4 + libre) + fecha con aviso de 2ª máquina; la ficha de local edita
+  calendario + operario; vista `/operarios` (rutas) enlazada en el sidebar (gestor). — **Hecho**
+  (PR #79, mergeado). `build` + `lint` 0 + `test` 65/65. Cliente Supabase web **sin tipar** → sin
+  tipos que regenerar.
+- [ ] **T-265** Planificación de recaudación **P2 + P3** — **Pendiente.** P2: lecturas estrictas por
+  operario (RLS por asignación local↔operario; hoy las lecturas solo filtran por pertenencia a
+  empresa). P3: cálculo "¿toca hoy? / al día / atrasado" (fechas teóricas `F + k·C·7d`, "atendido" =
+  cualquier máquina visitada en el ciclo), héroe/agenda del home Android y panel de gestor. Diseño
+  ya en el spec (§4.2/§5/§6); falta plan + ejecución.
 
 ## Convenciones
 
