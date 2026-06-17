@@ -33,6 +33,29 @@ Sin esto no hay carácter, solo color. Es la **Fase 0**.
 - **Motion de firma** (`Motion.kt`) — materializar las animaciones de producto declaradas: `countup` 600ms (importe/neto que sube), `success-flash` 900ms (al cuadrar/sincronizar), `danger-shake` 400ms (descuadre), `offline-pulse` 1600ms, `sync-spin` 900ms; easing de marca `cubic-bezier(0.2,0,0,1)`. Respetar reduced-motion.
 - **Reconexión de componentes (regla dura).** En pantallas queda **prohibido** instanciar `Card`, `OutlinedTextField`, `Button/OutlinedButton/TextButton`, `TopAppBar` de Material pelados. Se usan los wrappers propios (`AppCard`, `Field`/`SearchField`, `RecreButton`, `RecreShell`). Los wrappers de feature ya existentes (`locales/components/LocalCard`, `MaquinaCard`, `gestion/components/FormFields`, `recaudacion/components/CifrasResumenCard`) pasan a apoyarse en los componentes propios → varias pantallas heredan identidad de golpe.
 
+### 3.1 Mapa de componentes existentes (qué se hace con cada uno)
+
+Casi ninguno se usa hoy en pantallas; el rediseño **los enchufa** (y extiende unos pocos para las interacciones nuevas). No se tira ninguno: son las piezas del molde.
+
+| Componente | Rol en el rediseño | Acción |
+|---|---|---|
+| `RecreShell` | Cabecera de todas las pantallas (P1) | **Conectar** (+ variante home con marca) |
+| `AppCard` | Tarjeta-entidad base (P3) | **Extender** (seleccionable + slot chip flotante) |
+| `RecreButton` | Sustituye `Button`/`OutlinedButton`/`TextButton` | **Conectar** (+ press scale/ripple) |
+| `Field` / `SearchField` | Sustituyen `OutlinedTextField` (P5/P4) | **Conectar** |
+| `FilterChip` | Filtros de las listas (P4) | **Conectar** |
+| `StatusChip` | Estado = color+texto en cada tarjeta (P3) | **Conectar** (parcial→total) |
+| `MoneyText` | Toda cifra (el "dato héroe", P2) | **Conectar** + count-up |
+| `Keypad` | Entrada numérica en todo el flujo (P6) | **Extender** (contadores, cobros) |
+| `Skeleton` | Carga (shimmer) | **Conectar** (reemplaza spinners) |
+| `EmptyState` / `ErrorState` | Estados vacío/error (P7) | **Conectar** |
+| `Sparkline` | Mini-tendencia en histórico/deudas | **Conectar** |
+| `SharedTransition` | Motor de transiciones entre pantallas (M1) | **Conectar** |
+| `RecreSnackbar` | Confirmaciones/errores (M5) | **Conectar** |
+| `IconAction` / `SyncControl` / `OfflineBadge` | Acciones e indicadores de la barra (P1) | **Conectar** |
+| `Collapsible` / `Tooltip` / `SegmentedControl` / `StepIndicator` | Plegables, ayudas, toggles, pasos | **Conectar**/parcial→total |
+| `Motion` (tokens) | Vocabulario de la capa de movimiento | **Extender** (Fase 0) |
+
 ## 4. Patrones compartidos (el molde nuevo)
 
 El rediseño define **un puñado de patrones** y los aplica. Esto es lo que hace que el CRUD se "reskinee solo".
@@ -45,11 +68,27 @@ El rediseño define **un puñado de patrones** y los aplica. Esto es lo que hace
 - **(P6) Entrada numérica única — `Keypad`.** Toda cifra (contadores, denominaciones, importes de cobro) se teclea con el keypad in-app; la celda es un destino tappable, nunca un `TextField`/IME.
 - **(P7) Estados** uniformes: `Skeleton` (carga), `EmptyState` (vacío), `ErrorState` (error con reintento). Nunca un `CircularProgressIndicator` pelado en medio de la pantalla.
 
-## 5. Pantalla por pantalla
+## 5. Sistema de movimiento y feedback
+
+La capa que hace que la app se *sienta* premium (no solo que se vea bien). Tokens en `Motion.kt` (Fase 0); motor de transiciones en `SharedTransition.kt` (ya existe, sin usar). Regla transversal: todo respeta `reduce-motion` y el feedback **nunca es solo movimiento** (siempre hay texto/color/icono).
+
+- **(M1) Transiciones entre pantallas.** Elemento compartido (`SharedTransition`): la tarjeta/nombre de un local "viaja" y se expande hacia su detalle; la máquina elegida continúa al entrar a recaudar. Las secundarias entran/salen deslizando lateral; diálogos y hojas suben desde abajo. El flujo de recaudación (Contadores → Denominaciones → Confirmación) avanza con el `StepIndicator` animándose paso a paso.
+- **(M2) Micro-interacciones.** Botón: press *scale* 0.97 + onda propia petróleo. Denominación: al seleccionar, el anillo petróleo **crece** (spring); el chip de cantidad aparece con **"pop"** (escala+fade) al pasar de 0. Teclado: respuesta visual **+ háptica** por tecla. Filtros/segmented: el indicador activo **se desliza**, no salta.
+- **(M3) Feedback de resultado (firma de producto).**
+  - **Count-up** (600 ms): *Contado*, *neto* e importes del histórico **suben contando** al cambiar o al responder el servidor.
+  - **Success-flash** (900 ms): destello verde + check al **cuadrar / guardar / sincronizar**.
+  - **Danger-shake** (400 ms): campo/tarjeta **vibra** en descuadre o validación fallida.
+  - **Háptica**: pulso corto en éxito (guardar/cuadrar), patrón de error en fallo. Prioritaria en campo (sol/guantes/ruido) sobre el sonido.
+  - **Offline-pulse** (1600 ms) / **sync-spin** (900 ms): badge offline que **late**, icono de sync que **gira** y cierra con success-flash.
+- **(M4) Carga y vacíos.** `Skeleton` con shimmer (nunca un spinner pelado); cross-fade esqueleto→contenido. Listas: entrada en **cascada** suave la primera vez. `EmptyState`/`ErrorState` con ilustración y reintento.
+- **(M5) Confirmaciones.** `RecreSnackbar` propio con color semántico para *guardada / subida / error* (no el snackbar gris de Material).
+- **(M6) Accesibilidad y ritmo.** Easing de marca `cubic-bezier(0.2,0,0,1)`; 120–180 ms para lo funcional, las firmas (count-up/flash/shake) en sus duraciones propias. `reduce-motion` → fade corto o instantáneo. Targets grandes y alto contraste (sol directo, una mano, guantes).
+
+## 6. Pantalla por pantalla
 
 Cada ficha indica el/los patrones que le tocan y los movimientos específicos. Salvo las bandera, el grueso es **aplicar P1–P7**.
 
-### 5.1 Flujo de recaudación (el corazón — máxima prioridad)
+### 6.1 Flujo de recaudación (el corazón — máxima prioridad)
 
 **ContadoresScreen** — captura de lecturas antes de contar. Hoy: `OutlinedTextField` + IME (incoherente). → **P6**: lectura en grande (mono), entrada con `Keypad` propio, una máquina/contador a la vez, sin IME. Cabecera P1, CTA único `RecreButton`. Unifica el lenguaje numérico con Denominaciones.
 
@@ -64,7 +103,7 @@ Cada ficha indica el/los patrones que le tocan y los movimientos específicos. S
 
 **ConfirmacionScreen** — resumen + firma + confirmar. Hoy: pila de cards. → **P2** con el **neto como héroe** (cifra grande mono + count-up al responder el servidor), desglose limpio debajo (no 3 cards grises), `SignaturePad` (ya propio) con esquina `shapes.medium`, **CTA único** `RecreButton`. Momento "confirmar dinero" = peso visual.
 
-### 5.2 Núcleo diario
+### 6.2 Núcleo diario
 
 **LocalesScreen (home)** — **diseño bloqueado:** P1 con marca; **héroe "X por recaudar"**; `SearchField` + `FilterChip` (Por recaudar / Al día / Todos); tarjetas-entidad (P3) de local: nombre = héroe, `StatusChip` por recaudar (ámbar) / al día (verde-neutral), nº máquinas + última recaudación, y `RecreButton` **Recaudar** petróleo cuando procede; **pendientes primero**. Tab bar con Locales activo (petróleo).
 
@@ -74,11 +113,11 @@ Cada ficha indica el/los patrones que le tocan y los movimientos específicos. S
 
 **HistoricoDetalleScreen** — detalle de una recaudación pasada. Hoy: 6 cards grises. → P2 con el **importe como héroe** arriba, desglose y metadatos en secciones limpias (no 6 cards), acciones con `RecreButton`/`IconAction`.
 
-### 5.3 Avisos
+### 6.3 Avisos
 
 **AlertasScreen** y **IncidenciasScreen** — → **P4** con tarjeta-entidad (P3): icono+texto+color del estado, acciones honestas (las de Incidencias ya definidas: Reintentar/Rehacer/Descartar). `EmptyState` propio (hoy Incidencias ni lo usa).
 
-### 5.4 Gestión (CRUD admin) — el bloque que se reskinea en bloque
+### 6.4 Gestión (CRUD admin) — el bloque que se reskinea en bloque
 
 Comparten un único molde → se diseñan **dos patrones y se aplican a las ~9**.
 
@@ -88,13 +127,13 @@ Comparten un único molde → se diseñan **dos patrones y se aplican a las ~9**
 
 **LicenciaForm / LocalForm / InstalacionForm / MaquinaForm** — **P5** (formulario): `Field` por secciones; los multipaso (`InstalacionForm`, `MaquinaForm`) conservan `StepIndicator` (ya propio) sobre `AppCard`.
 
-### 5.5 Deudas
+### 6.5 Deudas
 
 **DeudasGestorScreen** — → P4; **héroe = saldo total** (mono); filas de deuda como tarjeta-entidad.
 
 **DeudasLocalScreen** — la más sobrecargada (6 `OutlinedTextField`, 9 `TextButton`, 4 diálogos). → P2 (saldo héroe) + P5 para el cobro (`Field` + `Keypad` para el importe) + reducir el ruido de inputs; acciones agrupadas.
 
-### 5.6 Operaciones de campo
+### 6.6 Operaciones de campo
 
 **ReportarAveriaScreen** — → **P5** (5 campos hoy en OutlinedTextField → `Field`); categoría como `SegmentedControl`/chips; CTA único.
 
@@ -104,7 +143,7 @@ Comparten un único molde → se diseñan **dos patrones y se aplican a las ~9**
 
 **ImpresoraScreen** — → P4/ajustes: filas de dispositivo + acciones (`RecreButton`); test de impresión con feedback de estado.
 
-### 5.7 Ajustes y acceso
+### 6.7 Ajustes y acceso
 
 **AjustesScreen** — → **filas de ajuste** propias (no `Card` + `TextButton`); conserva `SegmentedControl` (tema). Agrupado por secciones.
 
@@ -114,18 +153,18 @@ Comparten un único molde → se diseñan **dos patrones y se aplican a las ~9**
 
 **SinAccesoScreen** — → `EmptyState` con marca (no Column + Button pelado).
 
-## 6. Identidad de marca (logo)
+## 7. Identidad de marca (logo)
 
 Mano libre dentro de "Confianza Industrial". Propuesta a iterar:
 - **Wordmark "Recre"** en Geist, con un detalle del petróleo (p. ej. el punto de la "i"/acento, o un corte geométrico). Tono **industrial y sobrio**, no fintech-juguetón.
 - **Monograma "R"** geométrico para icono de app y splash, sobre fondo petróleo (claro) / superficie-1 (oscuro).
 - Se diseña como parte de la Fase 1 (Login/splash) y se valida aparte.
 
-## 7. Alcance, fases y fuera de alcance
+## 8. Alcance, fases y fuera de alcance
 
 **Fases** (cada una entregable y QA-able por separado; el usuario instala el APK para QA visual):
 
-- **Fase 0 — Fundamentos:** `Shape.kt`, `Spacing.kt`, motion de firma, cableado en `Theme`, y reconexión de los wrappers de feature a componentes propios. Sin cambio visible aún salvo coherencia de esquinas/espaciado.
+- **Fase 0 — Fundamentos:** `Shape.kt`, `Spacing.kt`, vocabulario de movimiento (tokens M + `SharedTransition`), cableado en `Theme`, y reconexión de los wrappers de feature a componentes propios. Sin cambio visible aún salvo coherencia de esquinas/espaciado; la capa de feedback (M3) se aplica con cada pantalla en su fase.
 - **Fase 1 — Flujo de recaudación:** Contadores, Denominaciones (3×3), Confirmación + marca/Login. Es el corazón y la pantalla más visible.
 - **Fase 2 — Núcleo diario:** Locales (home), LocalDetalle, Histórico (+ detalle).
 - **Fase 3 — Gestión + Deudas:** patrones P4/P5 aplicados al CRUD y a deudas.
@@ -139,11 +178,12 @@ Mano libre dentro de "Confianza Industrial". Propuesta a iterar:
 - *Sol directo / una mano / guantes* → tamaños generosos, targets grandes, alto contraste (ya en la filosofía Confianza Industrial).
 - *Alcance grande (28 pantallas)* → mitigado por los patrones compartidos: definidos una vez en Fase 0–2, aplicados en bloque en Fase 3–4.
 
-## 8. Criterios de "hecho"
+## 9. Criterios de "hecho"
 
 - Cero `TopAppBar`/`Card`/`OutlinedTextField`/`Button` de Material pelados en `feature/**`.
 - `Shape.kt` + `Spacing.kt` cableados; motion de firma en las pantallas clave.
 - Las 5 reglas visibles en cada pantalla (héroe, acento único, estado color+texto, tarjeta con borde, keypad propio).
 - Denominaciones: 3×3, sin scroll, chip flotante, count-up/flash.
 - Login con marca propia.
+- **Movimiento/feedback**: transición de elemento compartido en el flujo diario; count-up/success-flash/danger-shake + háptica en recaudación; `Skeleton` en toda carga; `RecreSnackbar` en confirmaciones; `reduce-motion` respetado.
 - Sin regresiones funcionales (comportamiento idéntico).
