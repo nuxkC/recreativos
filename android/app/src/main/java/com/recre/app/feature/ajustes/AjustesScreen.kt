@@ -79,6 +79,7 @@ fun AjustesScreen(
     onSelectTab: (TopLevelDestination) -> Unit,
     onImpresoraClick: () -> Unit,
     onAlertasClick: () -> Unit,
+    onIncidenciasClick: () -> Unit,
     viewModel: AjustesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -89,7 +90,7 @@ fun AjustesScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.ajustes_titulo)) },
-                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
             )
         },
         bottomBar = {

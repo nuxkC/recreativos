@@ -26,26 +26,26 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * Estado del centro de alertas / top bar global de pulgar (T-234 · T-236).
+ * Estado del centro de alertas / top bar global de pulgar (T-234 · T-236 · T-261).
  *
- * El badge de la campana agrega TODO lo que requiere atención del técnico:
- *  - [alertasBackend]: alertas in-app del servidor. Incluye los **descuadres**
- *    (que llegan como alertas de tipo conflicto), además de licencias por
- *    caducar, locales sin recaudar, recaudaciones anuladas, etc.
- *  - [pendientesSync]: elementos creados offline aún sin subir (recaudaciones +
- *    averías) = la "sync pendiente".
+ * Dos contadores SEPARADOS en la barra (T-261), porque mezclan cosas distintas:
+ *  - [alertasBackend] → la **campana 🔔**: avisos in-app del gestor (descuadres/
+ *    conflictos, licencias por caducar, locales sin recaudar, anulaciones…). Es
+ *    informativo: el técnico los consulta.
+ *  - [incidencias] → el **badge ⚠️ rojo**: recaudaciones + averías de la cola
+ *    BLOQUEADAS (estado 'error'/'fallida') que el técnico DEBE resolver. Abre el
+ *    Centro de Incidencias.
  *
- * [totalAlertas] (la suma) es lo que pinta el badge de la campana; además
- * [pendientesSync] alimenta el aviso de "sin sincronizar" del centro de alertas.
+ * [pendientesSync] (todo lo no-enviado: pendiente/subiéndose + bloqueado) ya no pinta
+ * ningún badge de la barra; alimenta solo el aviso "sin sincronizar" del centro de
+ * alertas. Lo que se está subiendo solo no necesita acción → no es un badge.
  */
 data class ShellUiState(
     val alertasBackend: Int = 0,
     val pendientesSync: Int = 0,
+    val incidencias: Int = 0,
     val sincronizando: Boolean = false,
-) {
-    val totalAlertas: Int
-        get() = alertasBackend + pendientesSync
-}
+)
 
 /**
  * ViewModel del centro de alertas + top bar global. Combina, para la empresa
@@ -96,15 +96,30 @@ constructor(
             }
         }
 
+    /** Incidencias = filas BLOQUEADAS (estado 'error'/'fallida') de ambas colas. */
+    private val incidenciasFlow =
+        empresaIdFlow.flatMapLatest { id ->
+            if (id == null) {
+                flowOf(0)
+            } else {
+                combine(
+                    recaudacionRepository.observarBloqueadas(id),
+                    averiaRepository.observarBloqueadas(id),
+                ) { recaudaciones, averias -> recaudaciones.size + averias.size }
+            }
+        }
+
     val state: StateFlow<ShellUiState> =
         combine(
             alertasBackendFlow,
             pendientesSyncFlow,
+            incidenciasFlow,
             sincronizandoFlow,
-        ) { backend, pendientes, sincronizando ->
+        ) { backend, pendientes, incidencias, sincronizando ->
             ShellUiState(
                 alertasBackend = backend,
                 pendientesSync = pendientes,
+                incidencias = incidencias,
                 sincronizando = sincronizando,
             )
         }

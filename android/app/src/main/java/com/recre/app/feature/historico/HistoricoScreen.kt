@@ -65,6 +65,7 @@ import java.time.format.DateTimeFormatter
 fun HistoricoScreen(
     onSelectTab: (TopLevelDestination) -> Unit,
     onAlertasClick: () -> Unit,
+    onIncidenciasClick: () -> Unit,
     onRecaudacionClick: (String) -> Unit,
     viewModel: HistoricoViewModel = hiltViewModel(),
 ) {
@@ -75,7 +76,7 @@ fun HistoricoScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.historico_titulo)) },
-                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
             )
         },
         bottomBar = {

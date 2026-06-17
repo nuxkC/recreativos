@@ -58,6 +58,7 @@ fun LocalesScreen(
     viewModel: LocalesViewModel,
     onLocalClick: (String) -> Unit,
     onAlertasClick: () -> Unit,
+    onIncidenciasClick: () -> Unit,
     onSelectTab: (TopLevelDestination) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,7 +101,7 @@ fun LocalesScreen(
                         )
                     }
                 },
-                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ),

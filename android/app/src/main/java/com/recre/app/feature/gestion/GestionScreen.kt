@@ -55,6 +55,7 @@ import com.recre.app.ui.components.TopLevelDestination
 fun GestionScreen(
     onSelectTab: (TopLevelDestination) -> Unit,
     onAlertasClick: () -> Unit,
+    onIncidenciasClick: () -> Unit,
     onLicenciasClick: () -> Unit,
     onMaquinasClick: () -> Unit,
     onLocalesClick: () -> Unit,
@@ -68,7 +69,7 @@ fun GestionScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.gestion_titulo)) },
-                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick) },
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
             )
         },
         bottomBar = {
