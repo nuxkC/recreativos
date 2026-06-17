@@ -227,7 +227,7 @@ diseño **acordadas con el usuario**: (a) **alcance completo (recaudaciones + av
 **separar la campana** (avisos del gestor) **del badge de incidencias** (lo que el técnico debe
 resolver). Cada tarea = su propio PR pequeño; se construye por fases para revisar sin acumular.
 
-- [ ] **T-259** Fase 1 — Fontanería de la cola de **averías** al nivel de la de recaudaciones.
+- [x] **T-259** Fase 1 — Fontanería de la cola de **averías** al nivel de la de recaudaciones.
   Hoy `EstadoAveriaPendiente` solo tiene `pendiente/subiendo/enviada/error` (sin estado terminal
   `fallida`); `AveriaPendienteDao`/`AveriaRepository` no tienen `observarBloqueadas` ni
   `reintentar`/`descartar`/`recuperarColgadas`; y `AveriaUploadWorker` no separa fallo de red
@@ -235,14 +235,14 @@ resolver). Cada tarea = su propio PR pequeño; se construye por fases para revis
   **Consecuencia actual (bug): una avería que falla al subir es invisible** (solo se ve entrando
   máquina a máquina al histórico) y puede bloquear la cola. Calcar el patrón ya probado en
   recaudaciones (PR #55/#56). **No toca UI todavía** (fontanería interna).
-- [ ] **T-260** Fase 2 — Pantalla **"Incidencias"** unificada (`feature/incidencias/`, ruta nueva
+- [x] **T-260** Fase 2 — Pantalla **"Incidencias"** unificada (`feature/incidencias/`, ruta nueva
   tipo `ALERTAS`, con botón atrás; NO es pestaña). Junta recaudaciones bloqueadas + averías
   bloqueadas, con una sección **"En cola"** (informativa, se subirán solas) debajo. **Botones
   honestos según el motivo:** *Rehacer* para la atascada por desglose/baseline incoherente
   (reintentar nunca la arregla → lleva a recontar), *Reintentar* solo para fallo de red,
   *Descartar*. El popup raíz actual (`ErroresSubidaDialogHost`) se degrada a **aviso ligero**
   que enlaza a esta pantalla en vez de modal que salta solo.
-- [ ] **T-261** Fase 3 — **Badge de incidencias + separar la campana.** La campana 🔔 pasa a
+- [x] **T-261** Fase 3 — **Badge de incidencias + separar la campana.** La campana 🔔 pasa a
   contar SOLO `alertasBackend` (avisos del gestor: conflictos/anulaciones/licencias). Badge nuevo
   ⚠️ rojo (`NotificationBadge` con `BadgeRole.DANGER`) en `RecreTopBarActions` (barra global de
   las 4 pantallas) con el conteo de bloqueadas (recaudaciones `error/fallida` + averías
