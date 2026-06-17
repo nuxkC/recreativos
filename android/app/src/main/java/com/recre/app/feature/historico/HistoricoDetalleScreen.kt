@@ -1,7 +1,5 @@
 package com.recre.app.feature.historico
 
-import com.recre.app.ui.components.formatEur
-
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
@@ -18,24 +16,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,17 +33,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
-import com.recre.app.core.data.repository.EstadoHistorico
 import com.recre.app.core.data.repository.RecaudacionHistorica
 import com.recre.app.core.printer.PrintResult
 import com.recre.app.core.printer.PrinterError
-import java.math.BigDecimal
+import com.recre.app.feature.historico.components.TicketRecibo
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreShapes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -97,16 +88,9 @@ fun HistoricoDetalleScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.historico_detalle_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(R.string.historico_detalle_titulo),
+                onBack = onBack,
             )
         },
     ) { padding ->
@@ -170,17 +154,10 @@ private fun Contenido(
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
     ) {
-        CabeceraCard(recaudacion)
-        Spacer(Modifier.height(12.dp))
-        if (recaudacion.estado == EstadoHistorico.Anulada) {
-            AnulacionCard(motivo = recaudacion.motivoAnulacion)
-            Spacer(Modifier.height(12.dp))
-        }
-        if (recaudacion.conflictoPendiente) {
-            ConflictoCard()
-            Spacer(Modifier.height(12.dp))
-        }
-        CifrasCard(recaudacion)
+        TicketRecibo(
+            recaudacion = recaudacion,
+            fechaTexto = formatFecha(recaudacion.fecha),
+        )
         Spacer(Modifier.height(16.dp))
 
         // Acciones de reimpresión
@@ -201,38 +178,34 @@ private fun Contenido(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
+            RecreTonalButton(
+                text = if (state.descargandoPdf) {
+                    stringResource(R.string.historico_detalle_pdf_descargando)
+                } else {
+                    stringResource(R.string.historico_detalle_pdf)
+                },
                 onClick = onReimprimirPdf,
-                modifier = Modifier.weight(1f),
                 enabled = recaudacion.tieneTicketPdf &&
                     !state.descargandoPdf &&
                     !state.imprimiendoBluetooth,
-            ) {
-                Icon(Icons.Default.PictureAsPdf, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = if (state.descargandoPdf) {
-                        stringResource(R.string.historico_detalle_pdf_descargando)
-                    } else {
-                        stringResource(R.string.historico_detalle_pdf)
-                    },
-                )
-            }
-            Button(
-                onClick = onReimprimirBluetooth,
+                loading = state.descargandoPdf,
+                leadingIcon = Icons.Default.PictureAsPdf,
+                fullWidth = true,
                 modifier = Modifier.weight(1f),
+            )
+            RecrePrimaryButton(
+                text = if (state.imprimiendoBluetooth) {
+                    stringResource(R.string.historico_detalle_imprimiendo)
+                } else {
+                    stringResource(R.string.historico_detalle_imprimir)
+                },
+                onClick = onReimprimirBluetooth,
                 enabled = !state.descargandoPdf && !state.imprimiendoBluetooth,
-            ) {
-                Icon(Icons.Default.Bluetooth, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = if (state.imprimiendoBluetooth) {
-                        stringResource(R.string.historico_detalle_imprimiendo)
-                    } else {
-                        stringResource(R.string.historico_detalle_imprimir)
-                    },
-                )
-            }
+                loading = state.imprimiendoBluetooth,
+                leadingIcon = Icons.Default.Bluetooth,
+                fullWidth = true,
+                modifier = Modifier.weight(1f),
+            )
         }
 
         if (!recaudacion.tieneTicketPdf) {
@@ -259,153 +232,6 @@ private fun Contenido(
 }
 
 @Composable
-private fun CabeceraCard(recaudacion: RecaudacionHistorica) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = formatFecha(recaudacion.fecha),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(Modifier.height(8.dp))
-            KeyValue(
-                label = stringResource(R.string.historico_detalle_local),
-                value = recaudacion.localNombre,
-            )
-            KeyValue(
-                label = stringResource(R.string.historico_detalle_maquina),
-                value = listOfNotNull(
-                    recaudacion.maquinaSerie,
-                    recaudacion.maquinaModelo,
-                ).joinToString(" · "),
-            )
-            recaudacion.licenciaNumero?.let {
-                KeyValue(
-                    label = stringResource(R.string.historico_detalle_licencia),
-                    value = it,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AnulacionCard(motivo: String?) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.historico_detalle_anulada_titulo),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = motivo?.ifBlank { null }
-                    ?: stringResource(R.string.historico_detalle_anulada_sin_motivo),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ConflictoCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-        ),
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Default.Warning,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = stringResource(R.string.historico_detalle_conflicto_titulo),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-                Text(
-                    text = stringResource(R.string.historico_detalle_conflicto_descripcion),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CifrasCard(recaudacion: RecaudacionHistorica) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.historico_detalle_cifras_titulo),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(Modifier.height(8.dp))
-            CifraRow(stringResource(R.string.historico_label_bruto), recaudacion.bruto)
-            CifraRow(stringResource(R.string.historico_label_neto), recaudacion.neto)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-            CifraRow(stringResource(R.string.historico_label_parte_local), recaudacion.parteLocal)
-            CifraRow(
-                stringResource(R.string.historico_label_parte_empresa),
-                recaudacion.parteEmpresa,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CifraRow(label: String, value: BigDecimal) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = formatEur(value),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontFamily = FontFamily.Monospace,
-            ),
-        )
-    }
-}
-
-@Composable
-private fun KeyValue(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(110.dp),
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
-}
-
-@Composable
 private fun ImpresionStatusCard(
     imprimiendo: Boolean,
     printResult: PrintResult?,
@@ -417,9 +243,15 @@ private fun ImpresionStatusCard(
         is PrintResult.Failure -> MaterialTheme.colorScheme.errorContainer
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    Card(
+    val contenidoColor = when (printResult) {
+        is PrintResult.Failure -> MaterialTheme.colorScheme.onErrorContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        color = containerColor,
+        contentColor = contenidoColor,
+        shape = RecreShapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -450,9 +282,10 @@ private fun ImpresionStatusCard(
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    OutlinedButton(onClick = onLimpiar) {
-                        Text(stringResource(R.string.historico_detalle_cerrar))
-                    }
+                    RecreTonalButton(
+                        text = stringResource(R.string.historico_detalle_cerrar),
+                        onClick = onLimpiar,
+                    )
                 }
             }
         }
@@ -461,11 +294,11 @@ private fun ImpresionStatusCard(
 
 @Composable
 private fun ErrorCardCompact(textRes: Int, onCerrar: () -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.medium,
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -474,12 +307,12 @@ private fun ErrorCardCompact(textRes: Int, onCerrar: () -> Unit) {
             Text(
                 text = stringResource(textRes),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f),
             )
-            OutlinedButton(onClick = onCerrar) {
-                Text(stringResource(R.string.historico_detalle_cerrar))
-            }
+            RecreTonalButton(
+                text = stringResource(R.string.historico_detalle_cerrar),
+                onClick = onCerrar,
+            )
         }
     }
 }

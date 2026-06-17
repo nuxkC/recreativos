@@ -52,7 +52,6 @@ class SinMaterialPeladoTest {
             "feature/gestion/locales/LocalFormScreen.kt",
             "feature/gestion/maquinas/MaquinaFormScreen.kt",
             "feature/gestion/maquinas/MaquinasGestorScreen.kt",
-            "feature/historico/HistoricoDetalleScreen.kt",
             "feature/historico/HistoricoScreen.kt",
             "feature/impresora/ImpresoraScreen.kt",
             "feature/incidencias/IncidenciasScreen.kt",
