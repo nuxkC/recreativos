@@ -356,6 +356,7 @@
     <string name="historico_detalle_maquina">Máquina</string>
     <string name="historico_detalle_licencia">Licencia</string>
     <string name="historico_detalle_cifras_titulo">Cifras de la recaudación</string>
+    <string name="historico_ticket_titulo">Recibo de recaudación</string>
     <string name="historico_detalle_anulada_titulo">Recaudación anulada</string>
     <string name="historico_detalle_anulada_sin_motivo">No se registró motivo.</string>
     <string name="historico_detalle_conflicto_titulo">Conflicto sin resolver</string>
