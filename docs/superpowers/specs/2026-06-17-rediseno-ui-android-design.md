@@ -56,6 +56,27 @@ Casi ninguno se usa hoy en pantallas; el rediseño **los enchufa** (y extiende u
 | `Collapsible` / `Tooltip` / `SegmentedControl` / `StepIndicator` | Plegables, ayudas, toggles, pasos | **Conectar**/parcial→total |
 | `Motion` (tokens) | Vocabulario de la capa de movimiento | **Extender** (Fase 0) |
 
+### 3.2 Iconografía e ilustración propias
+
+Lo que más "delata" una app genérica después del estilo. Se crea identidad gráfica propia:
+
+- **Iconos propios (`RecreIcons`):** set **SVG** coherente (mismo grosor de línea, esquinas y rejilla 24dp), convertido a **Vector Drawables** (XML) y expuesto como `object RecreIcons` (`ImageVector`). Reemplaza los `Icons.Filled.*` de Material sueltos. Un icono = un significado de dominio (recaudar, avería, local, máquina, sync, offline, conflicto, contador…).
+- **Ilustraciones y animaciones "dibujadas" — Lottie** (`com.airbnb.android:lottie-compose`, fácil de integrar, JSON): vacíos, onboarding, **celebración de éxito** (al cuadrar/guardar), y splash. Assets propios en el estilo de marca (editables en LottieFiles/After Effects). *(Alternativa: Rive, si se quiere interacción.)*
+- **División clara:** las micro-animaciones de UI (count-up, flash, shake, transiciones, press de M1–M3) se hacen **nativas en Compose**, sin librería; Lottie es **solo** para lo ilustrado/animado complejo.
+
+### 3.3 Voz y microcopy
+
+- Voz de marca: **calmada, precisa, español llano, sin tecnicismos** al técnico; el dato manda, el texto acompaña. Una guía corta (do/don't) + reescritura de errores, vacíos, botones, confirmaciones y títulos con ella. Nada de copy por defecto de Material.
+
+### 3.4 Accesibilidad
+
+- `contentDescription` reales (lector de pantalla); **escalado de fuente** que respeta el tamaño del sistema (técnicos mayores); targets **≥48dp**; orden de foco lógico; **alcance a una mano** (acción primaria abajo); estado nunca solo por color (ya en las 5 reglas). Probar con TalkBack y fuente grande.
+
+### 3.5 Calidad del sistema (que no se degrade)
+
+- **Guardarraíles anti-regresión:** regla de lint/Detekt que **prohíbe** `Card`/`OutlinedTextField`/`Button`/`TopAppBar` de Material en `feature/**` (falla el build). Impide que el sistema vuelva a esquivarse, que es justo cómo se llegó al problema actual.
+- **Catálogo de componentes:** galería de `@Preview` por componente y por pantalla (claro + oscuro) — documentación viva y QA visual sin recompilar la app entera.
+
 ## 4. Patrones compartidos (el molde nuevo)
 
 El rediseño define **un puñado de patrones** y los aplica. Esto es lo que hace que el CRUD se "reskinee solo".
@@ -67,6 +88,7 @@ El rediseño define **un puñado de patrones** y los aplica. Esto es lo que hace
 - **(P5) Patrón formulario.** `Field` agrupados por secciones; `StepIndicator` si es multipaso; `RecreButton` primario único; validación inline. Reemplaza "Column de OutlinedTextField + Button".
 - **(P6) Entrada numérica única — `Keypad`.** Toda cifra (contadores, denominaciones, importes de cobro) se teclea con el keypad in-app; la celda es un destino tappable, nunca un `TextField`/IME.
 - **(P7) Estados** uniformes: `Skeleton` (carga), `EmptyState` (vacío), `ErrorState` (error con reintento). Nunca un `CircularProgressIndicator` pelado en medio de la pantalla.
+- **(P8) Lenguaje offline/sync coherente** — *la espina dorsal de una app de campo.* Una sola forma, en TODAS las pantallas, de comunicar que algo no está aún en el servidor: `StatusChip` por ítem (pendiente / subiendo / sincronizado / en conflicto → ámbar / info / verde / rojo, icono+texto), **banner global** discreto cuando no hay red, y enlace al **Centro de Incidencias** para lo bloqueado. **UI optimista**: la acción se siente inmediata y el estado de subida se **muestra**, no se oculta. Reutiliza `OfflineBadge`, `SyncControl` y el centro de incidencias ya construido.
 
 ## 5. Sistema de movimiento y feedback
 
@@ -164,11 +186,12 @@ Mano libre dentro de "Confianza Industrial". Propuesta a iterar:
 
 **Fases** (cada una entregable y QA-able por separado; el usuario instala el APK para QA visual):
 
-- **Fase 0 — Fundamentos:** `Shape.kt`, `Spacing.kt`, vocabulario de movimiento (tokens M + `SharedTransition`), cableado en `Theme`, y reconexión de los wrappers de feature a componentes propios. Sin cambio visible aún salvo coherencia de esquinas/espaciado; la capa de feedback (M3) se aplica con cada pantalla en su fase.
+- **Fase 0 — Fundamentos:** `Shape.kt`, `Spacing.kt`, vocabulario de movimiento (tokens M + `SharedTransition`), `RecreIcons` (set SVG→vector), alta de **Lottie**, **guía de voz**, baseline de **accesibilidad**, **regla de lint anti-Material**, **catálogo de `@Preview`**, el patrón **offline/sync (P8)**, cableado en `Theme`, y reconexión de los wrappers de feature a componentes propios. Casi sin cambio visible aún (coherencia de esquinas/espaciado); la capa de feedback (M3) y el offline se aplican con cada pantalla en su fase.
 - **Fase 1 — Flujo de recaudación:** Contadores, Denominaciones (3×3), Confirmación + marca/Login. Es el corazón y la pantalla más visible.
 - **Fase 2 — Núcleo diario:** Locales (home), LocalDetalle, Histórico (+ detalle).
 - **Fase 3 — Gestión + Deudas:** patrones P4/P5 aplicados al CRUD y a deudas.
 - **Fase 4 — Resto:** Alertas, Incidencias, Ajustes, Operaciones de campo (avería, cambio placa, impresora), acceso (SeleccionarEmpresa, SinAcceso), Escáner.
+- **Fase 5 — Pulido de producto (lista para vender):** primer uso / onboarding (empresa vacía, cómo recaudar) y vacíos que enseñan; **icono de app adaptativo + splash temático** + screenshots de tienda; **QA de modo oscuro por pantalla** (sol = claro, almacén/noche = oscuro). *(Menores diferidos: gestos rápidos —swipe en listas—, estados según rol técnico/gestor, manejo de timeouts.)*
 
 **Fuera de alcance:** lógica de dominio, datos, edge functions, RLS, y la superficie **web** (back-office; es otra superficie con su propio lenguaje, aunque comparta tokens). No se cambian comportamientos ni flujos de navegación, solo composición visual.
 
@@ -186,4 +209,8 @@ Mano libre dentro de "Confianza Industrial". Propuesta a iterar:
 - Denominaciones: 3×3, sin scroll, chip flotante, count-up/flash.
 - Login con marca propia.
 - **Movimiento/feedback**: transición de elemento compartido en el flujo diario; count-up/success-flash/danger-shake + háptica en recaudación; `Skeleton` en toda carga; `RecreSnackbar` en confirmaciones; `reduce-motion` respetado.
+- **Offline/sync** coherente en todas las pantallas (chip por ítem + banner sin red + enlace a Incidencias); UI optimista.
+- **Iconos propios** (`RecreIcons`), cero iconos Material sueltos; ilustraciones Lottie en vacíos/onboarding/éxito.
+- **Accesibilidad**: TalkBack con labels, escalado de fuente, targets ≥48dp, orden de foco.
+- **Guardarraíles**: lint bloquea Material pelado en `feature/**`; catálogo de `@Preview` (claro+oscuro).
 - Sin regresiones funcionales (comportamiento idéntico).
