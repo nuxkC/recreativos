@@ -225,8 +225,15 @@ class RecaudacionFlowViewModel @Inject constructor(
                             maquina = maquina,
                             empresa = empresa,
                             syncStale = stale,
+                            // No reabrir el aviso una vez se está guardando o ya se
+                            // guardó: ese cambio de baseline lo provoca NUESTRA propia
+                            // recaudación al subir y sincronizar (pasa a ser la nueva
+                            // baseline), no un cambio externo que invalide la lectura.
                             baselineCambiada = current.baselineCambiada ||
-                                (baselineCambioValor && yaContado),
+                                (
+                                    baselineCambioValor && yaContado &&
+                                        !current.guardando && !current.guardado
+                                ),
                             errorCarga = if (maquina == null) "instalacion_no_encontrada" else null,
                             cifras = if (maquina != null && empresa != null) {
                                 calcularSiInputsValidos(
