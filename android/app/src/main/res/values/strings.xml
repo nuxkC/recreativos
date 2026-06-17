@@ -66,6 +66,8 @@
     <string name="locales_vacio_sin_locales">No hay locales para esta empresa.</string>
     <string name="locales_vacio_descripcion">Pide al gestor que dé de alta los locales en el back-office.</string>
     <string name="locales_vacio_busqueda">Ningún local coincide con la búsqueda.</string>
+    <string name="locales_vacio_busqueda_desc">Prueba con otro nombre o dirección.</string>
+    <string name="action_clear">Limpiar</string>
 
     <!-- Sync stale (T-59) -->
     <string name="locales_stale_titulo">Sincronización obligatoria</string>

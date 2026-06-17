@@ -15,18 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -45,10 +39,16 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.locales.components.LocalCard
+import com.recre.app.ui.components.EmptyState
+import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
+import com.recre.app.ui.components.SearchField
 import com.recre.app.ui.components.TopLevelDestination
 import com.recre.app.ui.theme.RecreMotion
+import com.recre.app.ui.theme.RecreShapes
 import java.time.Duration
 import java.time.Instant
 
@@ -74,37 +74,14 @@ fun LocalesScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = state.empresaNombre.ifEmpty {
-                                stringResource(R.string.locales_titulo)
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = formatSubtitulo(
-                                cargando = state.cargandoSync,
-                                ultima = state.ultimaSync,
-                                pendientes = state.pendientes,
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (state.pendientes > 0) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                },
-                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+            RecreTopBar(
+                titulo = state.empresaNombre.ifEmpty { stringResource(R.string.locales_titulo) },
+                subtitulo = formatSubtitulo(
+                    cargando = state.cargandoSync,
+                    ultima = state.ultimaSync,
+                    pendientes = state.pendientes,
                 ),
+                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
             )
         },
         bottomBar = {
@@ -128,23 +105,40 @@ fun LocalesScreen(
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
-                BuscadorLocales(
-                    query = state.query,
-                    onQueryChange = viewModel::onQueryChange,
+                SearchField(
+                    value = state.query,
+                    onValueChange = viewModel::onQueryChange,
+                    placeholder = stringResource(R.string.locales_buscar_placeholder),
+                    clearContentDescription = stringResource(R.string.action_clear),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
 
                 val filtrados = state.localesFiltrados
-                if (filtrados.isEmpty()) {
-                    EmptyState(
-                        cargando = state.locales.isEmpty() && state.cargandoSync,
-                        conQuery = state.query.isNotBlank(),
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    LazyColumn(
+                when {
+                    state.locales.isEmpty() && state.cargandoSync ->
+                        ListSkeleton(
+                            loadingLabel = stringResource(R.string.locales_vacio_cargando),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                        )
+                    filtrados.isEmpty() -> {
+                        val conQuery = state.query.isNotBlank()
+                        EmptyState(
+                            icon = Icons.Filled.Storefront,
+                            title = stringResource(
+                                if (conQuery) R.string.locales_vacio_busqueda else R.string.locales_vacio_sin_locales,
+                            ),
+                            description = stringResource(
+                                if (conQuery) R.string.locales_vacio_busqueda_desc else R.string.locales_vacio_descripcion,
+                            ),
+                            filtered = conQuery,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
                             start = 16.dp,
@@ -169,34 +163,12 @@ fun LocalesScreen(
 }
 
 @Composable
-private fun BuscadorLocales(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier,
-        placeholder = { Text(stringResource(R.string.locales_buscar_placeholder)) },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-            )
-        },
-        singleLine = true,
-    )
-}
-
-@Composable
 private fun SyncStaleBanner(onSincronizar: () -> Unit, modifier: Modifier = Modifier) {
-    Card(
+    Surface(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -210,50 +182,16 @@ private fun SyncStaleBanner(onSincronizar: () -> Unit, modifier: Modifier = Modi
             )
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onSincronizar) {
-                    Text(stringResource(R.string.sync_force))
-                }
-            }
-        }
-    }
-}
-
-
-
-@Composable
-private fun EmptyState(
-    cargando: Boolean,
-    conQuery: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp),
-        ) {
-            Text(
-                text = when {
-                    cargando -> stringResource(R.string.locales_vacio_cargando)
-                    conQuery -> stringResource(R.string.locales_vacio_busqueda)
-                    else -> stringResource(R.string.locales_vacio_sin_locales)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(8.dp))
-            if (!cargando && !conQuery) {
-                Text(
-                    text = stringResource(R.string.locales_vacio_descripcion),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                RecreTonalButton(
+                    text = stringResource(R.string.sync_force),
+                    onClick = onSincronizar,
                 )
             }
         }
     }
 }
+
+
 
 @Composable
 private fun formatSubtitulo(cargando: Boolean, ultima: Instant?, pendientes: Int): String {
