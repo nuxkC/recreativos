@@ -218,6 +218,43 @@ snap en Android, pgTAP + `deno test` en SSOT) **entre** bloques. Revalidar "late
 - [x] **T-257** Bloque 11 — Web mayor: Tailwind v4 (CSS-first `@theme`, `@tailwindcss/postcss`, `tailwind-merge` 3, `tw-animate-css`, revalidar shadcn). — **HECHO (código), pendiente QA visual.** Migración con `@tailwindcss/upgrade` oficial: tailwindcss 3.4→**4.3** CSS-first (`tailwind.config.ts` eliminado → tema en `@theme` de globals.css: `--color-*: var(--token)` de T-227 + `--animate-*`/`@keyframes`); PostCSS → `@tailwindcss/postcss`; `@tailwind`→`@import 'tailwindcss'`. **`tailwindcss-animate`** (plugin v3, KO en v4) → **`tw-animate-css`** (animate-in/fade/slide/zoom de Radix). **`tailwind-merge` 2→3** (v4-aware, `cn()` intacto). Shim de compat del color de `border` (v3 gray-200) puesto por la herramienta. Limpieza de keyframes/clases `.motion-*` duplicados. 36 plantillas con utilidades renombradas. Validado tsc 0 / eslint 0 / next build / vitest 65 / prettier. **FALTA (verificación humana):** **QA visual de TODA la app en ambos modos** — Tailwind v4 cambia defaults (border, ring, preflight, espaciado); aunque hay shim de border, hay que confirmar a ojo que no hay regresiones frente a los tokens de T-227.
 - [ ] **T-258** Bloque 12 — **Diferido**: Gradle 9.5.1 + AGP 9 (al salir de alpha), Kotlin 2.2/2.4, Coil 3, TypeScript 6, supabase-kt 3.6 + ktor alineado, recharts 3, lucide-react 1.x. **Incluye** migrar la capa `RecreMotion` (T-230) al `MotionScheme.expressive()` oficial cuando material3 1.5.0 sea estable.
 
+## Fase 6 — Centro de Incidencias del técnico (recaudaciones + averías)
+
+Surge de la **auditoría de fallos de recaudación** (2026-06-17): tras arreglar el bloqueo de
+cola por recaudación corrupta (PR #55) y revertir el dedup-por-contadores que borraba
+recaudaciones legítimas (PR #56), se mapearon todas las combinaciones de fallo. Decisiones de
+diseño **acordadas con el usuario**: (a) **alcance completo (recaudaciones + averías)**; (b)
+**separar la campana** (avisos del gestor) **del badge de incidencias** (lo que el técnico debe
+resolver). Cada tarea = su propio PR pequeño; se construye por fases para revisar sin acumular.
+
+- [ ] **T-259** Fase 1 — Fontanería de la cola de **averías** al nivel de la de recaudaciones.
+  Hoy `EstadoAveriaPendiente` solo tiene `pendiente/subiendo/enviada/error` (sin estado terminal
+  `fallida`); `AveriaPendienteDao`/`AveriaRepository` no tienen `observarBloqueadas` ni
+  `reintentar`/`descartar`/`recuperarColgadas`; y `AveriaUploadWorker` no separa fallo de red
+  (reintentable) de fallo permanente (terminal) ni recupera filas colgadas en `subiendo`.
+  **Consecuencia actual (bug): una avería que falla al subir es invisible** (solo se ve entrando
+  máquina a máquina al histórico) y puede bloquear la cola. Calcar el patrón ya probado en
+  recaudaciones (PR #55/#56). **No toca UI todavía** (fontanería interna).
+- [ ] **T-260** Fase 2 — Pantalla **"Incidencias"** unificada (`feature/incidencias/`, ruta nueva
+  tipo `ALERTAS`, con botón atrás; NO es pestaña). Junta recaudaciones bloqueadas + averías
+  bloqueadas, con una sección **"En cola"** (informativa, se subirán solas) debajo. **Botones
+  honestos según el motivo:** *Rehacer* para la atascada por desglose/baseline incoherente
+  (reintentar nunca la arregla → lleva a recontar), *Reintentar* solo para fallo de red,
+  *Descartar*. El popup raíz actual (`ErroresSubidaDialogHost`) se degrada a **aviso ligero**
+  que enlaza a esta pantalla en vez de modal que salta solo.
+- [ ] **T-261** Fase 3 — **Badge de incidencias + separar la campana.** La campana 🔔 pasa a
+  contar SOLO `alertasBackend` (avisos del gestor: conflictos/anulaciones/licencias). Badge nuevo
+  ⚠️ rojo (`NotificationBadge` con `BadgeRole.DANGER`) en `RecreTopBarActions` (barra global de
+  las 4 pantallas) con el conteo de bloqueadas (recaudaciones `error/fallida` + averías
+  `error/fallida`) → abre Incidencias. Nuevo campo `incidencias` en `ShellUiState`/`ShellViewModel`
+  separado de `totalAlertas`; propagar `onIncidenciasClick` por las 4 pantallas (patrón de
+  `onAlertasClick`).
+- [ ] **T-262** *(aparte)* Servidor — detección de **tramos de contador solapados** ("caso 8"):
+  cuando una recaudación nueva pisa el rango de contador de otra ya firme (por subidas
+  desordenadas de la cola offline), hoy se aceptan ambas y se **cuenta dos veces** el tramo común,
+  en silencio. En vez de aceptar a ciegas, **marcarla como conflicto** (reutilizando el canal
+  `conflicto` + alerta que ya existe → la resuelve el gestor en web). Es raro; va por libre.
+
 ## Convenciones
 
 - Migraciones SQL en orden con timestamp `YYYYMMDDhhmmss_descripcion.sql`.
