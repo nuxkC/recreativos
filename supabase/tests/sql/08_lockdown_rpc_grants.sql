@@ -25,10 +25,13 @@ INSERT INTO _fns(sig) VALUES
     ('cambiar_estado_miembro(uuid, uuid, boolean)'),
     ('marcar_alerta_leida(uuid)'),
     ('marcar_alertas_leidas_empresa(uuid)'),
-    -- instalación (crear_instalacion lleva tolva + hook de traslado T-212)
-    ('crear_instalacion(uuid, uuid, uuid, uuid, date, numeric, numeric, text, numeric, uuid)'),
+    -- instalación (crear_instalacion lleva tolva + hook de traslado T-212;
+    -- gana cadencia + fecha de inicio de recaudación en Planificación P1)
+    ('crear_instalacion(uuid, uuid, uuid, uuid, date, numeric, numeric, text, numeric, uuid, smallint, date)'),
     ('actualizar_instalacion(uuid, date, numeric, numeric, text)'),
     ('eliminar_instalacion(uuid)'),
+    -- calendario de recaudación por local (Planificación P1)
+    ('actualizar_calendario_local(uuid, smallint, date, uuid)'),
     -- tolva / préstamos / recuperación (T-212)
     ('crear_prestamo(uuid, uuid, numeric, numeric, date, text)'),
     ('registrar_recuperacion_efectivo(uuid, numeric, text)'),
@@ -43,8 +46,8 @@ INSERT INTO _fns(sig) VALUES
     -- tolva por avería (T-223)
     ('saldar_tolva_pendiente(uuid, text)');
 
--- 27 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 54
-SELECT plan(54);
+-- 28 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 56
+SELECT plan(56);
 
 SELECT ok(
     has_function_privilege('authenticated', 'public.' || sig, 'EXECUTE'),
