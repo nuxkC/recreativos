@@ -56,6 +56,8 @@ Casi ninguno se usa hoy en pantallas; el rediseño **los enchufa** (y extiende u
 | `Collapsible` / `Tooltip` / `SegmentedControl` / `StepIndicator` | Plegables, ayudas, toggles, pasos | **Conectar**/parcial→total |
 | `Motion` (tokens) | Vocabulario de la capa de movimiento | **Extender** (Fase 0) |
 
+**Componentes nuevos a crear** (no existen): `TicketRecibo` + `DottedDivider` (detalle de histórico con estética de recibo térmico), variante *chip flotante* de `AppCard` (denominaciones), y `CountUpText` (cifras que cuentan). El resto del rediseño es **conectar/extender** los de arriba.
+
 ### 3.2 Iconografía e ilustración propias
 
 Lo que más "delata" una app genérica después del estilo. Se crea identidad gráfica propia:
@@ -129,11 +131,13 @@ Cada ficha indica el/los patrones que le tocan y los movimientos específicos. S
 
 **LocalesScreen (home)** — **diseño bloqueado:** P1 con marca; **héroe "X por recaudar"**; `SearchField` + `FilterChip` (Por recaudar / Al día / Todos); tarjetas-entidad (P3) de local: nombre = héroe, `StatusChip` por recaudar (ámbar) / al día (verde-neutral), nº máquinas + última recaudación, y `RecreButton` **Recaudar** petróleo cuando procede; **pendientes primero**. Tab bar con Locales activo (petróleo).
 
-**LocalDetalleScreen** — local + sus máquinas. Hoy: pila de cards. → P2 cabecera con el local y sus cifras clave; máquinas como tarjeta-entidad (P3) que lideran con **estado + acción** (Recaudar / Reportar avería). Menos "montón de cards".
+**LocalDetalleScreen** — local + sus máquinas. Hoy: pila de cards. → P2 cabecera con el local y sus cifras clave (héroe = pendiente del local); máquinas como tarjeta-entidad (P3) que lideran con **estado + acción** (Recaudar / Ver avería), con las acciones secundarias (reportar avería, cambio de placa) en el **overflow ⋮**. Menos "montón de cards". **"Recaudar todas" solo si ≥2 máquinas instaladas** (`instaladas.size > 1`): con una sola es redundante y basta su Recaudar; verificado que ocultarlo no rompe el modo cadena (la ruta *single* cubre el caso, sin el contador "1/1").
 
-**HistoricoScreen** — histórico. → **P4**: cada recaudación lidera con **importe (mono) + fecha + `StatusChip`** (firme/anulada/conflicto). Filtros como `FilterChip`, no cards.
+**HistoricoScreen** — histórico **navegable y a escala** (hoy es "mis 200", con tope duro sin paginar y filtros en memoria). → **P4** + navegación **[Todo] · [Por local] · [Por máquina]** y filtros server-side (local, máquina, fecha, estado) + búsqueda server-side + **scroll infinito (paginación por cursor `fecha`+`id`)**. Cada fila lidera con **importe (mono) + local·máquina + fecha + `StatusChip`** (firme/anulada/conflicto). **Ámbito según rol:** el técnico ve las suyas; el gestor, toda la empresa.
+  - *Atribución correcta (ya resuelta en el modelo): el local/máquina de cada fila es el de **cuando se hizo** (vía `recaudacion.instalacion_id`, inmutable), aunque la máquina se haya movido después. "Por máquina" agrupa por `maquina_id` (su vida entera cruzando locales); "Por local" filtra por `instalacion.local_id`. No tocar esto: funciona.*
+  - *Backend necesario (única excepción al "no tocar backend", ver §8): vista/RPC sobre `recaudacion` filtrable por `local_id`/`maquina_id` con paginación por cursor, índices de soporte y RBAC por rol.*
 
-**HistoricoDetalleScreen** — detalle de una recaudación pasada. Hoy: 6 cards grises. → P2 con el **importe como héroe** arriba, desglose y metadatos en secciones limpias (no 6 cards), acciones con `RecreButton`/`IconAction`.
+**HistoricoDetalleScreen** — detalle. Hoy: 6 cards grises. → **estética de ticket** (componente nuevo `TicketRecibo`): ancho estrecho tipo recibo térmico, separadores **punteados** (`DottedDivider` nuevo), cabecera centrada y cifras en **Geist Mono tabular** (`MoneyText`/`RecreType`), con el mismo contenido que el ticket impreso (cabecera empresa, local/máquina, contadores, bruto/tasas/neto/partes, firma). Da el "toque personal" emulando el papel. Conflicto/anulada como variantes (aviso + cifras recalculadas / motivo). **Ver PDF** y **Reimprimir Bluetooth** **ya existen** (conectar, no construir; reusa los datos persistidos en la fila). *Aviso: el ticket reimpreso usa el email del técnico actual — el original no se persiste.*
 
 ### 6.3 Avisos
 
@@ -188,12 +192,12 @@ Mano libre dentro de "Confianza Industrial". Propuesta a iterar:
 
 - **Fase 0 — Fundamentos:** `Shape.kt`, `Spacing.kt`, vocabulario de movimiento (tokens M + `SharedTransition`), `RecreIcons` (set SVG→vector), alta de **Lottie**, **guía de voz**, baseline de **accesibilidad**, **regla de lint anti-Material**, **catálogo de `@Preview`**, el patrón **offline/sync (P8)**, cableado en `Theme`, y reconexión de los wrappers de feature a componentes propios. Casi sin cambio visible aún (coherencia de esquinas/espaciado); la capa de feedback (M3) y el offline se aplican con cada pantalla en su fase.
 - **Fase 1 — Flujo de recaudación:** Contadores, Denominaciones (3×3), Confirmación + marca/Login. Es el corazón y la pantalla más visible.
-- **Fase 2 — Núcleo diario:** Locales (home), LocalDetalle, Histórico (+ detalle).
+- **Fase 2 — Núcleo diario:** Locales (home), LocalDetalle, e **Histórico v2** — la única con **backend** (paginación por cursor, vista/RPC filtrable por local/máquina con RBAC por rol, índices) + el detalle con **estética de ticket** y la reimpresión ya existente. La movilidad de máquinas ya está bien resuelta (no tocar).
 - **Fase 3 — Gestión + Deudas:** patrones P4/P5 aplicados al CRUD y a deudas.
 - **Fase 4 — Resto:** Alertas, Incidencias, Ajustes, Operaciones de campo (avería, cambio placa, impresora), acceso (SeleccionarEmpresa, SinAcceso), Escáner.
 - **Fase 5 — Pulido de producto (lista para vender):** primer uso / onboarding (empresa vacía, cómo recaudar) y vacíos que enseñan; **icono de app adaptativo + splash temático** + screenshots de tienda; **QA de modo oscuro por pantalla** (sol = claro, almacén/noche = oscuro). *(Menores diferidos: gestos rápidos —swipe en listas—, estados según rol técnico/gestor, manejo de timeouts.)*
 
-**Fuera de alcance:** lógica de dominio, datos, edge functions, RLS, y la superficie **web** (back-office; es otra superficie con su propio lenguaje, aunque comparta tokens). No se cambian comportamientos ni flujos de navegación, solo composición visual.
+**Fuera de alcance:** lógica de dominio, datos, edge functions, RLS, y la superficie **web** (back-office; es otra superficie con su propio lenguaje, aunque comparta tokens). No se cambian comportamientos ni flujos de navegación, solo composición visual. **Única excepción:** el **histórico a escala** (§6.2) sí requiere backend (vista/RPC paginada y filtrable por local/máquina + índices + RBAC por rol) — es el único trabajo de servidor del rediseño, dentro de la Fase 2.
 
 **Riesgos y mitigación:**
 - *Regresiones funcionales* → cada pantalla mantiene su `ViewModel`/estado; el rediseño es de composición. Validar con `assembleDebug` + QA manual (el usuario instala; firma distinta).
