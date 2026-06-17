@@ -45,6 +45,7 @@ timber = "5.0.1"
 
 # Imágenes
 coil = "2.7.0"
+lottie = "6.4.0"
 
 # OCR (fase 2 — contadores en vivo, T-100)
 mlkit-text-recognition = "16.0.1"
@@ -127,6 +128,8 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 # Imágenes
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+# Ilustraciones animadas (vacíos / onboarding / éxito) — rediseño F0
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 
 # OCR on-device (ML Kit Text Recognition, modelo latino empaquetado) — T-100
 mlkit-text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "mlkit-text-recognition" }
