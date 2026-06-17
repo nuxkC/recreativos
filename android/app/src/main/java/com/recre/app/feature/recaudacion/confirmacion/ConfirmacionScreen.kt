@@ -51,6 +51,12 @@ import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.SignaturePad
+import com.recre.app.ui.components.CountUpText
+import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.theme.RecreShapes
+import androidx.compose.ui.draw.clip
 
 /**
  * Paso final del flujo (T-56). Antes de "Guardar" pinta el resumen +
@@ -140,6 +146,8 @@ private fun FormularioBlock(
         return
     }
 
+    NetoHero(neto = cifras.neto)
+    Spacer(Modifier.height(16.dp))
     CifrasResumenCard(cifras = cifras)
 
     // Recuperación de deuda (T-215): si esta recaudación amortiza deuda del
@@ -172,18 +180,18 @@ private fun FormularioBlock(
     SignaturePad(
         strokes = state.firmaStrokes,
         onStrokeAppend = viewModel::onFirmaStrokeAppend,
+        modifier = Modifier.clip(RecreShapes.medium),
     )
     Spacer(Modifier.height(8.dp))
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
     ) {
-        OutlinedButton(
+        RecreTextButton(
+            text = stringResource(R.string.recaudacion_firma_limpiar),
             onClick = viewModel::onFirmaLimpiar,
             enabled = state.firmaStrokes.isNotEmpty() && !state.guardando,
-        ) {
-            Text(stringResource(R.string.recaudacion_firma_limpiar))
-        }
+        )
     }
 
     if (state.baselineCambiada) {
@@ -192,32 +200,16 @@ private fun FormularioBlock(
     }
 
     Spacer(Modifier.height(24.dp))
-    Button(
+    RecrePrimaryButton(
+        text = stringResource(R.string.recaudacion_accion_guardar),
         onClick = viewModel::onGuardar,
+        loading = state.guardando,
+        enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
+            !state.syncStale && !state.baselineCambiada,
         modifier = Modifier
             .fillMaxWidth()
             .testTag(RecaudacionTestTags.CONFIRMACION_GUARDAR),
-        enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
-            !state.syncStale && !state.baselineCambiada,
-    ) {
-        if (state.guardando) {
-            Box(modifier = Modifier.size(20.dp)) {
-                CircularProgressIndicator(
-                    modifier = Modifier.fillMaxSize(),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-        }
-        Text(
-            text = if (state.guardando) {
-                stringResource(R.string.recaudacion_accion_guardando)
-            } else {
-                stringResource(R.string.recaudacion_accion_guardar)
-            },
-        )
-    }
+    )
     Spacer(Modifier.height(8.dp))
     Text(
         text = stringResource(R.string.recaudacion_persistencia_offline),
@@ -432,5 +424,24 @@ private fun BaselineCambiadaAviso(onRehacer: () -> Unit) {
                 Text(stringResource(R.string.recaudacion_baseline_cambiada_accion))
             }
         }
+    }
+}
+
+@Composable
+private fun NetoHero(neto: java.math.BigDecimal) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.recaudacion_label_neto),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
+        CountUpText(
+            importe = neto.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+            size = MoneyTextSize.Hero,
+        )
     }
 }

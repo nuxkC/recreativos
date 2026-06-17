@@ -6,7 +6,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.recre.app.ui.components.RecreTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.recre.app.R
@@ -40,19 +40,19 @@ fun BaselineCambiadaDialog(
         title = { Text(stringResource(R.string.recaudacion_baseline_cambiada_titulo)) },
         text = { Text(stringResource(R.string.recaudacion_baseline_cambiada_mensaje)) },
         confirmButton = {
-            TextButton(
+            RecreTextButton(
+                text = stringResource(R.string.recaudacion_baseline_cambiada_accion),
                 onClick = {
                     onMarcarVisto()
                     onRehacer()
                 },
-            ) {
-                Text(stringResource(R.string.recaudacion_baseline_cambiada_accion))
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onMarcarVisto) {
-                Text(stringResource(R.string.recaudacion_baseline_cambiada_descartar))
-            }
+            RecreTextButton(
+                text = stringResource(R.string.recaudacion_baseline_cambiada_descartar),
+                onClick = onMarcarVisto,
+            )
         },
     )
 }

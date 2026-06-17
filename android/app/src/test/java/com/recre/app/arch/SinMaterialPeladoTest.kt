@@ -59,7 +59,6 @@ class SinMaterialPeladoTest {
             "feature/locales/components/MaquinaCard.kt",
             "feature/locales/LocalDetalleScreen.kt",
             "feature/locales/LocalesScreen.kt",
-            "feature/recaudacion/components/BaselineCambiadaDialog.kt",
             "feature/recaudacion/components/CifrasResumenCard.kt",
             "feature/recaudacion/components/RecuperacionResumenCard.kt",
             "feature/recaudacion/confirmacion/ConfirmacionScreen.kt",
