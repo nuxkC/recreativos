@@ -108,6 +108,7 @@
     <string name="maquina_baseline_origen_cambio_placa">Cambio de placa</string>
     <string name="maquina_accion_recaudar">Recaudar</string>
     <string name="maquina_accion_cambio_placa">Cambio de placa</string>
+    <string name="maquina_mas_acciones">Más acciones de %1$s</string>
 
     <!-- Flujo de recaudación (T-54..T-56) -->
     <string name="recaudacion_paso_contadores">Contadores</string>
