@@ -2,23 +2,13 @@ package com.recre.app.feature.recaudacion.denominaciones
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -35,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,17 +32,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.calculo.DENOMINACIONES_PERMITIDAS
 import com.recre.app.core.calculo.importesIguales
+import com.recre.app.ui.components.CountUpText
+import com.recre.app.ui.components.successFlash
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
@@ -65,7 +52,6 @@ import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.formatEur
-import com.recre.app.ui.theme.GeistMono
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -214,35 +200,18 @@ fun DenominacionesScreen(
                     )
                 }
             } else {
-                // (R3) Lista agrupada Billetes/Monedas, con auto-scroll a la fila activa.
-                val items = remember(map) { construirItems(map) }
-                val listState = rememberLazyListState()
-                LaunchedEffect(activeKey) {
-                    val i = items.indexOfFirst { it is DenomItem.Den && it.value.toPlainString() == activeKey }
-                    if (i >= 0) listState.animateScrollToItem(i)
-                }
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    state = listState,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    itemsIndexed(items, key = { _, item -> item.key }) { _, item ->
-                        when (item) {
-                            is DenomItem.Header -> GrupoHeader(grupoLabel(item.label))
-                            is DenomItem.Subtotal -> GrupoSubtotal(grupoLabel(item.label), item.amount)
-                            is DenomItem.Den -> {
-                                val key = item.value.toPlainString()
-                                DenominacionRow(
-                                    denominacion = item.value,
-                                    cantidad = map[key] ?: 0,
-                                    activa = key == activeKey,
-                                    onActivar = { activeKey = key },
-                                )
-                            }
-                        }
-                    }
-                }
+                // (R3) Rejilla 3×3 sin scroll: monedas arriba, billetes abajo en orden
+                // ascendente. La tarjeta seleccionada (borde petróleo) dirige el keypad.
+                RejillaDenominaciones(
+                    cantidades = map,
+                    activeKey = activeKey,
+                    onSelect = { activeKey = it },
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
             }
 
             // (R4) Bloque de progreso STICKY: nunca tapado por el keypad.
@@ -301,101 +270,39 @@ fun DenominacionesScreen(
     }
 }
 
-// Dígito de la celda de cantidad: Geist Mono tabular, tamaño cómodo de lectura.
-private val CeldaCantidadStyle =
-    TextStyle(fontFamily = GeistMono, fontSize = 20.sp, fontWeight = FontWeight(500), fontFeatureSettings = "tnum")
-
 /**
- * Fila de denominación: [valor facial · ancho fijo] · [celda cantidad readonly,
- * dirigida por el keypad, resaltada si es la fila activa] · [subtotal tabular].
- * Toda la fila es tappable para activarla (≥56dp). La celda es un Box (no un
- * TextField): el keypad es la única entrada, el IME nunca aparece.
+ * (R3) Rejilla 3×3 de denominaciones, en orden ascendente (monedas arriba, billetes
+ * abajo). Sin scroll: las filas se reparten el alto disponible (weight) para que las 9
+ * tarjetas entren siempre. La tarjeta seleccionada dirige el keypad.
  */
 @Composable
-private fun DenominacionRow(
-    denominacion: BigDecimal,
-    cantidad: Int,
-    activa: Boolean,
-    onActivar: () -> Unit,
+private fun RejillaDenominaciones(
+    cantidades: Map<String, Int>,
+    activeKey: String?,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val colors = MaterialTheme.colorScheme
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onActivar)
-                .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Valor facial (ancho fijo, alinea columnas).
-        Box(modifier = Modifier.width(96.dp)) {
-            MoneyText(amount = denominacion, size = MoneyTextSize.Inline)
-        }
-        Spacer(Modifier.width(8.dp))
-        // Celda cantidad readonly: activa = secondaryContainer + anillo primary 2dp;
-        // inactiva = surface-1 + borde outline 1px (≥3:1). El moneyMono va onSurface.
-        Box(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .heightIn(min = 56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(if (activa) colors.secondaryContainer else colors.surface)
-                    .border(
-                        width = if (activa) 2.dp else 1.dp,
-                        color = if (activa) colors.primary else colors.outline,
-                        shape = RoundedCornerShape(12.dp),
+        DENOMINACIONES_PERMITIDAS.chunked(3).forEach { fila ->
+            Row(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                fila.forEach { den ->
+                    val key = den.toPlainString()
+                    DenominacionCard(
+                        etiqueta = etiquetaFacialDenominacion(key),
+                        cantidad = cantidades[key] ?: 0,
+                        selected = key == activeKey,
+                        onSelect = { onSelect(key) },
+                        modifier = Modifier.weight(1f),
                     )
-                    .clickable(onClick = onActivar)
-                    .padding(horizontal = 12.dp, vertical = 12.dp)
-                    .testTag(RecaudacionTestTags.denominacionCantidad(denominacion.toPlainString())),
-            contentAlignment = Alignment.CenterEnd,
-        ) {
-            Text(
-                text = if (cantidad == 0) "" else cantidad.toString(),
-                style = CeldaCantidadStyle,
-                color = colors.onSurface,
-            )
-        }
-        Spacer(Modifier.width(12.dp))
-        // Subtotal de la fila = cantidad × valor (money-safe; € muted, dígito foreground).
-        MoneyText(
-            amount =
-                denominacion.multiply(BigDecimal(cantidad)).setScale(2, RoundingMode.HALF_UP),
-            size = MoneyTextSize.Inline,
-        )
-    }
-}
-
-/** Cabecera de grupo (Billetes / Monedas): caption muted. */
-@Composable
-private fun GrupoHeader(label: String) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 8.dp),
-    )
-}
-
-/** Subtotal de grupo: divisor 1px (outline ≥3:1) + label muted + cifra neutra. */
-@Composable
-private fun GrupoSubtotal(label: String, amount: BigDecimal) {
-    Column {
-        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            MoneyText(amount = amount, size = MoneyTextSize.Inline)
+                }
+            }
         }
     }
 }
@@ -419,7 +326,11 @@ private fun BloqueProgreso(
         Column(modifier = Modifier.fillMaxWidth()) {
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             Column(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .successFlash(trigger = if (cuadra) true else null)
+                        .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (objetivo != null) {
@@ -447,7 +358,10 @@ private fun BloqueProgreso(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        MoneyText(amount = total, size = MoneyTextSize.Hero)
+                        CountUpText(
+                            importe = total.setScale(2, RoundingMode.HALF_UP).toPlainString(),
+                            size = MoneyTextSize.Hero,
+                        )
                     }
                     if (objetivo != null && diferencia != null) {
                         EstadoChip(diferencia = diferencia, cuadra = cuadra)
@@ -495,63 +409,6 @@ private fun EstadoChip(diferencia: BigDecimal, cuadra: Boolean) {
         )
     }
 }
-
-// 5 € es el primer billete; por debajo, monedas. Separa los dos grupos de arqueo.
-private val UMBRAL_BILLETE = BigDecimal(5)
-
-/** Ítem renderizable de la lista (cabecera de grupo, fila de denominación o subtotal). */
-private sealed interface DenomItem {
-    val key: String
-
-    data class Header(val label: String, override val key: String) : DenomItem
-
-    data class Den(val value: BigDecimal) : DenomItem {
-        override val key: String = "den-${value.toPlainString()}"
-    }
-
-    data class Subtotal(val label: String, val amount: BigDecimal, override val key: String) : DenomItem
-}
-
-/** Subtotal money-safe de un grupo de denominaciones según el desglose [map]. */
-private fun subtotalGrupo(grupo: List<BigDecimal>, map: Map<String, Int>): BigDecimal =
-    grupo.fold(BigDecimal.ZERO) { acc, d ->
-        acc.add(d.multiply(BigDecimal(map[d.toPlainString()] ?: 0)))
-    }.setScale(2, RoundingMode.HALF_UP)
-
-/**
- * Construye la lista plana Billetes→Monedas (cabecera + filas + subtotal por
- * grupo). Las etiquetas de grupo NO se traducen aquí: son claves estables; el
- * texto visible se resuelve donde se renderiza. Para mantener i18n, las
- * cabeceras llevan la clave y el label se pasa ya resuelto.
- */
-private fun construirItems(map: Map<String, Int>): List<DenomItem> {
-    val billetes = DENOMINACIONES_PERMITIDAS.filter { it >= UMBRAL_BILLETE }
-    val monedas = DENOMINACIONES_PERMITIDAS.filter { it < UMBRAL_BILLETE }
-    return buildList {
-        if (billetes.isNotEmpty()) {
-            add(DenomItem.Header(label = GRUPO_BILLETES, key = "h-billetes"))
-            billetes.forEach { add(DenomItem.Den(it)) }
-            add(DenomItem.Subtotal(GRUPO_BILLETES, subtotalGrupo(billetes, map), "s-billetes"))
-        }
-        if (monedas.isNotEmpty()) {
-            add(DenomItem.Header(label = GRUPO_MONEDAS, key = "h-monedas"))
-            monedas.forEach { add(DenomItem.Den(it)) }
-            add(DenomItem.Subtotal(GRUPO_MONEDAS, subtotalGrupo(monedas, map), "s-monedas"))
-        }
-    }
-}
-
-// Marcadores de grupo (se mapean a su stringResource en el render de la cabecera).
-private const val GRUPO_BILLETES = "billetes"
-private const val GRUPO_MONEDAS = "monedas"
-
-/** Resuelve el marcador de grupo a su texto i18n (en el árbol composable). */
-@Composable
-private fun grupoLabel(marker: String): String =
-    when (marker) {
-        GRUPO_BILLETES -> stringResource(R.string.recaudacion_denominaciones_billetes)
-        else -> stringResource(R.string.recaudacion_denominaciones_monedas)
-    }
 
 /** Siguiente denominación (clamp en la última); null-safe sobre la activa. */
 private fun siguienteDenominacion(activa: String?): String? {
