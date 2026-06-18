@@ -257,6 +257,10 @@ fun FieldText(
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
     imeAction: ImeAction = ImeAction.Next,
+    // Multilínea para notas/observaciones (CRUD gestor). Por defecto monolínea:
+    // todos los callers previos conservan su comportamiento exacto.
+    singleLine: Boolean = true,
+    minLines: Int = 1,
     modifier: Modifier = Modifier,
 ) {
     val colors = RecreColors.current
@@ -268,7 +272,8 @@ fun FieldText(
         onValueChange = onValueChange,
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-        singleLine = true,
+        singleLine = singleLine,
+        minLines = minLines,
         enabled = enabled,
         readOnly = readOnly,
         isError = isError,
