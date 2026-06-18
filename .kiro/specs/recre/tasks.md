@@ -265,11 +265,19 @@ resolver). Cada tarea = su propio PR pequeño; se construye por fases para revis
   calendario + operario; vista `/operarios` (rutas) enlazada en el sidebar (gestor). — **Hecho**
   (PR #79, mergeado). `build` + `lint` 0 + `test` 65/65. Cliente Supabase web **sin tipar** → sin
   tipos que regenerar.
-- [ ] **T-265** Planificación de recaudación **P2 + P3** — **Pendiente.** P2: lecturas estrictas por
-  operario (RLS por asignación local↔operario; hoy las lecturas solo filtran por pertenencia a
-  empresa). P3: cálculo "¿toca hoy? / al día / atrasado" (fechas teóricas `F + k·C·7d`, "atendido" =
-  cualquier máquina visitada en el ciclo), héroe/agenda del home Android y panel de gestor. Diseño
-  ya en el spec (§4.2/§5/§6); falta plan + ejecución.
+- [x] **T-265** Planificación de recaudación **P2** — RBAC de lectura estricto por operario. — **Hecho**
+  (PR #81, mergeado). Las policies `*_select` de las tablas operativas (local, instalacion,
+  recaudacion, cambio_placa, lectura_no_recaudada, recaudacion_lock, maquina, licencia, averia,
+  averia_recambio, credito_local, recuperacion) pasan a `usuario_ve_todo_empresa(empresa_id) OR
+  <camino al operario>`. Solo `tecnico` queda restringido (ve solo `operario_id = auth.uid()`);
+  owner/admin/gestor/contable = ve-todo. Helpers `usuario_ve_todo_empresa`/`usuario_ve_local`/
+  `usuario_ve_instalacion`. Escrituras intactas. pgTAP `15_rbac_lectura_operario` (23 asserts).
+  **FALTA (verificación humana):** probar en dispositivo con cuenta de técnico (sync solo sus locales).
+- [ ] **T-266** Planificación de recaudación **P3** — **Pendiente.** Cálculo "¿toca hoy? / al día /
+  atrasado" (fechas teóricas `F + k·C·7d`, "atendido" = cualquier máquina visitada en el ciclo) vía
+  vista/RPC `agenda_operario`; héroe/agenda del home Android; y el panel de control del gestor (la
+  vista `/operarios` gana estado pendiente/atrasado por operario). Diseño ya en el spec (§4.2/§6);
+  falta plan + ejecución.
 
 ## Convenciones
 
