@@ -11,28 +11,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import com.recre.app.ui.components.RecreSnackbarHost
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,16 +73,9 @@ fun ReportarAveriaScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.averia_reportar_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(R.string.averia_reportar_titulo),
+                onBack = onBack,
             )
         },
         snackbarHost = { RecreSnackbarHost(snackbarHost) },
@@ -125,12 +116,13 @@ fun ReportarAveriaScreen(
                 }
             }
 
-            OutlinedTextField(
+            FieldText(
                 value = state.descripcion,
                 onValueChange = viewModel::onDescripcion,
-                label = { Text(stringResource(R.string.averia_campo_descripcion)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.averia_campo_descripcion),
+                singleLine = false,
                 minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Row(
@@ -179,14 +171,13 @@ fun ReportarAveriaScreen(
                         )
                     }
                     if (state.afectaTolva) {
-                        OutlinedTextField(
+                        FieldText(
                             value = state.importeTolva,
                             onValueChange = viewModel::onImporteTolva,
-                            label = { Text(stringResource(R.string.averia_campo_importe_tolva)) },
-                            singleLine = true,
+                            label = stringResource(R.string.averia_campo_importe_tolva),
                             isError = state.importeTolva.isNotBlank() &&
                                 state.importeTolvaNormalizado == null,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            keyboardType = KeyboardType.Decimal,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -199,21 +190,20 @@ fun ReportarAveriaScreen(
                 onRemove = viewModel::removeRecambio,
             )
 
-            OutlinedTextField(
+            FieldText(
                 value = state.notas,
                 onValueChange = viewModel::onNotas,
-                label = { Text(stringResource(R.string.averia_campo_notas)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.averia_campo_notas),
+                singleLine = false,
                 minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
             )
 
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.averia_reportar_guardar),
                 onClick = viewModel::onGuardar,
                 enabled = state.canGuardar,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.averia_reportar_guardar))
-            }
+            )
             Text(
                 text = stringResource(R.string.averia_reportar_offline_ayuda),
                 style = MaterialTheme.typography.bodySmall,
@@ -231,8 +221,8 @@ private fun RecambiosEditor(
     onAdd: (pieza: String, cantidad: String) -> Boolean,
     onRemove: (Int) -> Unit,
 ) {
-    Card {
-        Column(modifier = Modifier.padding(12.dp)) {
+    AppCard {
+        Column {
             Text(
                 stringResource(R.string.averia_recambios_titulo),
                 style = MaterialTheme.typography.titleSmall,
@@ -277,36 +267,33 @@ private fun RecambiosEditor(
             var pieza by remember { mutableStateOf("") }
             var cantidad by remember { mutableStateOf("1") }
 
-            OutlinedTextField(
+            FieldText(
                 value = pieza,
                 onValueChange = { pieza = it },
-                label = { Text(stringResource(R.string.averia_recambio_pieza)) },
-                singleLine = true,
+                label = stringResource(R.string.averia_recambio_pieza),
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            FieldText(
                 value = cantidad,
                 onValueChange = { cantidad = it.filter { c -> c.isDigit() }.take(4) },
-                label = { Text(stringResource(R.string.averia_recambio_cantidad)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                label = stringResource(R.string.averia_recambio_cantidad),
+                keyboardType = KeyboardType.Number,
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedButton(
+            RecreTonalButton(
+                text = stringResource(R.string.averia_recambio_anadir),
                 onClick = {
                     if (onAdd(pieza, cantidad)) {
                         pieza = ""
                         cantidad = "1"
                     }
                 },
+                leadingIcon = Icons.Default.Add,
+                fullWidth = true,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.averia_recambio_anadir))
-            }
+            )
         }
     }
 }
