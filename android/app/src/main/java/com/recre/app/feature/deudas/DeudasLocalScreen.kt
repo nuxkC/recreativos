@@ -16,26 +16,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import com.recre.app.ui.components.RecreSnackbarHost
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -89,22 +85,11 @@ fun DeudasLocalScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = state.nombreLocal.ifBlank { stringResource(R.string.deudas_titulo) },
-                        // T-244: par compartido con el nombre de la card de la lista de deudas.
-                        modifier = Modifier.recreSharedBounds("deuda-nombre-$localId"),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = state.nombreLocal.ifBlank { stringResource(R.string.deudas_titulo) },
+                onBack = onBack,
+                // T-244: par compartido con el nombre de la card de la lista de deudas.
+                tituloModifier = Modifier.recreSharedBounds("deuda-nombre-$localId"),
             )
         },
         snackbarHost = { RecreSnackbarHost(snackbarHost) },
@@ -138,11 +123,13 @@ fun DeudasLocalScreen(
             }
             if (state.esGestor) {
                 item("nuevo-prestamo") {
-                    OutlinedButton(
+                    RecreTonalButton(
+                        text = stringResource(R.string.deudas_nuevo_prestamo),
                         onClick = viewModel::abrirNuevoPrestamo,
                         enabled = state.online && !state.operando,
+                        fullWidth = true,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.deudas_nuevo_prestamo)) }
+                    )
                 }
             }
 
@@ -226,12 +213,11 @@ fun DeudasLocalScreen(
 
 @Composable
 private fun SaldoCard(state: DeudasLocalUiState) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = RecreShapes.large,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -261,9 +247,9 @@ private fun SaldoCard(state: DeudasLocalUiState) {
 
 @Composable
 private fun PorcentajeCard(state: DeudasLocalUiState, onEditar: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -289,9 +275,11 @@ private fun PorcentajeCard(state: DeudasLocalUiState, onEditar: () -> Unit) {
                 )
             }
             if (state.esGestor) {
-                TextButton(onClick = onEditar, enabled = state.online && !state.operando) {
-                    Text(stringResource(R.string.deudas_porcentaje_editar))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.deudas_porcentaje_editar),
+                    onClick = onEditar,
+                    enabled = state.online && !state.operando,
+                )
             }
         }
     }
@@ -306,8 +294,8 @@ private fun DeudaCard(
     onPago: () -> Unit,
     onCondonar: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
             Text(
                 text = if (credito.tipo == "tolva") {
                     stringResource(R.string.deudas_tipo_tolva)
@@ -328,13 +316,18 @@ private fun DeudaCard(
             if (esGestor) {
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = onPago, enabled = online) {
-                        Text(stringResource(R.string.deudas_pago_accion))
-                    }
+                    RecrePrimaryButton(
+                        text = stringResource(R.string.deudas_pago_accion),
+                        onClick = onPago,
+                        enabled = online,
+                        fullWidth = false,
+                    )
                     if (esAdmin) {
-                        OutlinedButton(onClick = onCondonar, enabled = online) {
-                            Text(stringResource(R.string.deudas_condonar_accion))
-                        }
+                        RecreTonalButton(
+                            text = stringResource(R.string.deudas_condonar_accion),
+                            onClick = onCondonar,
+                            enabled = online,
+                        )
                     }
                 }
             }
@@ -383,30 +376,31 @@ private fun NuevoPrestamoDialog(
         title = { Text(stringResource(R.string.deudas_nuevo_prestamo)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                FieldText(
                     value = principal,
                     onValueChange = { principal = it },
-                    label = { Text(stringResource(R.string.deudas_prestamo_principal)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
+                    label = stringResource(R.string.deudas_prestamo_principal),
+                    keyboardType = KeyboardType.Decimal,
                 )
-                OutlinedTextField(
+                FieldText(
                     value = notas,
                     onValueChange = { notas = it },
-                    label = { Text(stringResource(R.string.deudas_prestamo_concepto)) },
-                    supportingText = { Text(stringResource(R.string.deudas_prestamo_concepto_ayuda)) },
+                    label = stringResource(R.string.deudas_prestamo_concepto),
+                    description = stringResource(R.string.deudas_prestamo_concepto_ayuda),
+                    singleLine = false,
                     minLines = 2,
                 )
             }
         },
         confirmButton = {
-            TextButton(
+            RecreTextButton(
+                text = stringResource(R.string.gestion_guardar),
                 onClick = { onConfirmar(normalizarImporte(principal)!!, notas.trim()) },
                 enabled = valido,
-            ) { Text(stringResource(R.string.gestion_guardar)) }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text(stringResource(R.string.action_cancel)) }
+            RecreTextButton(text = stringResource(R.string.action_cancel), onClick = onCancelar)
         },
     )
 }
@@ -432,29 +426,30 @@ private fun PagoDialog(
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                OutlinedTextField(
+                FieldText(
                     value = importe,
                     onValueChange = { importe = it },
-                    label = { Text(stringResource(R.string.deudas_pago_importe)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
+                    label = stringResource(R.string.deudas_pago_importe),
+                    keyboardType = KeyboardType.Decimal,
                 )
-                OutlinedTextField(
+                FieldText(
                     value = notas,
                     onValueChange = { notas = it },
-                    label = { Text(stringResource(R.string.deudas_pago_notas)) },
+                    label = stringResource(R.string.deudas_pago_notas),
+                    singleLine = false,
                     minLines = 2,
                 )
             }
         },
         confirmButton = {
-            TextButton(
+            RecreTextButton(
+                text = stringResource(R.string.gestion_guardar),
                 onClick = { onConfirmar(normalizarImporte(importe)!!, notas.ifBlank { null }) },
                 enabled = valido,
-            ) { Text(stringResource(R.string.gestion_guardar)) }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text(stringResource(R.string.action_cancel)) }
+            RecreTextButton(text = stringResource(R.string.action_cancel), onClick = onCancelar)
         },
     )
 }
@@ -477,21 +472,23 @@ private fun CondonarDialog(
                         eur(BigDecimal(credito.saldo)),
                     ),
                 )
-                OutlinedTextField(
+                FieldText(
                     value = notas,
                     onValueChange = { notas = it },
-                    label = { Text(stringResource(R.string.deudas_prestamo_notas)) },
+                    label = stringResource(R.string.deudas_prestamo_notas),
+                    singleLine = false,
                     minLines = 2,
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirmar(notas.ifBlank { null }) }) {
-                Text(stringResource(R.string.deudas_condonar_confirmar))
-            }
+            RecreTextButton(
+                text = stringResource(R.string.deudas_condonar_confirmar),
+                onClick = { onConfirmar(notas.ifBlank { null }) },
+            )
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text(stringResource(R.string.action_cancel)) }
+            RecreTextButton(text = stringResource(R.string.action_cancel), onClick = onCancelar)
         },
     )
 }
@@ -522,24 +519,24 @@ private fun PorcentajeDialog(
                     )
                 }
                 if (!heredar) {
-                    OutlinedTextField(
+                    FieldText(
                         value = valor,
                         onValueChange = { valor = it.filter { c -> c.isDigit() }.take(3) },
-                        label = { Text(stringResource(R.string.deudas_porcentaje_valor)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
+                        label = stringResource(R.string.deudas_porcentaje_valor),
+                        keyboardType = KeyboardType.Number,
                     )
                 }
             }
         },
         confirmButton = {
-            TextButton(
+            RecreTextButton(
+                text = stringResource(R.string.gestion_guardar),
                 onClick = { onConfirmar(if (heredar) null else parsed) },
                 enabled = valido,
-            ) { Text(stringResource(R.string.gestion_guardar)) }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text(stringResource(R.string.action_cancel)) }
+            RecreTextButton(text = stringResource(R.string.action_cancel), onClick = onCancelar)
         },
     )
 }
