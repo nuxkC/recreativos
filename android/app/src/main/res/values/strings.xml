@@ -441,9 +441,12 @@
     <string name="gestion_sin_permiso_titulo">Sin permiso</string>
     <string name="gestion_sin_permiso_descripcion">El CRUD de gestión está reservado a los roles propietario, administrador y gestor.</string>
 
+    <string name="gestion_acciones">Acciones</string>
     <string name="gestion_alta">Nuevo</string>
     <string name="gestion_buscar">Buscar</string>
     <string name="gestion_busqueda_vacia">Sin coincidencias para la búsqueda.</string>
+    <string name="gestion_busqueda_vacia_desc">Prueba con otro término de búsqueda.</string>
+    <string name="gestion_lista_vacia_desc">Pulsa + para añadir el primero.</string>
     <string name="gestion_estado">Estado: %1$s</string>
     <string name="gestion_eliminar_titulo">Eliminar</string>
     <string name="gestion_eliminar_confirmar">Eliminar</string>
