@@ -34,8 +34,6 @@ class SinMaterialPeladoTest {
             // Migradas a chrome propio (PasoTopBar) + átomos en rediseño F1·Task 7;
             // fuera de la allowlist. Quedan ContadorOcrCapture/EscanerContadoresScreen
             // (cámara/OCR) pendientes de una fase posterior.
-            "feature/recaudacion/contadores/ContadorOcrCapture.kt",
-            "feature/recaudacion/contadores/EscanerContadoresScreen.kt",
             "feature/shell/ErroresSubidaDialog.kt",
         )
 
