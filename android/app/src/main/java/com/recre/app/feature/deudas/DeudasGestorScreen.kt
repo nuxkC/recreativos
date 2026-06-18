@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -22,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.EmptyState
 import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.formatEur
@@ -92,10 +95,11 @@ fun DeudasGestorScreen(
 
             if (state.locales.isEmpty()) {
                 item("vacio") {
-                    Text(
-                        text = stringResource(R.string.deudas_gestor_vacio),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    EmptyState(
+                        icon = Icons.Filled.Payments,
+                        title = stringResource(R.string.deudas_gestor_vacio),
+                        description = stringResource(R.string.deudas_gestor_vacio_desc),
+                        compact = true,
                     )
                 }
             } else {
