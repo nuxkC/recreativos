@@ -11,22 +11,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.SnackbarEstado
 import com.recre.app.ui.components.mostrar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,23 +65,12 @@ fun MaquinaFormScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if (state.esEdicion) R.string.gestion_maquina_editar
-                            else R.string.gestion_maquina_nueva,
-                        ),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(
+                    if (state.esEdicion) R.string.gestion_maquina_editar
+                    else R.string.gestion_maquina_nueva,
+                ),
+                onBack = onBack,
             )
         },
         snackbarHost = { RecreSnackbarHost(snackbarHost) },
@@ -164,18 +149,21 @@ private fun MaquinaAltaWizard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         if (paso > 0) {
-            OutlinedButton(
+            RecreTonalButton(
+                text = stringResource(R.string.wizard_atras),
                 onClick = { paso-- },
                 enabled = !state.guardando,
+                fullWidth = true,
                 modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.wizard_atras)) }
+            )
         }
         if (paso == 0) {
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.wizard_siguiente),
                 onClick = { paso++ },
                 enabled = state.numeroSerie.isNotBlank(),
                 modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.wizard_siguiente)) }
+            )
         } else {
             GuardarMaquinaButton(state, viewModel, modifier = Modifier.weight(1f))
         }
@@ -279,18 +267,11 @@ private fun GuardarMaquinaButton(
     viewModel: MaquinaFormViewModel,
     modifier: Modifier = Modifier,
 ) {
-    Button(
+    RecrePrimaryButton(
+        text = stringResource(R.string.gestion_guardar),
         onClick = viewModel::guardar,
         enabled = !state.guardando && state.online,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        if (state.guardando) {
-            CircularProgressIndicator(
-                strokeWidth = 2.dp,
-                modifier = Modifier.height(20.dp),
-            )
-        } else {
-            Text(stringResource(R.string.gestion_guardar))
-        }
-    }
+        loading = state.guardando,
+        modifier = modifier,
+    )
 }

@@ -11,26 +11,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.SnackbarEstado
 import com.recre.app.ui.components.mostrar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,23 +70,12 @@ fun InstalacionFormScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if (state.esEdicion) R.string.gestion_instalacion_editar
-                            else R.string.gestion_instalacion_nueva,
-                        ),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(
+                    if (state.esEdicion) R.string.gestion_instalacion_editar
+                    else R.string.gestion_instalacion_nueva,
+                ),
+                onBack = onBack,
             )
         },
         snackbarHost = { RecreSnackbarHost(snackbarHost) },
@@ -150,14 +134,16 @@ fun InstalacionFormScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = viewModel::confirmarCerrar) {
-                    Text(stringResource(R.string.gestion_instalacion_cerrar_confirmar))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.gestion_instalacion_cerrar_confirmar),
+                    onClick = viewModel::confirmarCerrar,
+                )
             },
             dismissButton = {
-                TextButton(onClick = viewModel::cancelarCerrar) {
-                    Text(stringResource(R.string.action_cancel))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.action_cancel),
+                    onClick = viewModel::cancelarCerrar,
+                )
             },
         )
     }
@@ -227,33 +213,29 @@ private fun AltaInstalacionWizard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         if (paso > 0) {
-            OutlinedButton(
+            RecreTonalButton(
+                text = stringResource(R.string.wizard_atras),
                 onClick = { paso-- },
                 enabled = !state.guardando,
+                fullWidth = true,
                 modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.wizard_atras)) }
+            )
         }
         if (paso == 0) {
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.wizard_siguiente),
                 onClick = { paso++ },
                 enabled = seleccionListos,
                 modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.wizard_siguiente)) }
+            )
         } else {
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.gestion_guardar),
                 onClick = viewModel::guardar,
                 enabled = !state.guardando && state.online,
+                loading = state.guardando,
                 modifier = Modifier.weight(1f),
-            ) {
-                if (state.guardando) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.height(20.dp),
-                    )
-                } else {
-                    Text(stringResource(R.string.gestion_guardar))
-                }
-            }
+            )
         }
     }
 }
@@ -264,11 +246,8 @@ private fun EdicionInstalacionForm(
     state: InstalacionFormUiState,
     viewModel: InstalacionFormViewModel,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
             Text(
                 state.cabecera.ifBlank { stringResource(R.string.gestion_instalacion_editar) },
                 style = MaterialTheme.typography.titleSmall,
@@ -291,28 +270,19 @@ private fun EdicionInstalacionForm(
     )
 
     Spacer(Modifier.height(8.dp))
-    Button(
+    RecrePrimaryButton(
+        text = stringResource(R.string.gestion_guardar),
         onClick = viewModel::guardar,
         enabled = !state.guardando && !state.cerrando && state.online,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        if (state.guardando) {
-            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(20.dp))
-        } else {
-            Text(stringResource(R.string.gestion_guardar))
-        }
-    }
-    OutlinedButton(
+        loading = state.guardando,
+    )
+    RecreTonalButton(
+        text = stringResource(R.string.gestion_instalacion_cerrar),
         onClick = viewModel::pedirCerrar,
         enabled = !state.cerrando && !state.guardando && state.online,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        if (state.cerrando) {
-            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(20.dp))
-        } else {
-            Text(stringResource(R.string.gestion_instalacion_cerrar))
-        }
-    }
+        loading = state.cerrando,
+        fullWidth = true,
+    )
 }
 
 /** Campos comunes de alta y edición: fecha de inicio + tasa semanal + % local. */

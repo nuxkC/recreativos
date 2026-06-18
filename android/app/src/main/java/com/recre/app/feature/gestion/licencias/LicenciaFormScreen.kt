@@ -1,35 +1,13 @@
 package com.recre.app.feature.gestion.licencias
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import com.recre.app.ui.components.RecreSnackbarHost
-import com.recre.app.ui.components.SnackbarEstado
-import com.recre.app.ui.components.mostrar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -39,19 +17,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.gestion.ESTADOS_LICENCIA
 import com.recre.app.feature.gestion.components.GestionDropdown
+import com.recre.app.feature.gestion.components.GestionFormScaffold
 import com.recre.app.feature.gestion.components.GestionTextField
-import com.recre.app.ui.components.FieldDate
 import com.recre.app.feature.gestion.resolveErrorRes
+import com.recre.app.ui.components.FieldDate
+import com.recre.app.ui.components.SnackbarEstado
+import com.recre.app.ui.components.mostrar
 
 /**
  * Formulario de alta / edición de Licencia (T-66).
  *
- * Cada campo opcional se muestra como `OutlinedTextField` con label y
- * `supportingText` para los errores locales. El estado se elige con un
- * dropdown enum. El botón "Guardar" está deshabilitado mientras hay una
- * mutación en vuelo.
+ * Rediseño (F3·P5): chrome y botón propios (`GestionFormScaffold`); campos
+ * de la librería (`GestionTextField`/`GestionDropdown`/`FieldDate`) con
+ * validación inline. El "Guardar" es el único primario.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LicenciaFormScreen(
     onBack: () -> Unit,
@@ -71,132 +50,83 @@ fun LicenciaFormScreen(
         viewModel.consumirError()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if (state.esEdicion) R.string.gestion_licencia_editar
-                            else R.string.gestion_licencia_nueva,
-                        ),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
-            )
-        },
-        snackbarHost = { RecreSnackbarHost(snackbarHost) },
-    ) { padding ->
-        if (state.cargando) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
-            return@Scaffold
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    GestionFormScaffold(
+        titulo = stringResource(
+            if (state.esEdicion) R.string.gestion_licencia_editar
+            else R.string.gestion_licencia_nueva,
+        ),
+        onBack = onBack,
+        cargando = state.cargando,
+        online = state.online,
+        snackbarHost = snackbarHost,
+        guardarLabel = stringResource(R.string.gestion_guardar),
+        guardando = state.guardando,
+        onGuardar = viewModel::guardar,
+    ) {
+        GestionTextField(
+            label = stringResource(R.string.gestion_licencia_numero),
+            value = state.numero,
+            onValueChange = viewModel::onNumeroChange,
+            error = state.errores["numero"]?.let {
+                stringResource(R.string.gestion_validacion_requerido)
+            },
+        )
+        GestionTextField(
+            label = stringResource(R.string.gestion_licencia_tipo),
+            value = state.tipo,
+            onValueChange = viewModel::onTipoChange,
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            if (!state.online) {
-                com.recre.app.feature.gestion.components.OfflineBanner(
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            GestionTextField(
-                label = stringResource(R.string.gestion_licencia_numero),
-                value = state.numero,
-                onValueChange = viewModel::onNumeroChange,
-                error = state.errores["numero"]?.let {
-                    stringResource(R.string.gestion_validacion_requerido)
+            FieldDate(
+                label = stringResource(R.string.gestion_licencia_fecha_expedicion),
+                value = state.fechaExpedicion,
+                onValueChange = viewModel::onFechaExpedicionChange,
+                isError = state.errores["fechaExpedicion"] != null,
+                errorText = state.errores["fechaExpedicion"]?.let {
+                    stringResource(R.string.gestion_validacion_fecha)
                 },
+                modifier = Modifier.weight(1f),
             )
-            GestionTextField(
-                label = stringResource(R.string.gestion_licencia_tipo),
-                value = state.tipo,
-                onValueChange = viewModel::onTipoChange,
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                FieldDate(
-                    label = stringResource(R.string.gestion_licencia_fecha_expedicion),
-                    value = state.fechaExpedicion,
-                    onValueChange = viewModel::onFechaExpedicionChange,
-                    isError = state.errores["fechaExpedicion"] != null,
-                    errorText = state.errores["fechaExpedicion"]?.let {
-                        stringResource(R.string.gestion_validacion_fecha)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                FieldDate(
-                    label = stringResource(R.string.gestion_licencia_fecha_caducidad),
-                    value = state.fechaCaducidad,
-                    onValueChange = viewModel::onFechaCaducidadChange,
-                    minIso = state.fechaExpedicion,
-                    isError = state.errores["fechaCaducidad"] != null,
-                    errorText = state.errores["fechaCaducidad"]?.let { code ->
-                        stringResource(
-                            if (code == "fecha_caducidad_anterior_expedicion") {
-                                R.string.gestion_validacion_fecha_caducidad_orden
-                            } else {
-                                R.string.gestion_validacion_fecha
-                            },
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            GestionTextField(
-                label = stringResource(R.string.gestion_licencia_comunidad),
-                value = state.comunidadAutonoma,
-                onValueChange = viewModel::onComunidadAutonomaChange,
-            )
-            GestionDropdown(
-                label = stringResource(R.string.gestion_licencia_estado),
-                selected = state.estado,
-                options = ESTADOS_LICENCIA,
-                optionLabel = { it },
-                onSelected = viewModel::onEstadoChange,
-            )
-            GestionTextField(
-                label = stringResource(R.string.gestion_licencia_notas),
-                value = state.notas,
-                onValueChange = viewModel::onNotasChange,
-                singleLine = false,
-                minLines = 3,
-                keyboardType = KeyboardType.Text,
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = viewModel::guardar,
-                enabled = !state.guardando && state.online,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.guardando) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.height(20.dp),
+            FieldDate(
+                label = stringResource(R.string.gestion_licencia_fecha_caducidad),
+                value = state.fechaCaducidad,
+                onValueChange = viewModel::onFechaCaducidadChange,
+                minIso = state.fechaExpedicion,
+                isError = state.errores["fechaCaducidad"] != null,
+                errorText = state.errores["fechaCaducidad"]?.let { code ->
+                    stringResource(
+                        if (code == "fecha_caducidad_anterior_expedicion") {
+                            R.string.gestion_validacion_fecha_caducidad_orden
+                        } else {
+                            R.string.gestion_validacion_fecha
+                        },
                     )
-                } else {
-                    Text(stringResource(R.string.gestion_guardar))
-                }
-            }
+                },
+                modifier = Modifier.weight(1f),
+            )
         }
+        GestionTextField(
+            label = stringResource(R.string.gestion_licencia_comunidad),
+            value = state.comunidadAutonoma,
+            onValueChange = viewModel::onComunidadAutonomaChange,
+        )
+        GestionDropdown(
+            label = stringResource(R.string.gestion_licencia_estado),
+            selected = state.estado,
+            options = ESTADOS_LICENCIA,
+            optionLabel = { it },
+            onSelected = viewModel::onEstadoChange,
+        )
+        GestionTextField(
+            label = stringResource(R.string.gestion_licencia_notas),
+            value = state.notas,
+            onValueChange = viewModel::onNotasChange,
+            singleLine = false,
+            minLines = 3,
+            keyboardType = KeyboardType.Text,
+        )
     }
 }
