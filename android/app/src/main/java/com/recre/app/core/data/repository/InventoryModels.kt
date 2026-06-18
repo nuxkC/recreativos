@@ -27,6 +27,31 @@ data class LocalResumen(
 )
 
 /**
+ * Estado de agenda de un local, derivado en el servidor (vista
+ * `v_agenda_operario`, Planificación P3a). "Pendiente" = toca hoy o atrasado.
+ * El cálculo ("¿toca?") vive en el servidor (SSOT + zona horaria de la empresa);
+ * el cliente solo lo muestra.
+ */
+enum class EstadoAgenda {
+    SIN_PLANIFICAR,
+    AL_DIA,
+    TOCA_HOY,
+    ATRASADO;
+
+    val esPendiente: Boolean
+        get() = this == TOCA_HOY || this == ATRASADO
+
+    companion object {
+        fun desde(valor: String?): EstadoAgenda = when (valor) {
+            "atrasado" -> ATRASADO
+            "toca_hoy" -> TOCA_HOY
+            "al_dia" -> AL_DIA
+            else -> SIN_PLANIFICAR
+        }
+    }
+}
+
+/**
  * Una máquina vista desde el detalle de su local: incluye la instalación
  * activa que la conecta con el local y la licencia.
  *

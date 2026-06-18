@@ -39,7 +39,10 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.locales.components.LocalCard
+import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.EmptyState
+import com.recre.app.ui.components.FilterChipModel
+import com.recre.app.ui.components.FilterChipRow
 import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTonalButton
@@ -105,6 +108,37 @@ fun LocalesScreen(
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
+                // Agenda (Planificación P3c): héroe "por recaudar" + filtros. Solo
+                // cuando la agenda se cargó (online); offline cae a la lista plana.
+                if (state.agendaDisponible) {
+                    AgendaHero(
+                        pendientes = state.localesPendientes,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                    FilterChipRow(
+                        chips = listOf(
+                            FilterChipModel(
+                                key = FILTRO_PENDIENTES,
+                                label = stringResource(R.string.agenda_filtro_pendientes),
+                                count = state.localesPendientes,
+                            ),
+                            FilterChipModel(
+                                key = FILTRO_AL_DIA,
+                                label = stringResource(R.string.agenda_filtro_al_dia),
+                                count = state.localesAlDia,
+                            ),
+                        ),
+                        selectedKeys = state.filtro,
+                        onToggle = viewModel::onFiltroToggle,
+                        onClear = viewModel::onFiltroClear,
+                        clearLabel = stringResource(R.string.action_clear),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    )
+                }
                 SearchField(
                     value = state.query,
                     onValueChange = viewModel::onQueryChange,
@@ -115,7 +149,7 @@ fun LocalesScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
 
-                val filtrados = state.localesFiltrados
+                val items = state.itemsVisibles
                 when {
                     state.locales.isEmpty() && state.cargandoSync ->
                         ListSkeleton(
@@ -124,7 +158,7 @@ fun LocalesScreen(
                                 .fillMaxSize()
                                 .padding(16.dp),
                         )
-                    filtrados.isEmpty() -> {
+                    items.isEmpty() -> {
                         val conQuery = state.query.isNotBlank()
                         EmptyState(
                             icon = Icons.Filled.Storefront,
@@ -147,16 +181,51 @@ fun LocalesScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(filtrados, key = { it.id }) { local ->
+                        items(items, key = { it.local.id }) { item ->
                             Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
                                 LocalCard(
-                                    local = local,
-                                    onClick = { onLocalClick(local.id) },
+                                    local = item.local,
+                                    onClick = { onLocalClick(item.local.id) },
+                                    estado = if (state.agendaDisponible) item.estado else null,
                                 )
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Héroe de la agenda: cuántos locales del operario están por recaudar (P3c). Es
+ *  un conteo de locales (entero), no dinero → no usa MoneyText. */
+@Composable
+private fun AgendaHero(pendientes: Int, modifier: Modifier = Modifier) {
+    AppCard(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (pendientes == 0) {
+                Text(
+                    text = stringResource(R.string.agenda_hero_todo_al_dia),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            } else {
+                Text(
+                    text = pendientes.toString(),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = pluralStringResource(
+                        id = R.plurals.agenda_hero_pendientes,
+                        count = pendientes,
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
         }
     }
