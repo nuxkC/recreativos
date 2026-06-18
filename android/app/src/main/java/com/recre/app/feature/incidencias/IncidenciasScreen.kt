@@ -13,18 +13,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -55,16 +53,9 @@ fun IncidenciasScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.incidencias_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(R.string.incidencias_titulo),
+                onBack = onBack,
             )
         },
     ) { padding ->
@@ -154,9 +145,8 @@ private fun IncidenciaCard(
     onRehacer: () -> Unit,
     onDescartar: () -> Unit,
 ) {
-    Card {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
@@ -194,9 +184,10 @@ private fun IncidenciaCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onDescartar) {
-                    Text(stringResource(R.string.cola_bloqueadas_descartar))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.cola_bloqueadas_descartar),
+                    onClick = onDescartar,
+                )
                 Spacer(Modifier.width(8.dp))
                 if (terminal) {
                     FilledTonalButton(onClick = onRehacer) {
@@ -214,11 +205,11 @@ private fun IncidenciaCard(
 
 @Composable
 private fun EnColaInfo(count: Int) {
-    Card {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = pluralStringResource(R.plurals.incidencias_encola, count, count),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

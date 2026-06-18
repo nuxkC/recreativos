@@ -31,11 +31,8 @@ class SinMaterialPeladoTest {
     // entradas nuevas; el sentido del test es que esta lista solo mengüe.
     private val allowlist =
         setOf(
-            "feature/ajustes/AjustesScreen.kt",
-            "feature/alertas/AlertasScreen.kt",
             "feature/historico/HistoricoScreen.kt",
             "feature/impresora/ImpresoraScreen.kt",
-            "feature/incidencias/IncidenciasScreen.kt",
             // Migradas a chrome propio (PasoTopBar) + átomos en rediseño F1·Task 7;
             // fuera de la allowlist. Quedan ContadorOcrCapture/EscanerContadoresScreen
             // (cámara/OCR) pendientes de una fase posterior.
