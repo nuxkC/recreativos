@@ -11,21 +11,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import com.recre.app.ui.components.RecreSnackbarHost
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -116,19 +113,11 @@ fun AveriasMaquinaScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopAppBarAverias(onBack: () -> Unit) {
-    androidx.compose.material3.TopAppBar(
-        title = { Text(stringResource(R.string.averia_historial_titulo)) },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.action_back),
-                )
-            }
-        },
+    RecreDetailTopBar(
+        titulo = stringResource(R.string.averia_historial_titulo),
+        onBack = onBack,
     )
 }
 
@@ -139,8 +128,8 @@ private fun AveriaCard(
     puedeResolver: Boolean,
     onResolver: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(12.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = categoriaLabel(averia.categoria),
@@ -209,9 +198,11 @@ private fun AveriaCard(
                     if (resolviendo) {
                         CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(24.dp))
                     } else {
-                        TextButton(onClick = onResolver, enabled = puedeResolver) {
-                            Text(stringResource(R.string.averia_accion_resolver))
-                        }
+                        RecreTextButton(
+                            text = stringResource(R.string.averia_accion_resolver),
+                            onClick = onResolver,
+                            enabled = puedeResolver,
+                        )
                     }
                 }
             }
@@ -229,22 +220,24 @@ private fun ResolverDialog(onDismiss: () -> Unit, onConfirm: (String?) -> Unit) 
             Column {
                 Text(stringResource(R.string.averia_resolver_descripcion))
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
+                FieldText(
                     value = notas,
                     onValueChange = { notas = it.take(1000) },
-                    label = { Text(stringResource(R.string.averia_resolver_notas)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.averia_resolver_notas),
+                    singleLine = false,
                     minLines = 2,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(notas.trim().ifBlank { null }) }) {
-                Text(stringResource(R.string.averia_accion_resolver))
-            }
+            RecreTextButton(
+                text = stringResource(R.string.averia_accion_resolver),
+                onClick = { onConfirm(notas.trim().ifBlank { null }) },
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+            RecreTextButton(text = stringResource(R.string.action_cancel), onClick = onDismiss)
         },
     )
 }

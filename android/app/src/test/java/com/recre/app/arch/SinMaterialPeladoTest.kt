@@ -33,9 +33,6 @@ class SinMaterialPeladoTest {
         setOf(
             "feature/ajustes/AjustesScreen.kt",
             "feature/alertas/AlertasScreen.kt",
-            "feature/averias/AveriasMaquinaScreen.kt",
-            "feature/averias/ReportarAveriaScreen.kt",
-            "feature/cambio_placa/CambioPlacaScreen.kt",
             "feature/historico/HistoricoScreen.kt",
             "feature/impresora/ImpresoraScreen.kt",
             "feature/incidencias/IncidenciasScreen.kt",
