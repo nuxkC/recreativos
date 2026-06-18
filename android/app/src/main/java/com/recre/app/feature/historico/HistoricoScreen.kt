@@ -18,15 +18,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -42,11 +39,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.repository.EstadoHistorico
+import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
+import com.recre.app.ui.components.SearchField
 import com.recre.app.ui.components.TopLevelDestination
 import com.recre.app.core.data.repository.RecaudacionHistorica
+import com.recre.app.ui.theme.PillShape
 import com.recre.app.ui.theme.RecreMotion
+import com.recre.app.ui.theme.RecreShapes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -74,8 +76,8 @@ fun HistoricoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.historico_titulo)) },
+            RecreTopBar(
+                titulo = stringResource(R.string.historico_titulo),
                 actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
             )
         },
@@ -147,13 +149,12 @@ private fun Buscador(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedTextField(
+    SearchField(
         value = query,
         onValueChange = onQueryChange,
+        placeholder = stringResource(R.string.historico_buscar_placeholder),
+        clearContentDescription = stringResource(R.string.action_clear),
         modifier = modifier,
-        placeholder = { Text(stringResource(R.string.historico_buscar_placeholder)) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        singleLine = true,
     )
 }
 
@@ -162,12 +163,11 @@ private fun HistoricoCard(
     recaudacion: RecaudacionHistorica,
     onClick: () -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -255,7 +255,7 @@ private fun EstadoBadge(recaudacion: RecaudacionHistorica) {
             MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }
-    Card(colors = CardDefaults.cardColors(containerColor = container)) {
+    Surface(color = container, shape = PillShape) {
         Text(
             text = stringResource(textRes),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
@@ -267,11 +267,11 @@ private fun EstadoBadge(recaudacion: RecaudacionHistorica) {
 
 @Composable
 private fun ErrorCard(textRes: Int, modifier: Modifier = Modifier) {
-    Card(
+    Surface(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.medium,
     ) {
         Text(
             text = stringResource(textRes),

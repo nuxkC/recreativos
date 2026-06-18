@@ -22,25 +22,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -107,16 +106,9 @@ fun ImpresoraScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.impresora_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(R.string.impresora_titulo),
+                onBack = onBack,
             )
         },
         snackbarHost = { RecreSnackbarHost(snackbarHostState) },
@@ -198,9 +190,11 @@ private fun SinPermiso(padding: PaddingValues, onSolicitar: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onSolicitar) {
-            Text(stringResource(R.string.impresora_permiso_conceder))
-        }
+        RecrePrimaryButton(
+            text = stringResource(R.string.impresora_permiso_conceder),
+            onClick = onSolicitar,
+            fullWidth = false,
+        )
     }
 }
 
@@ -236,13 +230,16 @@ private fun BluetoothApagado(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onAbrirAjustes) {
-            Text(stringResource(R.string.impresora_bluetooth_abrir_ajustes))
-        }
+        RecrePrimaryButton(
+            text = stringResource(R.string.impresora_bluetooth_abrir_ajustes),
+            onClick = onAbrirAjustes,
+            fullWidth = false,
+        )
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onReintentar) {
-            Text(stringResource(R.string.impresora_reintentar))
-        }
+        RecreTextButton(
+            text = stringResource(R.string.impresora_reintentar),
+            onClick = onReintentar,
+        )
     }
 }
 
@@ -293,9 +290,11 @@ private fun ListaEmparejados(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(16.dp))
-                Button(onClick = onAbrirAjustes) {
-                    Text(stringResource(R.string.impresora_abrir_ajustes_sistema))
-                }
+                RecrePrimaryButton(
+                    text = stringResource(R.string.impresora_abrir_ajustes_sistema),
+                    onClick = onAbrirAjustes,
+                    fullWidth = false,
+                )
             }
             return
         }
@@ -327,9 +326,11 @@ private fun ListaEmparejados(
             }
             item {
                 Spacer(Modifier.height(8.dp))
-                TextButton(onClick = onAbrirAjustes, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.impresora_abrir_ajustes_sistema))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.impresora_abrir_ajustes_sistema),
+                    onClick = onAbrirAjustes,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
@@ -342,8 +343,8 @@ private fun ModeloCard(
     onSeleccionarPerfil: (PrinterProfile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier = modifier) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    AppCard(modifier = modifier) {
+        Column {
             Text(
                 text = stringResource(R.string.impresora_modelo_titulo),
                 style = MaterialTheme.typography.titleSmall,
@@ -399,11 +400,11 @@ private fun SeleccionadaActualCard(
     onLimpiar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    Surface(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-        ),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = RecreShapes.large,
     ) {
         Row(
             modifier = Modifier
@@ -434,9 +435,10 @@ private fun SeleccionadaActualCard(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
-            TextButton(onClick = onLimpiar) {
-                Text(stringResource(R.string.impresora_quitar))
-            }
+            RecreTextButton(
+                text = stringResource(R.string.impresora_quitar),
+                onClick = onLimpiar,
+            )
         }
     }
 }
@@ -450,13 +452,15 @@ private fun EmparejadoCard(
     onSeleccionar: () -> Unit,
     onProbar: () -> Unit,
 ) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (activa) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        color = if (activa) {
+            MaterialTheme.colorScheme.surfaceVariant
         } else {
-            CardDefaults.cardColors()
+            MaterialTheme.colorScheme.surface
         },
+        shape = RecreShapes.medium,
+        tonalElevation = 2.dp,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -496,19 +500,18 @@ private fun EmparejadoCard(
                         }
                     }
                 }
-                OutlinedButton(
+                RecreTonalButton(
+                    text = stringResource(R.string.impresora_probar),
                     onClick = onProbar,
                     enabled = !bloqueada && !probando,
-                ) {
-                    Text(stringResource(R.string.impresora_probar))
-                }
+                )
                 Spacer(Modifier.width(8.dp))
-                Button(
+                RecrePrimaryButton(
+                    text = stringResource(R.string.impresora_seleccionar),
                     onClick = onSeleccionar,
                     enabled = !bloqueada && !probando && !activa,
-                ) {
-                    Text(stringResource(R.string.impresora_seleccionar))
-                }
+                    fullWidth = false,
+                )
             }
         }
     }
