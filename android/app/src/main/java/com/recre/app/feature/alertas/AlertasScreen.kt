@@ -14,22 +14,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -77,21 +75,15 @@ fun AlertasScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.alertas_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(R.string.alertas_titulo),
+                onBack = onBack,
                 actions = {
                     if (state.alertas.isNotEmpty()) {
-                        TextButton(onClick = viewModel::marcarTodasLeidas) {
-                            Text(stringResource(R.string.alertas_marcar_todas))
-                        }
+                        RecreTextButton(
+                            text = stringResource(R.string.alertas_marcar_todas),
+                            onClick = viewModel::marcarTodasLeidas,
+                        )
                     }
                 },
             )
@@ -172,13 +164,11 @@ private fun SyncPendienteBanner(
     onSincronizar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    Surface(
         modifier = modifier,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shape = RecreShapes.large,
     ) {
         Row(
             modifier =
@@ -193,9 +183,11 @@ private fun SyncPendienteBanner(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
-            OutlinedButton(onClick = onSincronizar, enabled = !sincronizando) {
-                Text(stringResource(R.string.sync_force))
-            }
+            RecreTonalButton(
+                text = stringResource(R.string.sync_force),
+                onClick = onSincronizar,
+                enabled = !sincronizando,
+            )
         }
     }
 }
@@ -207,10 +199,11 @@ private fun AlertaCard(
     onMarcarLeida: () -> Unit,
 ) {
     val (icon, container) = iconYColor(alerta.tipo)
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+    Surface(
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = container),
+        modifier = Modifier.fillMaxWidth(),
+        color = container,
+        shape = RecreShapes.large,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -242,11 +235,11 @@ private fun AlertaCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                OutlinedButton(onClick = onMarcarLeida) {
-                    Icon(Icons.Default.Check, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.alertas_marcar_leida))
-                }
+                RecreTonalButton(
+                    text = stringResource(R.string.alertas_marcar_leida),
+                    onClick = onMarcarLeida,
+                    leadingIcon = Icons.Default.Check,
+                )
             }
         }
     }
@@ -254,11 +247,11 @@ private fun AlertaCard(
 
 @Composable
 private fun ErrorBanner(textRes: Int, modifier: Modifier = Modifier) {
-    Card(
+    Surface(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-        ),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RecreShapes.large,
     ) {
         Text(
             text = stringResource(textRes),

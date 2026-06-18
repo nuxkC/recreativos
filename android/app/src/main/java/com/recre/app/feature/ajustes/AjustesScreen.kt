@@ -22,25 +22,26 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.SegmentOption
 import com.recre.app.ui.components.SegmentedControl
 import com.recre.app.ui.components.TopLevelDestination
+import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,8 +89,8 @@ fun AjustesScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.ajustes_titulo)) },
+            RecreTopBar(
+                titulo = stringResource(R.string.ajustes_titulo),
                 actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
             )
         },
@@ -153,17 +154,19 @@ fun AjustesScreen(
             title = { Text(stringResource(R.string.ajustes_logout_titulo)) },
             text = { Text(stringResource(R.string.ajustes_logout_descripcion)) },
             confirmButton = {
-                TextButton(onClick = {
-                    mostrandoConfirmacionLogout = false
-                    viewModel.cerrarSesion()
-                }) {
-                    Text(stringResource(R.string.auth_signout))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.auth_signout),
+                    onClick = {
+                        mostrandoConfirmacionLogout = false
+                        viewModel.cerrarSesion()
+                    },
+                )
             },
             dismissButton = {
-                TextButton(onClick = { mostrandoConfirmacionLogout = false }) {
-                    Text(stringResource(R.string.ajustes_logout_cancelar))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.ajustes_logout_cancelar),
+                    onClick = { mostrandoConfirmacionLogout = false },
+                )
             },
         )
     }
@@ -215,13 +218,19 @@ private fun SyncCard(
     stale: Boolean,
     onSincronizar: () -> Unit,
 ) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (stale) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+        color = if (stale) {
+            MaterialTheme.colorScheme.errorContainer
         } else {
-            CardDefaults.cardColors()
+            MaterialTheme.colorScheme.surfaceVariant
         },
+        contentColor = if (stale) {
+            MaterialTheme.colorScheme.onErrorContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        shape = RecreShapes.large,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -270,11 +279,12 @@ private fun SyncCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onSincronizar, enabled = !sincronizando) {
-                    Icon(Icons.Default.Refresh, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.sync_force))
-                }
+                RecreTextButton(
+                    text = stringResource(R.string.sync_force),
+                    onClick = onSincronizar,
+                    enabled = !sincronizando,
+                    leadingIcon = Icons.Default.Refresh,
+                )
             }
         }
     }
@@ -286,8 +296,8 @@ private fun ImpresoraCard(
     perfil: PrinterProfile,
     onAccion: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
             Text(
                 text = stringResource(R.string.ajustes_seccion_impresora),
                 style = MaterialTheme.typography.titleSmall,
@@ -335,15 +345,14 @@ private fun ImpresoraCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onAccion) {
-                    Text(
-                        text = if (impresora == null) {
-                            stringResource(R.string.ajustes_impresora_vincular)
-                        } else {
-                            stringResource(R.string.ajustes_impresora_cambiar)
-                        },
-                    )
-                }
+                RecreTextButton(
+                    text = if (impresora == null) {
+                        stringResource(R.string.ajustes_impresora_vincular)
+                    } else {
+                        stringResource(R.string.ajustes_impresora_cambiar)
+                    },
+                    onClick = onAccion,
+                )
             }
         }
     }
@@ -371,8 +380,8 @@ private fun SeccionCard(
     actions: List<Pair<String, () -> Unit>> = emptyList(),
     content: @Composable () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.titleSmall,
@@ -387,7 +396,7 @@ private fun SeccionCard(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     actions.forEach { (label, onClick) ->
-                        TextButton(onClick = onClick) { Text(label) }
+                        RecreTextButton(text = label, onClick = onClick)
                     }
                 }
             }
