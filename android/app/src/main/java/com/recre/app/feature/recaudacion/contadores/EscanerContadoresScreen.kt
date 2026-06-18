@@ -16,11 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -204,22 +204,20 @@ private fun PanelDeteccion(
             Spacer(Modifier.padding(top = 12.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(
+                RecreTonalButton(
+                    text = stringResource(R.string.recaudacion_ocr_escaner_cancelar),
                     onClick = onCerrar,
                     modifier = Modifier.width(140.dp),
-                ) {
-                    Text(stringResource(R.string.recaudacion_ocr_escaner_cancelar))
-                }
+                )
                 Spacer(Modifier.width(12.dp))
-                Button(
+                RecrePrimaryButton(
+                    text = stringResource(R.string.recaudacion_ocr_escaner_usar),
                     onClick = { if (entradas != null && salidas != null) onUsarLectura(entradas, salidas) },
                     enabled = ambos,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(RecaudacionTestTags.OCR_ESCANER_USAR),
-                ) {
-                    Text(stringResource(R.string.recaudacion_ocr_escaner_usar))
-                }
+                )
             }
         }
     }
