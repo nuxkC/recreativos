@@ -4,17 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import com.recre.app.ui.components.RecreSnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,10 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.RecreSnackbarHost
 
 @Composable
 fun LoginScreen(
@@ -76,40 +72,28 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(32.dp))
 
-            OutlinedTextField(
+            FieldText(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                label = { Text(stringResource(R.string.auth_login_email)) },
-                placeholder = { Text(stringResource(R.string.auth_login_email_placeholder)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.auth_login_email),
+                placeholder = stringResource(R.string.auth_login_email_placeholder),
+                keyboardType = KeyboardType.Email,
             )
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
+            FieldText(
                 value = state.password,
                 onValueChange = viewModel::onPasswordChange,
-                label = { Text(stringResource(R.string.auth_login_password)) },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.auth_login_password),
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
             )
             Spacer(Modifier.height(24.dp))
-            Button(
+            RecrePrimaryButton(
+                text = stringResource(R.string.auth_login_submit),
                 onClick = viewModel::submit,
                 enabled = state.canSubmit && !state.submitting,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.submitting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.height(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Text(stringResource(R.string.auth_login_submit))
-                }
-            }
+                loading = state.submitting,
+            )
         }
     }
 }

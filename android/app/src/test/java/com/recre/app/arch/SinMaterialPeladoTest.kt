@@ -33,17 +33,12 @@ class SinMaterialPeladoTest {
         setOf(
             "feature/ajustes/AjustesScreen.kt",
             "feature/alertas/AlertasScreen.kt",
-            "feature/auth/LoginScreen.kt",
             "feature/averias/AveriasMaquinaScreen.kt",
             "feature/averias/ReportarAveriaScreen.kt",
             "feature/cambio_placa/CambioPlacaScreen.kt",
-            "feature/empresa/SeleccionarEmpresaScreen.kt",
-            "feature/empresa/SinAccesoScreen.kt",
             "feature/historico/HistoricoScreen.kt",
             "feature/impresora/ImpresoraScreen.kt",
             "feature/incidencias/IncidenciasScreen.kt",
-            "feature/recaudacion/components/CifrasResumenCard.kt",
-            "feature/recaudacion/components/RecuperacionResumenCard.kt",
             // Migradas a chrome propio (PasoTopBar) + átomos en rediseño F1·Task 7;
             // fuera de la allowlist. Quedan ContadorOcrCapture/EscanerContadoresScreen
             // (cámara/OCR) pendientes de una fase posterior.

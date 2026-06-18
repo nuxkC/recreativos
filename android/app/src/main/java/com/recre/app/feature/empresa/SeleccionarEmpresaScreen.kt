@@ -12,17 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import com.recre.app.ui.components.RecreSnackbarHost
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,8 +29,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.auth.Rol
 import com.recre.app.core.session.Membresia
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.RecreTopBar
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun SeleccionarEmpresaScreen(
     viewModel: SeleccionarEmpresaViewModel,
@@ -64,12 +61,7 @@ fun SeleccionarEmpresaScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.empresa_seleccion_titulo)) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-            )
+            RecreTopBar(titulo = stringResource(R.string.empresa_seleccion_titulo))
         },
         snackbarHost = { RecreSnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -132,13 +124,13 @@ private fun ContenidoSeleccion(
             }
         }
         Spacer(Modifier.height(12.dp))
-        OutlinedButton(
+        RecreTonalButton(
+            text = stringResource(R.string.auth_signout),
             onClick = onCerrarSesion,
-            modifier = Modifier.fillMaxWidth(),
             enabled = seleccionando == null,
-        ) {
-            Text(stringResource(R.string.auth_signout))
-        }
+            fullWidth = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -149,18 +141,13 @@ private fun MembresiaCard(
     bloqueado: Boolean,
     onClick: () -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
         enabled = !bloqueado && !cargando,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
