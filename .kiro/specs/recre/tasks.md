@@ -273,11 +273,17 @@ resolver). Cada tarea = su propio PR pequeño; se construye por fases para revis
   owner/admin/gestor/contable = ve-todo. Helpers `usuario_ve_todo_empresa`/`usuario_ve_local`/
   `usuario_ve_instalacion`. Escrituras intactas. pgTAP `15_rbac_lectura_operario` (23 asserts).
   **FALTA (verificación humana):** probar en dispositivo con cuenta de técnico (sync solo sus locales).
-- [ ] **T-266** Planificación de recaudación **P3** — **Pendiente.** Cálculo "¿toca hoy? / al día /
-  atrasado" (fechas teóricas `F + k·C·7d`, "atendido" = cualquier máquina visitada en el ciclo) vía
-  vista/RPC `agenda_operario`; héroe/agenda del home Android; y el panel de control del gestor (la
-  vista `/operarios` gana estado pendiente/atrasado por operario). Diseño ya en el spec (§4.2/§6);
-  falta plan + ejecución.
+- [x] **T-266** Planificación de recaudación **P3** — la agenda. — **Hecho** (3 PRs mergeados).
+  **P3a** (backend, PR #83): vista `v_agenda_operario` con `security_invoker` que deriva el estado
+  por local (sin_planificar/al_dia/toca_hoy/atrasado) + fecha programada vigente (`F + floor((hoy−F)/
+  (7C))·7C`; atendido = recaudación firme o lectura en [S,hoy]); "hoy" en `empresa.zona_horaria`;
+  pgTAP `16_agenda_operario` (12 asserts). **P3b** (web, PR #84): la vista `/operarios` se convierte
+  en panel del gestor (resumen de pendientes, badge por operario, chip de estado por local). **P3c**
+  (Android, PR #85): el home de Locales como agenda — héroe "X por recaudar", `StatusChip` por local,
+  `FilterChipRow` (pendientes/al día), orden pendientes-primero; online con fallback offline a lista
+  plana; cierra el diferido del héroe de Fase 2a. `assembleDebug` verde.
+  **FALTA (verificación humana):** probar P2+P3 en dispositivo con cuenta de técnico.
+  → **Planificación de recaudación COMPLETA (P1+P2+P3).**
 
 ## Convenciones
 
