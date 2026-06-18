@@ -69,6 +69,19 @@
     <string name="locales_vacio_busqueda_desc">Prueba con otro nombre o dirección.</string>
     <string name="action_clear">Limpiar</string>
 
+    <!-- Agenda de recaudación (Planificación P3c) -->
+    <string name="agenda_hero_todo_al_dia">Todo al día</string>
+    <plurals name="agenda_hero_pendientes">
+        <item quantity="one">local por recaudar</item>
+        <item quantity="other">locales por recaudar</item>
+    </plurals>
+    <string name="agenda_filtro_pendientes">Pendientes</string>
+    <string name="agenda_filtro_al_dia">Al día</string>
+    <string name="agenda_estado_atrasado">Atrasado</string>
+    <string name="agenda_estado_toca_hoy">Toca hoy</string>
+    <string name="agenda_estado_al_dia">Al día</string>
+    <string name="agenda_estado_sin_planificar">Sin planificar</string>
+
     <!-- Sync stale (T-59) -->
     <string name="locales_stale_titulo">Sincronización obligatoria</string>
     <string name="locales_stale_descripcion">Llevas más de 48 h sin sincronizar. Conecta a internet y pulsa "Sincronizar ahora" antes de recaudar.</string>
