@@ -1,11 +1,6 @@
 package com.recre.app.feature.deudas
 
-import com.recre.app.ui.components.ListSkeleton
-import com.recre.app.ui.components.recreSharedBounds
-import com.recre.app.ui.components.formatEur
-
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,17 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -33,14 +21,23 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.components.recreSharedBounds
+import com.recre.app.ui.theme.RecreShapes
 import java.math.BigDecimal
 
 /**
  * Índice de la sección Deudas en gestión (T-219): lista de locales con su saldo
  * de deuda. Tocar un local abre su ficha de deudas ([DeudasLocalScreen]), que es
  * el centro de mando (préstamo, pago en efectivo, condonar, %).
+ *
+ * Rediseño (F3): chrome propio (`RecreDetailTopBar`), héroe del capital total
+ * (`Surface` acentuado) y filas con `AppCard`. Las cifras siguen siendo
+ * money-safe (`formatEur` sobre `BigDecimal`); nada se recalcula en cliente.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeudasGestorScreen(
     onLocalClick: (String) -> Unit,
@@ -51,16 +48,9 @@ fun DeudasGestorScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.deudas_gestor_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
+            RecreDetailTopBar(
+                titulo = stringResource(R.string.deudas_gestor_titulo),
+                onBack = onBack,
             )
         },
     ) { padding ->
@@ -79,12 +69,11 @@ fun DeudasGestorScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item("capital") {
-                Card(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = RecreShapes.large,
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -111,11 +100,11 @@ fun DeudasGestorScreen(
                 }
             } else {
                 items(state.locales, key = { it.localId }) { local ->
-                    Card(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onLocalClick(local.localId) },
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column {
                             Text(
                                 text = local.nombre,
                                 style = MaterialTheme.typography.titleSmall,

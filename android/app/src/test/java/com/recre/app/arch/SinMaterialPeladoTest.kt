@@ -37,8 +37,6 @@ class SinMaterialPeladoTest {
             "feature/averias/AveriasMaquinaScreen.kt",
             "feature/averias/ReportarAveriaScreen.kt",
             "feature/cambio_placa/CambioPlacaScreen.kt",
-            "feature/deudas/DeudasGestorScreen.kt",
-            "feature/deudas/DeudasLocalScreen.kt",
             "feature/empresa/SeleccionarEmpresaScreen.kt",
             "feature/empresa/SinAccesoScreen.kt",
             "feature/historico/HistoricoScreen.kt",
