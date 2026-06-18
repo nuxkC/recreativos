@@ -1212,11 +1212,22 @@
   },
   "operarios": {
     "titulo": "Operarios y rutas",
-    "subtitulo": "Locales que lleva cada operario. Asigna o cambia el operario desde la ficha de cada local.",
+    "subtitulo": "Locales que lleva cada operario, con lo que tiene pendiente. Asigna o cambia el operario desde la ficha de cada local.",
     "sinAsignar": "Sin asignar",
     "localesCount": "{count, plural, =0 {Sin locales} one {# local} other {# locales}}",
     "operarioVacio": "Este operario aún no lleva ningún local.",
-    "sinAsignarVacio": "Todos los locales tienen operario asignado."
+    "sinAsignarVacio": "Todos los locales tienen operario asignado.",
+    "pendientesBadge": "{count, plural, one {# pendiente} other {# pendientes}}",
+    "resumen": {
+      "label": "Pendientes en toda la empresa",
+      "pendientes": "{count, plural, =0 {Todo al día} one {# local pendiente} other {# locales pendientes}}"
+    },
+    "estado": {
+      "atrasado": "Atrasado",
+      "toca_hoy": "Toca hoy",
+      "al_dia": "Al día",
+      "sin_planificar": "Sin planificar"
+    }
   },
   "trial": {
     "etiqueta": "Prueba gratuita:",
