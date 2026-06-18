@@ -1,7 +1,6 @@
 package com.recre.app.feature.averias
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.EmptyState
 import com.recre.app.ui.components.FieldText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.RecreSnackbarHost
@@ -87,7 +89,12 @@ fun AveriasMaquinaScreen(
             }
             when {
                 state.cargando -> CenteredLoader()
-                state.averias.isEmpty() -> CenteredText(R.string.averia_historial_vacio)
+                state.averias.isEmpty() -> EmptyState(
+                    icon = Icons.Filled.Build,
+                    title = stringResource(R.string.averia_historial_vacio),
+                    description = stringResource(R.string.averia_historial_vacio_desc),
+                    modifier = Modifier.fillMaxSize(),
+                )
                 else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(state.averias, key = { it.id }) { averia ->
                         AveriaCard(
@@ -249,13 +256,3 @@ private fun CenteredLoader() {
     ListSkeleton(loadingLabel = stringResource(R.string.cargando))
 }
 
-@Composable
-private fun CenteredText(resId: Int) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            stringResource(resId),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}

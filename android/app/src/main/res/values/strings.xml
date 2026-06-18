@@ -581,6 +581,7 @@
     <string name="deudas_gestor_titulo">Deudas</string>
     <string name="deudas_gestor_capital">Capital en la calle</string>
     <string name="deudas_gestor_vacio">No hay locales.</string>
+    <string name="deudas_gestor_vacio_desc">Cuando un local tenga deuda pendiente, aparecerá en esta lista.</string>
     <string name="deudas_gestor_desglose">Tolva %1$s · Préstamos %2$s · %3$d deuda(s)</string>
     <string name="deudas_offline">Sin conexión: puedes ver el saldo, pero las operaciones de deuda necesitan red.</string>
     <string name="deudas_saldo_total">Deuda total del local</string>
@@ -669,6 +670,7 @@
     <!-- Historial (gestión) -->
     <string name="averia_historial_titulo">Historial de averías</string>
     <string name="averia_historial_vacio">Esta máquina no tiene averías registradas.</string>
+    <string name="averia_historial_vacio_desc">Las averías que reportes aparecerán en el historial.</string>
     <string name="averia_en_local">En %1$s</string>
     <string name="averia_fuera_servicio_marca">Fuera de servicio</string>
     <string name="averia_notas">Notas: %1$s</string>
