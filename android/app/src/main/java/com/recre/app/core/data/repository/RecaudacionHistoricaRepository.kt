@@ -26,9 +26,12 @@ import timber.log.Timber
  * la sesión activa y la impresora ([PrinterRepository], T-62) para
  * exponer al ViewModel una API ergonómica:
  *
- *  - [listarMias]: top 200 recaudaciones del técnico autenticado,
- *    ordenadas por fecha desc, con instalación/maquina/local/licencia
- *    embebidos.
+ *  - [listarVisibles]: top 200 recaudaciones que el usuario puede ver
+ *    por su rol (técnico → sus locales; gestor/owner/… → toda la
+ *    empresa), ordenadas por fecha desc. El RBAC lo resuelve la RLS de
+ *    la vista `v_recaudacion_historica`, no un filtro por `tecnico_id`.
+ *  - [listarPorLocal] / [listarPorMaquina]: el mismo histórico acotado
+ *    a un local o una máquina (drill-down desde sus fichas).
  *  - [obtenerDetalle]: una sola fila por id (busca en la lista ya
  *    cargada para evitar otra round-trip — el detalle se abre desde
  *    la lista, así que está cacheada).
@@ -43,7 +46,11 @@ import timber.log.Timber
  */
 interface RecaudacionHistoricaRepository {
 
-    suspend fun listarMias(): DomainResult<List<RecaudacionHistorica>>
+    suspend fun listarVisibles(): DomainResult<List<RecaudacionHistorica>>
+
+    suspend fun listarPorLocal(localId: String): DomainResult<List<RecaudacionHistorica>>
+
+    suspend fun listarPorMaquina(maquinaId: String): DomainResult<List<RecaudacionHistorica>>
 
     /**
      * Recupera una sola recaudación por id del cliente. La estrategia
@@ -81,11 +88,28 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
     @Volatile
     private var ultimaListaCache: List<RecaudacionHistoricaRow> = emptyList()
 
-    override suspend fun listarMias(): DomainResult<List<RecaudacionHistorica>> {
+    override suspend fun listarVisibles(): DomainResult<List<RecaudacionHistorica>> =
+        cargar { remote.listarVisibles(it) }
+
+    override suspend fun listarPorLocal(localId: String): DomainResult<List<RecaudacionHistorica>> =
+        cargar { remote.listarPorLocal(it, localId) }
+
+    override suspend fun listarPorMaquina(
+        maquinaId: String,
+    ): DomainResult<List<RecaudacionHistorica>> =
+        cargar { remote.listarPorMaquina(it, maquinaId) }
+
+    /**
+     * Carga común de las tres variantes: resuelve la empresa activa,
+     * delega la query a [fetch] y cachea el row crudo para que el
+     * detalle ([obtenerDetalle]) reuse la fila sin otra round-trip.
+     * El RBAC ya lo aplica la RLS de la vista, no filtramos por técnico.
+     */
+    private suspend fun cargar(
+        fetch: suspend (empresaId: String) -> List<RecaudacionHistoricaRow>,
+    ): DomainResult<List<RecaudacionHistorica>> {
         val empresaId = empresaActiva() ?: return DomainResult.Failure(DomainError.Auth())
-        val tecnicoId = authRepository.currentUserId()
-            ?: return DomainResult.Failure(DomainError.Auth())
-        return runCatching { remote.listarMias(empresaId, tecnicoId) }.fold(
+        return runCatching { fetch(empresaId) }.fold(
             onSuccess = { rows ->
                 ultimaListaCache = rows
                 DomainResult.Success(rows.map(::mapToDominio))
@@ -99,7 +123,7 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
             return DomainResult.Success(mapToDominio(it))
         }
         // Cache miss (reinicio de proceso, deep-link, etc.): recarga.
-        return when (val result = listarMias()) {
+        return when (val result = listarVisibles()) {
             is DomainResult.Failure -> result
             is DomainResult.Success -> {
                 val match = ultimaListaCache.firstOrNull { it.id == recaudacionId }
@@ -119,7 +143,7 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
     override suspend fun reimprimirBluetooth(recaudacionId: String): DomainResult<PrintResult> {
         val empresaId = empresaActiva() ?: return DomainResult.Failure(DomainError.Auth())
         val row = ultimaListaCache.firstOrNull { it.id == recaudacionId }
-            ?: return when (val list = listarMias()) {
+            ?: return when (val list = listarVisibles()) {
                 is DomainResult.Failure -> list
                 is DomainResult.Success -> {
                     val match = ultimaListaCache.firstOrNull { it.id == recaudacionId }
@@ -141,16 +165,15 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
         //    necesitamos los campos visibles del ticket. Los campos no
         //    usados (estado, valorCredito, tasaSemanal, porcentajeLocal,
         //    baselineFecha, baselineOrigen) llevan placeholders seguros.
-        val instalacion = row.instalacion
         val maquinaSnap = MaquinaConInstalacion(
             instalacionId = row.instalacionId,
-            maquinaId = instalacion?.maquina?.id ?: "",
-            numeroSerie = instalacion?.maquina?.numeroSerie ?: "—",
-            modelo = instalacion?.maquina?.modelo,
-            fabricante = instalacion?.maquina?.fabricante,
+            maquinaId = row.maquinaId,
+            numeroSerie = row.maquinaNumeroSerie,
+            modelo = row.maquinaModelo,
+            fabricante = row.maquinaFabricante,
             estado = "instalada",
             valorCredito = row.valorCreditoAplicado,
-            licenciaNumero = instalacion?.licencia?.numero ?: "—",
+            licenciaNumero = row.licenciaNumero ?: "—",
             tasaSemanal = row.tasaSemanalAplicada,
             porcentajeLocal = row.porcentajeLocalAplicado,
             baselineEntradas = row.contadorEntradasAnterior,
@@ -158,9 +181,9 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
             baselineFecha = parseInstantOrNow(row.fecha),
             baselineOrigen = "recaudacion_anterior",
             baselineReferenciaId = null,
-            localId = instalacion?.local?.id ?: "",
-            localNombre = instalacion?.local?.nombre ?: "—",
-            localDireccion = instalacion?.local?.direccion,
+            localId = row.localId,
+            localNombre = row.localNombre,
+            localDireccion = row.localDireccion,
         )
 
         // 3. Cifras desde los campos persistidos (escala 2 ya en server).
@@ -234,10 +257,12 @@ class RecaudacionHistoricaRepositoryImpl @Inject constructor(
                 else -> EstadoHistorico.Firme
             },
             conflictoPendiente = row.conflicto && row.revisadoEn == null,
-            localNombre = row.instalacion?.local?.nombre ?: "—",
-            maquinaSerie = row.instalacion?.maquina?.numeroSerie ?: "—",
-            maquinaModelo = row.instalacion?.maquina?.modelo,
-            licenciaNumero = row.instalacion?.licencia?.numero,
+            localId = row.localId,
+            maquinaId = row.maquinaId,
+            localNombre = row.localNombre,
+            maquinaSerie = row.maquinaNumeroSerie,
+            maquinaModelo = row.maquinaModelo,
+            licenciaNumero = row.licenciaNumero,
             bruto = BigDecimal(row.recaudacionBruta),
             neto = BigDecimal(row.recaudacionNeta),
             parteLocal = BigDecimal(row.parteLocal),
@@ -276,6 +301,10 @@ data class RecaudacionHistorica(
     val fecha: Instant,
     val estado: EstadoHistorico,
     val conflictoPendiente: Boolean,
+    // Ids del snapshot inmutable: permiten el drill-down "histórico de
+    // este local / esta máquina" sin recalcular nada en cliente.
+    val localId: String,
+    val maquinaId: String,
     val localNombre: String,
     val maquinaSerie: String,
     val maquinaModelo: String?,

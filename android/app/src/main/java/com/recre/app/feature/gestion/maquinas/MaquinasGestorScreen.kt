@@ -55,6 +55,7 @@ fun MaquinasGestorScreen(
     onAlta: () -> Unit,
     onEditar: (String) -> Unit,
     onVerAverias: (String) -> Unit,
+    onVerHistorico: (String) -> Unit,
     viewModel: MaquinasGestorViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -128,6 +129,7 @@ fun MaquinasGestorScreen(
                             borrando = state.borrando == m.id,
                             onEditar = { onEditar(m.id) },
                             onVerAverias = { onVerAverias(m.id) },
+                            onVerHistorico = { onVerHistorico(m.id) },
                             onEliminar = { aBorrar = m },
                         )
                     }
@@ -157,6 +159,7 @@ private fun MaquinaCard(
     borrando: Boolean,
     onEditar: () -> Unit,
     onVerAverias: () -> Unit,
+    onVerHistorico: () -> Unit,
     onEliminar: () -> Unit,
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
@@ -190,6 +193,7 @@ private fun MaquinaCard(
                     acciones = listOf(
                         OverflowAccion(stringResource(R.string.action_edit), onEditar),
                         OverflowAccion(stringResource(R.string.averia_historial_titulo), onVerAverias),
+                        OverflowAccion(stringResource(R.string.historico_ver_accion), onVerHistorico),
                         OverflowAccion(stringResource(R.string.action_delete), onEliminar),
                     ),
                 )

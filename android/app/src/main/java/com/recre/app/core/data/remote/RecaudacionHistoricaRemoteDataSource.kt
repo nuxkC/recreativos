@@ -18,13 +18,17 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 /**
- * Frontera HTTP de la pantalla "Mis recaudaciones" (T-63).
+ * Frontera HTTP del Histórico de recaudaciones (T-63 + Histórico v2, §6.5).
  *
- * Solo lectura: el alta la hace siempre el flujo offline (T-57). Aquí
- * exponemos:
- *  - [listarMias]: las recaudaciones del técnico autenticado, con
- *    instalación + máquina + local + licencia joinados en una sola
- *    round-trip vía PostgREST embedding.
+ * Solo lectura: el alta la hace siempre el flujo offline (T-57). Lee la
+ * vista `v_recaudacion_historica`, que ya deriva local/máquina del
+ * snapshot inmutable y aplica el RBAC por rol vía `security_invoker`.
+ * Exponemos:
+ *  - [listarVisibles]: todo el histórico que el usuario puede ver por su
+ *    rol (técnico → sus locales asignados; gestor/owner/… → toda la
+ *    empresa).
+ *  - [listarPorLocal] / [listarPorMaquina]: el mismo histórico acotado a
+ *    un local o una máquina (drill-down desde sus fichas).
  *  - [reimprimirSignedUrl]: llama a la Edge Function `reimprimir-ticket`
  *    (T-27b) para obtener una signed URL del PDF de archivo.
  *  - [descargarFirma]: descarga el PNG de la firma desde Storage
@@ -37,27 +41,48 @@ class RecaudacionHistoricaRemoteDataSource @Inject constructor(
 ) {
 
     /**
-     * Lista las recaudaciones del técnico actual en la empresa activa.
+     * Todo el histórico visible para el usuario en la empresa activa.
      *
-     * La RLS sobre `recaudacion` ya restringe a su `empresa_id`. El
-     * filtro `tecnico_id = uid` lo añadimos en cliente (lo expone
-     * `AuthRepository.currentUserId`) para mostrar solo las jornadas
-     * propias.
-     *
-     * Limita a 200 filas, suficiente para el histórico personal con
-     * volumen de jornadas razonable. Cuando crezca, paginamos con
-     * cursor o pasamos a una RPC.
+     * No filtra por `tecnico_id`: el RBAC lo resuelve la RLS de la vista
+     * (`security_invoker`), de modo que un gestor ve el histórico
+     * completo de su empresa y un técnico solo el de sus locales.
      */
-    suspend fun listarMias(
+    suspend fun listarVisibles(empresaId: String): List<RecaudacionHistoricaRow> =
+        consultar(empresaId)
+
+    /** Histórico de un local concreto (drill-down desde su ficha). */
+    suspend fun listarPorLocal(
         empresaId: String,
-        tecnicoId: String,
+        localId: String,
+    ): List<RecaudacionHistoricaRow> =
+        consultar(empresaId, localId = localId)
+
+    /** Histórico de una máquina concreta (drill-down desde su ficha). */
+    suspend fun listarPorMaquina(
+        empresaId: String,
+        maquinaId: String,
+    ): List<RecaudacionHistoricaRow> =
+        consultar(empresaId, maquinaId = maquinaId)
+
+    /**
+     * Query común a la vista. El filtro `empresa_id` acota a la empresa
+     * activa (un usuario multi-empresa solo ve la suya); `local_id` /
+     * `maquina_id` son opcionales para el drill-down. Limita a 200
+     * filas, suficiente para el histórico con volumen razonable; cuando
+     * crezca, paginamos con cursor.
+     */
+    private suspend fun consultar(
+        empresaId: String,
+        localId: String? = null,
+        maquinaId: String? = null,
     ): List<RecaudacionHistoricaRow> =
         supabase
-            .from("recaudacion")
+            .from("v_recaudacion_historica")
             .select(columns = Columns.raw(SELECT_COLUMNS)) {
                 filter {
                     eq("empresa_id", empresaId)
-                    eq("tecnico_id", tecnicoId)
+                    if (localId != null) eq("local_id", localId)
+                    if (maquinaId != null) eq("maquina_id", maquinaId)
                 }
                 order("fecha", Order.DESCENDING)
                 limit(count = 200L)
@@ -114,13 +139,16 @@ class RecaudacionHistoricaRemoteDataSource @Inject constructor(
 
     private companion object {
         /**
-         * Embedding PostgREST: trae la instalación con sus FK en una
-         * sola round-trip. No usamos `*` para evitar columnas que no
-         * consume la UI ni las refeercias *_recalculado de conflicto
-         * (no se muestran al técnico, eso vive en el back-office).
+         * Columnas planas de `v_recaudacion_historica`. No usamos `*`
+         * para evitar columnas que no consume la UI ni las *_recalculado
+         * de conflicto (back-office). `local_id`/`maquina_id` y los
+         * nombres/series los deriva la vista del snapshot de instalación.
          */
         const val SELECT_COLUMNS = "id," +
             "instalacion_id," +
+            "local_id," +
+            "maquina_id," +
+            "licencia_id," +
             "tecnico_id," +
             "fecha," +
             "contador_entradas_anterior," +
@@ -146,11 +174,11 @@ class RecaudacionHistoricaRemoteDataSource @Inject constructor(
             "estado," +
             "motivo_anulacion," +
             "anulada_en," +
-            "instalacion:instalacion_id (" +
-            "id," +
-            "licencia:licencia_id ( id, numero )," +
-            "maquina:maquina_id ( id, numero_serie, modelo, fabricante )," +
-            "local:local_id ( id, nombre, direccion )" +
-            ")"
+            "local_nombre," +
+            "local_direccion," +
+            "maquina_numero_serie," +
+            "maquina_modelo," +
+            "maquina_fabricante," +
+            "licencia_numero"
     }
 }

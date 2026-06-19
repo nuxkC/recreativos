@@ -72,9 +72,11 @@ import com.recre.app.feature.gestion.locales.LocalesGestorScreen
 import com.recre.app.feature.gestion.maquinas.MaquinaFormScreen
 import com.recre.app.feature.gestion.maquinas.MaquinaFormViewModel
 import com.recre.app.feature.gestion.maquinas.MaquinasGestorScreen
+import com.recre.app.feature.historico.HistoricoContextoScreen
 import com.recre.app.feature.historico.HistoricoDetalleScreen
 import com.recre.app.feature.historico.HistoricoDetalleViewModel
 import com.recre.app.feature.historico.HistoricoScreen
+import com.recre.app.feature.historico.HistoricoViewModel
 import com.recre.app.feature.impresora.ImpresoraScreen
 import com.recre.app.feature.locales.LocalDetalleScreen
 import com.recre.app.feature.locales.LocalDetalleViewModel
@@ -236,6 +238,36 @@ private fun RecreApp(
         ) {
             HistoricoDetalleScreen(onBack = { navController.popBackStack() })
         }
+        composable(
+            route = Routes.HISTORICO_LOCAL,
+            arguments = listOf(
+                navArgument(HistoricoViewModel.ARG_LOCAL_ID) {
+                    type = NavType.StringType
+                },
+            ),
+        ) {
+            HistoricoContextoScreen(
+                onBack = { navController.popBackStack() },
+                onRecaudacionClick = { id ->
+                    navController.navigate(Routes.historicoDetalle(id))
+                },
+            )
+        }
+        composable(
+            route = Routes.HISTORICO_MAQUINA,
+            arguments = listOf(
+                navArgument(HistoricoViewModel.ARG_MAQUINA_ID) {
+                    type = NavType.StringType
+                },
+            ),
+        ) {
+            HistoricoContextoScreen(
+                onBack = { navController.popBackStack() },
+                onRecaudacionClick = { id ->
+                    navController.navigate(Routes.historicoDetalle(id))
+                },
+            )
+        }
         composable(Routes.ALERTAS) {
             AlertasScreen(
                 onBack = { navController.popBackStack() },
@@ -294,6 +326,7 @@ private fun RecreApp(
                     )
                 },
                 onVerDeudas = { navController.navigate(Routes.localDeudas(localId)) },
+                onVerHistorico = { navController.navigate(Routes.historicoLocal(localId)) },
             )
             }
         }
@@ -432,6 +465,9 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
             onVerAverias = { id ->
                 navController.navigate(Routes.gestionMaquinaAverias(id))
             },
+            onVerHistorico = { id ->
+                navController.navigate(Routes.historicoMaquina(id))
+            },
         )
     }
     composable(
@@ -471,6 +507,9 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
             onAlta = { navController.navigate(Routes.GESTION_LOCAL_NUEVO) },
             onEditar = { id ->
                 navController.navigate(Routes.gestionLocalEditar(id))
+            },
+            onVerHistorico = { id ->
+                navController.navigate(Routes.historicoLocal(id))
             },
         )
     }
@@ -718,6 +757,13 @@ private object Routes {
     const val HISTORICO_DETALLE =
         "historico/{${HistoricoDetalleViewModel.ARG_RECAUDACION_ID}}"
 
+    // Histórico v2 (§6.5): drill-down filtrado por local/máquina. Tres
+    // segmentos, así que no colisiona con HISTORICO_DETALLE (dos).
+    const val HISTORICO_LOCAL =
+        "historico/local/{${HistoricoViewModel.ARG_LOCAL_ID}}"
+    const val HISTORICO_MAQUINA =
+        "historico/maquina/{${HistoricoViewModel.ARG_MAQUINA_ID}}"
+
     // Recaudación (sub-graph)
     const val RECAUDACION_GRAPH =
         "recaudacion/{${RecaudacionFlowViewModel.ARG_INSTALACION_ID}}" +
@@ -732,6 +778,8 @@ private object Routes {
     fun cambioPlaca(instalacionId: String): String = "cambio-placa/$instalacionId"
     fun reportarAveria(maquinaId: String): String = "averia/$maquinaId"
     fun historicoDetalle(recaudacionId: String): String = "historico/$recaudacionId"
+    fun historicoLocal(localId: String): String = "historico/local/$localId"
+    fun historicoMaquina(maquinaId: String): String = "historico/maquina/$maquinaId"
 
     fun recaudacion(instalacionId: String, cadenaLocalId: String? = null): String {
         val base = "recaudacion/$instalacionId"

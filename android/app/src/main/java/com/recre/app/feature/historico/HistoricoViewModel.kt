@@ -1,5 +1,6 @@
 package com.recre.app.feature.historico
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.recre.app.core.data.repository.RecaudacionHistorica
@@ -15,17 +16,28 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * UI state de "Mis recaudaciones" (T-63).
+ * Contexto del histórico, derivado de los argumentos de navegación:
+ *  - [Global]: el tab inferior. Muestra todo lo que el usuario ve por su
+ *    rol (RBAC vía la vista), no solo "las mías".
+ *  - [Local] / [Maquina]: drill-down desde la ficha de un local o una
+ *    máquina; acota la query server-side por ese id.
+ */
+sealed interface HistoricoContexto {
+    data object Global : HistoricoContexto
+
+    data class Local(val localId: String) : HistoricoContexto
+
+    data class Maquina(val maquinaId: String) : HistoricoContexto
+}
+
+/**
+ * UI state del Histórico (T-63 + Histórico v2, §6.5).
  *
- * El listado se carga en el `init` y se refresca con
- * pull-to-refresh. No hay paginación: el repositorio limita a 200
- * filas que cubre con holgura el histórico personal de un técnico.
- *
- * El filtro de texto vive en el ViewModel (no en URL como en la web)
- * y filtra client-side por número de serie / nombre de local
- * (case-insensitive).
+ * El listado carga en el `init` según el [contexto]. El filtrado por
+ * texto se calcula in-memory porque el tope de 200 filas cabe de sobra.
  */
 data class HistoricoUiState(
+    val contexto: HistoricoContexto = HistoricoContexto.Global,
     val cargando: Boolean = false,
     val recaudaciones: List<RecaudacionHistorica> = emptyList(),
     val query: String = "",
@@ -54,9 +66,22 @@ enum class HistoricoErrorCode { Network, Auth, Unknown }
 @HiltViewModel
 class HistoricoViewModel @Inject constructor(
     private val repository: RecaudacionHistoricaRepository,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(HistoricoUiState())
+    // El contexto sale de los args de ruta: el tab global no lleva
+    // ninguno; el drill-down lleva localId o maquinaId.
+    private val contexto: HistoricoContexto = run {
+        val localId: String? = savedStateHandle[ARG_LOCAL_ID]
+        val maquinaId: String? = savedStateHandle[ARG_MAQUINA_ID]
+        when {
+            localId != null -> HistoricoContexto.Local(localId)
+            maquinaId != null -> HistoricoContexto.Maquina(maquinaId)
+            else -> HistoricoContexto.Global
+        }
+    }
+
+    private val _state = MutableStateFlow(HistoricoUiState(contexto = contexto))
     val state: StateFlow<HistoricoUiState> = _state.asStateFlow()
 
     init {
@@ -76,12 +101,16 @@ class HistoricoViewModel @Inject constructor(
     private fun cargar() {
         viewModelScope.launch {
             _state.update { it.copy(cargando = true, error = null) }
-            when (val result = repository.listarMias()) {
+            val result = when (val ctx = contexto) {
+                is HistoricoContexto.Local -> repository.listarPorLocal(ctx.localId)
+                is HistoricoContexto.Maquina -> repository.listarPorMaquina(ctx.maquinaId)
+                HistoricoContexto.Global -> repository.listarVisibles()
+            }
+            when (result) {
                 is DomainResult.Success ->
                     _state.update {
                         it.copy(cargando = false, recaudaciones = result.value)
                     }
-
                 is DomainResult.Failure ->
                     _state.update {
                         it.copy(cargando = false, error = mapError(result.error))
@@ -94,5 +123,10 @@ class HistoricoViewModel @Inject constructor(
         is DomainError.Network -> HistoricoErrorCode.Network
         is DomainError.Auth -> HistoricoErrorCode.Auth
         else -> HistoricoErrorCode.Unknown
+    }
+
+    companion object {
+        const val ARG_LOCAL_ID = "localId"
+        const val ARG_MAQUINA_ID = "maquinaId"
     }
 }

@@ -4,13 +4,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Fila joinada de `public.recaudacion` que consume la pantalla
- * "Mis recaudaciones" (T-63).
+ * Fila de la vista `public.v_recaudacion_historica` (Histórico v2, spec §6.5).
  *
  * No persiste en Room: el histórico es una vista de solo lectura que se
- * carga bajo demanda contra Postgrest. La RLS ya filtra por empresa
- * activa; añadimos `tecnico_id = auth.uid()` en el query para mostrar
- * solo las recaudaciones del técnico autenticado, como exige T-63.
+ * carga bajo demanda contra PostgREST. La vista deriva `local_id` /
+ * `maquina_id` (y sus nombres/series) del SNAPSHOT INMUTABLE de la
+ * instalación con la que se hizo cada recaudación, así que aunque la
+ * máquina se mueva luego de local, la fila histórica conserva dónde
+ * estaba. La RLS estricta (P2) fluye por `security_invoker`: el técnico
+ * ve solo el histórico de sus locales asignados; owner/admin/gestor/
+ * contable ven todo el de su empresa. Filtrable por `local_id` /
+ * `maquina_id` desde el cliente.
  *
  * Decimales como `String` para no perder precisión Decimal antes de
  * formatear con `BigDecimal`. Misma convención que la web.
@@ -20,6 +24,12 @@ data class RecaudacionHistoricaRow(
     val id: String,
     @SerialName("instalacion_id")
     val instalacionId: String,
+    @SerialName("local_id")
+    val localId: String,
+    @SerialName("maquina_id")
+    val maquinaId: String,
+    @SerialName("licencia_id")
+    val licenciaId: String? = null,
     @SerialName("tecnico_id")
     val tecnicoId: String,
     val fecha: String,
@@ -76,39 +86,17 @@ data class RecaudacionHistoricaRow(
     val motivoAnulacion: String? = null,
     @SerialName("anulada_en")
     val anuladaEn: String? = null,
-    val instalacion: InstalacionResumenDto? = null,
-)
-
-/**
- * Resumen joinado por la query: licencia, máquina y local con los
- * mínimos imprescindibles para pintar la fila.
- */
-@Serializable
-data class InstalacionResumenDto(
-    val id: String,
-    val licencia: LicenciaResumenDto? = null,
-    val maquina: MaquinaResumenDto? = null,
-    val local: LocalResumenDto? = null,
-)
-
-@Serializable
-data class LicenciaResumenDto(
-    val id: String,
-    val numero: String,
-)
-
-@Serializable
-data class MaquinaResumenDto(
-    val id: String,
-    @SerialName("numero_serie")
-    val numeroSerie: String,
-    val modelo: String? = null,
-    val fabricante: String? = null,
-)
-
-@Serializable
-data class LocalResumenDto(
-    val id: String,
-    val nombre: String,
-    val direccion: String? = null,
+    // --- Columnas planas derivadas del snapshot por la vista v2 ---
+    @SerialName("local_nombre")
+    val localNombre: String,
+    @SerialName("local_direccion")
+    val localDireccion: String? = null,
+    @SerialName("maquina_numero_serie")
+    val maquinaNumeroSerie: String,
+    @SerialName("maquina_modelo")
+    val maquinaModelo: String? = null,
+    @SerialName("maquina_fabricante")
+    val maquinaFabricante: String? = null,
+    @SerialName("licencia_numero")
+    val licenciaNumero: String? = null,
 )
