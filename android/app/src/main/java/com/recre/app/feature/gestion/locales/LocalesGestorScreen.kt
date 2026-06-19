@@ -50,6 +50,7 @@ fun LocalesGestorScreen(
     onBack: () -> Unit,
     onAlta: () -> Unit,
     onEditar: (String) -> Unit,
+    onVerHistorico: (String) -> Unit,
     viewModel: LocalesGestorViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -122,6 +123,7 @@ fun LocalesGestorScreen(
                             local = l,
                             borrando = state.borrando == l.id,
                             onEditar = { onEditar(l.id) },
+                            onVerHistorico = { onVerHistorico(l.id) },
                             onEliminar = { aBorrar = l },
                         )
                     }
@@ -150,6 +152,7 @@ private fun LocalCard(
     local: LocalEntity,
     borrando: Boolean,
     onEditar: () -> Unit,
+    onVerHistorico: () -> Unit,
     onEliminar: () -> Unit,
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
@@ -178,6 +181,7 @@ private fun LocalCard(
                     contentDescription = stringResource(R.string.gestion_acciones),
                     acciones = listOf(
                         OverflowAccion(stringResource(R.string.action_edit), onEditar),
+                        OverflowAccion(stringResource(R.string.historico_ver_accion), onVerHistorico),
                         OverflowAccion(stringResource(R.string.action_delete), onEliminar),
                     ),
                 )

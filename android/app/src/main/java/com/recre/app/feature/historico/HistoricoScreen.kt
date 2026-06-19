@@ -93,49 +93,70 @@ fun HistoricoScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Buscador(
-                    query = state.query,
-                    onQueryChange = viewModel::onQueryChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+            HistoricoListaContenido(
+                state = state,
+                onQueryChange = viewModel::onQueryChange,
+                onRecaudacionClick = onRecaudacionClick,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
 
-                state.error?.let { code ->
-                    ErrorCard(
-                        textRes = errorTextoRes(code),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                    )
-                }
+/**
+ * Cuerpo común de la lista del histórico (buscador + error + lista o
+ * vacío). Lo comparten el tab global ([HistoricoScreen]) y el drill-down
+ * por local/máquina ([HistoricoContextoScreen]); cada uno aporta su
+ * propio chrome (Scaffold) y su `PullToRefreshBox`.
+ */
+@Composable
+internal fun HistoricoListaContenido(
+    state: HistoricoUiState,
+    onQueryChange: (String) -> Unit,
+    onRecaudacionClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Buscador(
+            query = state.query,
+            onQueryChange = onQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        )
 
-                val filtradas = state.filtradas
-                if (filtradas.isEmpty()) {
-                    EmptyState(
-                        cargando = state.cargando,
-                        conQuery = state.query.isNotBlank(),
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            bottom = 16.dp,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(filtradas, key = { it.id }) { rec ->
-                            Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
-                                HistoricoCard(
-                                    recaudacion = rec,
-                                    onClick = { onRecaudacionClick(rec.id) },
-                                )
-                            }
-                        }
+        state.error?.let { code ->
+            ErrorCard(
+                textRes = errorTextoRes(code),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+        }
+
+        val filtradas = state.filtradas
+        if (filtradas.isEmpty()) {
+            EmptyState(
+                cargando = state.cargando,
+                conQuery = state.query.isNotBlank(),
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(filtradas, key = { it.id }) { rec ->
+                    Box(Modifier.animateItem(placementSpec = RecreMotion.current.defaultSpatialSpec())) {
+                        HistoricoCard(
+                            recaudacion = rec,
+                            onClick = { onRecaudacionClick(rec.id) },
+                        )
                     }
                 }
             }

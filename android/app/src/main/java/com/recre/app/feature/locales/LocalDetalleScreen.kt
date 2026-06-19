@@ -46,6 +46,7 @@ fun LocalDetalleScreen(
     onReportarAveria: (String) -> Unit,
     onRecaudarTodas: (String) -> Unit,
     onVerDeudas: () -> Unit,
+    onVerHistorico: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pullState = rememberPullToRefreshState()
@@ -81,6 +82,7 @@ fun LocalDetalleScreen(
                     onSincronizar = viewModel::refrescar,
                     onRecaudarTodas = onRecaudarTodas,
                     onVerDeudas = onVerDeudas,
+                    onVerHistorico = onVerHistorico,
                 )
             }
         }
@@ -131,6 +133,7 @@ private fun Contenido(
     onSincronizar: () -> Unit,
     onRecaudarTodas: (String) -> Unit,
     onVerDeudas: () -> Unit,
+    onVerHistorico: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -149,6 +152,13 @@ private fun Contenido(
             RecreTonalButton(
                 text = stringResource(R.string.local_detalle_ver_deudas),
                 onClick = onVerDeudas,
+                fullWidth = true,
+            )
+        }
+        item("historico") {
+            RecreTonalButton(
+                text = stringResource(R.string.local_detalle_ver_historico),
+                onClick = onVerHistorico,
                 fullWidth = true,
             )
         }
