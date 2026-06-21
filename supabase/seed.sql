@@ -8,11 +8,11 @@
 -- ON CONFLICT (usa UUIDs fijos), así que se puede re-ejecutar sin db reset.
 --
 -- Credenciales (todas con contraseña `123456`, email confirmado):
---   a@a.es         -> owner    (Aitor Cruzado)
---   admin@a.es     -> admin    (Lucía Fernández)
---   gestor@a.es    -> gestor   (Marcos Ibáñez)
---   tecnico@a.es   -> tecnico  (Pablo Ortega)
---   contable@a.es  -> contable (Sara Molina)
+--   a@a.es      -> owner    (Aitor Cruzado)
+--   lucia@a.es  -> admin    (Lucía Fernández)
+--   marcos@a.es -> gestor   (Marcos Ibáñez)
+--   pablo@a.es  -> tecnico  (Pablo Ortega)
+--   sara@a.es   -> contable (Sara Molina)
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -25,10 +25,10 @@ begin
     for r in
         select * from (values
             ('a0000000-0000-0000-0000-000000000001'::uuid, 'a@a.es'),
-            ('a0000000-0000-0000-0000-000000000002'::uuid, 'admin@a.es'),
-            ('a0000000-0000-0000-0000-000000000003'::uuid, 'gestor@a.es'),
-            ('a0000000-0000-0000-0000-000000000004'::uuid, 'tecnico@a.es'),
-            ('a0000000-0000-0000-0000-000000000005'::uuid, 'contable@a.es')
+            ('a0000000-0000-0000-0000-000000000002'::uuid, 'lucia@a.es'),
+            ('a0000000-0000-0000-0000-000000000003'::uuid, 'marcos@a.es'),
+            ('a0000000-0000-0000-0000-000000000004'::uuid, 'pablo@a.es'),
+            ('a0000000-0000-0000-0000-000000000005'::uuid, 'sara@a.es')
         ) as t(id, email)
     loop
         insert into auth.users (
