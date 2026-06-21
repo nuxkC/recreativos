@@ -41,12 +41,13 @@ data class LocalAgendaItem(
     val estado: EstadoAgenda,
 )
 
-/** Orden de presentación: lo pendiente primero. */
+/** Orden de presentación: lo más urgente primero. */
 private fun ordenEstado(estado: EstadoAgenda): Int = when (estado) {
     EstadoAgenda.ATRASADO -> 0
     EstadoAgenda.TOCA_HOY -> 1
-    EstadoAgenda.AL_DIA -> 2
-    EstadoAgenda.SIN_PLANIFICAR -> 3
+    EstadoAgenda.PENDIENTE -> 2
+    EstadoAgenda.AL_DIA -> 3
+    EstadoAgenda.SIN_PLANIFICAR -> 4
 }
 
 /**
@@ -109,16 +110,21 @@ data class LocalesUiState(
         get() = localesPorTexto
 
     /**
-     * Lista a pintar: filtro de texto + filtro de chips + orden pendientes
-     * primero. Cada local lleva su estado (SIN_PLANIFICAR si la agenda no lo
-     * cubre o no está disponible).
+     * Lista a pintar: filtro de texto + filtro de chips + orden por urgencia.
+     * Cada local lleva su estado (SIN_PLANIFICAR si la agenda no lo cubre o no
+     * está disponible).
+     *
+     * Online, el filtro por defecto es "Pendientes" (ver [filtroFlow]): solo
+     * sale lo que toca esta semana (pendiente/toca_hoy/atrasado); las que no
+     * tocan ("al día") se ven activando su chip o limpiando el filtro. Offline
+     * (sin agenda) no se oculta nada: lista plana de todos los locales.
      */
     val itemsVisibles: List<LocalAgendaItem>
         get() {
             val conEstado = localesPorTexto.map { local ->
                 LocalAgendaItem(local, agenda[local.id] ?: EstadoAgenda.SIN_PLANIFICAR)
             }
-            val porFiltro = if (filtro.isEmpty()) {
+            val porFiltro = if (!agendaDisponible || filtro.isEmpty()) {
                 conEstado
             } else {
                 conEstado.filter { item ->
@@ -168,7 +174,10 @@ class LocalesViewModel @Inject constructor(
 
     private val queryFlow = MutableStateFlow("")
     private val alertasPendientesFlow = MutableStateFlow(0)
-    private val filtroFlow = MutableStateFlow<Set<String>>(emptySet())
+    // Por defecto solo "Pendientes": el home arranca como cola de trabajo de la
+    // semana (lo que toca), no como inventario completo. "Al día" se ve con su
+    // chip o limpiando el filtro; offline se ignora (lista plana, ver itemsVisibles).
+    private val filtroFlow = MutableStateFlow<Set<String>>(setOf(FILTRO_PENDIENTES))
 
     private val empresaIdFlow = flow {
         sessionRepository.state.collect { state ->
