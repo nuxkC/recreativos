@@ -1225,6 +1225,7 @@
     "estado": {
       "atrasado": "Atrasado",
       "toca_hoy": "Toca hoy",
+      "pendiente": "Pendiente",
       "al_dia": "Al día",
       "sin_planificar": "Sin planificar"
     }

@@ -49,12 +49,12 @@ export async function listarOperarios(empresaId: string): Promise<OperarioResume
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 
-/** Estado de agenda de un local (derivado en v_agenda_operario, P3a). */
-export type EstadoAgenda = "sin_planificar" | "al_dia" | "toca_hoy" | "atrasado";
+/** Estado de agenda de un local (derivado en v_agenda_operario, anclado a semana+día). */
+export type EstadoAgenda = "sin_planificar" | "al_dia" | "pendiente" | "toca_hoy" | "atrasado";
 
-/** Un local pendiente = toca hoy o atrasado. */
+/** Pendiente = lo que toca esta semana: pendiente (aún no su día) / toca hoy / atrasado. */
 export function esPendiente(estado: EstadoAgenda): boolean {
-  return estado === "toca_hoy" || estado === "atrasado";
+  return estado === "pendiente" || estado === "toca_hoy" || estado === "atrasado";
 }
 
 /** Local con su estado de agenda para la vista de rutas. */

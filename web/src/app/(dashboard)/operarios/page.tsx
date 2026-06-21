@@ -9,17 +9,19 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-// Orden de presentación: lo pendiente primero (atrasado → toca hoy → al día → sin planificar).
+// Orden de presentación: lo más urgente primero (atrasado → toca hoy → pendiente → al día → sin planificar).
 const ORDEN_ESTADO: Record<EstadoAgenda, number> = {
   atrasado: 0,
   toca_hoy: 1,
-  al_dia: 2,
-  sin_planificar: 3,
+  pendiente: 2,
+  al_dia: 3,
+  sin_planificar: 4,
 };
 
 const CLASE_ESTADO: Record<EstadoAgenda, string> = {
   atrasado: "bg-destructive/15 text-destructive",
   toca_hoy: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  pendiente: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
   al_dia: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
   sin_planificar: "bg-muted text-muted-foreground",
 };
