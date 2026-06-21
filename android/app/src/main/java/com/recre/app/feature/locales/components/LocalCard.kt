@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
@@ -121,6 +122,11 @@ private fun EstadoAgendaChip(estado: EstadoAgenda) {
             role = StatusRole.WARNING
             icon = Icons.Filled.Today
             labelRes = R.string.agenda_estado_toca_hoy
+        }
+        EstadoAgenda.PENDIENTE -> {
+            role = StatusRole.INFO
+            icon = Icons.Filled.Schedule
+            labelRes = R.string.agenda_estado_pendiente
         }
         EstadoAgenda.AL_DIA -> {
             role = StatusRole.SUCCESS

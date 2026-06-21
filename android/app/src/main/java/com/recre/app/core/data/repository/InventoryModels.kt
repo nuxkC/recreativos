@@ -28,23 +28,29 @@ data class LocalResumen(
 
 /**
  * Estado de agenda de un local, derivado en el servidor (vista
- * `v_agenda_operario`, Planificación P3a). "Pendiente" = toca hoy o atrasado.
+ * `v_agenda_operario`, Planificación P3a, anclado a semana+día objetivo).
  * El cálculo ("¿toca?") vive en el servidor (SSOT + zona horaria de la empresa);
  * el cliente solo lo muestra.
+ *
+ * "Por recaudar esta semana" ([esPendiente]) = PENDIENTE (es su semana, aún no
+ * su día) ∪ TOCA_HOY (hoy es su día) ∪ ATRASADO (pasó su día sin recaudar).
+ * AL_DIA y SIN_PLANIFICAR no entran en la cola de trabajo de la semana.
  */
 enum class EstadoAgenda {
     SIN_PLANIFICAR,
     AL_DIA,
+    PENDIENTE,
     TOCA_HOY,
     ATRASADO;
 
     val esPendiente: Boolean
-        get() = this == TOCA_HOY || this == ATRASADO
+        get() = this == PENDIENTE || this == TOCA_HOY || this == ATRASADO
 
     companion object {
         fun desde(valor: String?): EstadoAgenda = when (valor) {
             "atrasado" -> ATRASADO
             "toca_hoy" -> TOCA_HOY
+            "pendiente" -> PENDIENTE
             "al_dia" -> AL_DIA
             else -> SIN_PLANIFICAR
         }

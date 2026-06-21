@@ -79,6 +79,7 @@
     <string name="agenda_filtro_al_dia">Al día</string>
     <string name="agenda_estado_atrasado">Atrasado</string>
     <string name="agenda_estado_toca_hoy">Toca hoy</string>
+    <string name="agenda_estado_pendiente">Pendiente</string>
     <string name="agenda_estado_al_dia">Al día</string>
     <string name="agenda_estado_sin_planificar">Sin planificar</string>
 
