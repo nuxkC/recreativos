@@ -2,7 +2,11 @@ import type { NextRequest } from "next/server";
 
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+// Next 16 renombró la convención `middleware` a `proxy` (mismo punto de
+// ejecución por delante del render). La lógica real —refresco de sesión
+// Supabase SSR + guard de rutas— sigue en `lib/supabase/middleware`.
+// `proxy` corre en runtime nodejs (no edge), compatible con @supabase/ssr.
+export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
