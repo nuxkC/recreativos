@@ -2,6 +2,8 @@ package com.recre.app.feature.ajustes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.recre.app.core.data.local.TamanoUi
+import com.recre.app.core.data.local.UiPreferences
 import com.recre.app.core.data.repository.AuthRepository
 import com.recre.app.core.printer.PrinterDevice
 import com.recre.app.core.printer.PrinterProfile
@@ -41,6 +43,7 @@ data class AjustesUiState(
     val syncStale: Boolean = false,
     val impresoraSeleccionada: PrinterDevice? = null,
     val perfilImpresora: PrinterProfile = PrinterProfiles.POR_DEFECTO,
+    val tamanoUi: TamanoUi = TamanoUi.ESTANDAR,
 )
 
 /**
@@ -56,6 +59,7 @@ class AjustesViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val syncManager: SyncManager,
     private val printerRepository: PrinterRepository,
+    private val uiPreferences: UiPreferences,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AjustesUiState())
@@ -119,12 +123,23 @@ class AjustesViewModel @Inject constructor(
                 _state.update { it.copy(perfilImpresora = perfil) }
             }
         }
+
+        // Tamaño de interfaz elegido (preferencia de apariencia).
+        viewModelScope.launch {
+            uiPreferences.tamanoFlow.collect { tamano ->
+                _state.update { it.copy(tamanoUi = tamano) }
+            }
+        }
     }
 
     fun forzarSync() {
         val empresaId = (sessionRepository.state.value as? SessionState.Active)?.empresa?.id
             ?: return
         syncManager.forzarSincronizacion(empresaId)
+    }
+
+    fun setTamano(tamano: TamanoUi) {
+        viewModelScope.launch { uiPreferences.setTamano(tamano) }
     }
 
     fun cerrarSesion() {

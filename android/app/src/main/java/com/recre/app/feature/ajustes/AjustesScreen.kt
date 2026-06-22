@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.core.data.local.TamanoUi
 import com.recre.app.core.printer.PrinterDevice
 import com.recre.app.core.printer.PrinterModelId
 import com.recre.app.core.printer.PrinterProfile
@@ -142,6 +143,10 @@ fun AjustesScreen(
                         impresora = state.impresoraSeleccionada,
                         perfil = state.perfilImpresora,
                         onAccion = onImpresoraClick,
+                    )
+                    TamanoCard(
+                        tamano = state.tamanoUi,
+                        onSelect = viewModel::setTamano,
                     )
                 }
             }
@@ -359,6 +364,32 @@ private fun ImpresoraCard(
 }
 
 
+
+@Composable
+private fun TamanoCard(
+    tamano: TamanoUi,
+    onSelect: (TamanoUi) -> Unit,
+) {
+    SeccionCard(titulo = stringResource(R.string.ajustes_seccion_tamano)) {
+        Text(
+            text = stringResource(R.string.ajustes_tamano_descripcion),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
+        SegmentedControl(
+            options = listOf(
+                SegmentOption(stringResource(R.string.ajustes_tamano_compacto)),
+                SegmentOption(stringResource(R.string.ajustes_tamano_estandar)),
+                SegmentOption(stringResource(R.string.ajustes_tamano_grande)),
+            ),
+            selectedIndex = tamano.ordinal,
+            onSelect = { onSelect(TamanoUi.values()[it]) },
+            groupLabel = stringResource(R.string.ajustes_seccion_tamano),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
 
 @Composable
 private fun SesionCard(onLogoutClick: () -> Unit) {
