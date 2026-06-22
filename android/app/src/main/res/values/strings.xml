@@ -415,6 +415,11 @@
     <string name="ajustes_tab_cuenta">Cuenta</string>
     <string name="ajustes_tab_dispositivo">Dispositivo</string>
     <string name="ajustes_secciones">Secciones de ajustes</string>
+    <string name="ajustes_seccion_tamano">Tamaño de la interfaz</string>
+    <string name="ajustes_tamano_descripcion">Ajusta el tamaño de todo lo que se ve en la app.</string>
+    <string name="ajustes_tamano_compacto">Compacto</string>
+    <string name="ajustes_tamano_estandar">Estándar</string>
+    <string name="ajustes_tamano_grande">Grande</string>
     <string name="ajustes_seccion_cuenta">Cuenta</string>
     <string name="ajustes_cuenta_email_descripcion">Correo del usuario autenticado.</string>
     <string name="ajustes_seccion_empresa">Empresa activa</string>

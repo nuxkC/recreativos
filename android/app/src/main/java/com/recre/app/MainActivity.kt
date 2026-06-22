@@ -22,6 +22,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -37,7 +39,10 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.recre.app.core.push.PushNotifier
 import com.recre.app.core.session.SessionState
+import com.recre.app.core.data.local.TamanoUi
+import com.recre.app.core.data.local.UiPreferences
 import com.recre.app.core.data.repository.TipoAlerta
+import javax.inject.Inject
 import com.recre.app.feature.ajustes.AjustesScreen
 import com.recre.app.feature.alertas.AlertasScreen
 import com.recre.app.feature.incidencias.IncidenciasScreen
@@ -99,17 +104,25 @@ class MainActivity : ComponentActivity() {
     // recaudación cuyo conflicto se resolvió. Se consume al navegar.
     private val deepLinkRecaudacionId = MutableStateFlow<String?>(null)
 
+    @Inject
+    lateinit var uiPreferences: UiPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         leerDeepLink(intent)
         setContent {
-            RecreTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    RecreApp(
-                        deepLinkRecaudacionId = deepLinkRecaudacionId,
-                        onDeepLinkConsumido = { deepLinkRecaudacionId.value = null },
-                    )
+            val tamano by uiPreferences.tamanoFlow.collectAsStateWithLifecycle(
+                initialValue = TamanoUi.ESTANDAR,
+            )
+            EscalaUi(tamano) {
+                RecreTheme {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        RecreApp(
+                            deepLinkRecaudacionId = deepLinkRecaudacionId,
+                            onDeepLinkConsumido = { deepLinkRecaudacionId.value = null },
+                        )
+                    }
                 }
             }
         }
@@ -128,6 +141,21 @@ class MainActivity : ComponentActivity() {
             deepLinkRecaudacionId.value = recaudacionId
         }
     }
+}
+
+/**
+ * Aplica el tamaño de interfaz elegido escalando `LocalDensity` para TODA la app.
+ * Escalar la densidad encoge/agranda dp y sp por igual (proporciones intactas);
+ * el `fontScale` del sistema se conserva por encima (accesibilidad). Los insets
+ * del sistema siguen siendo físicamente correctos (se resuelven en px).
+ */
+@Composable
+private fun EscalaUi(tamano: TamanoUi, content: @Composable () -> Unit) {
+    val base = LocalDensity.current
+    val escalada = remember(base, tamano) {
+        Density(density = base.density * tamano.escala, fontScale = base.fontScale)
+    }
+    CompositionLocalProvider(LocalDensity provides escalada, content = content)
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
