@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.recre.app.core.data.repository.RecaudacionHistorica
 import com.recre.app.core.data.repository.RecaudacionHistoricaRepository
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.util.DomainError
 import com.recre.app.core.util.DomainResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -67,6 +69,7 @@ enum class HistoricoErrorCode { Network, Auth, Unknown }
 class HistoricoViewModel @Inject constructor(
     private val repository: RecaudacionHistoricaRepository,
     savedStateHandle: SavedStateHandle,
+    private val realtimeManager: RealtimeManager,
 ) : ViewModel() {
 
     // El contexto sale de los args de ruta: el tab global no lleva
@@ -86,6 +89,10 @@ class HistoricoViewModel @Inject constructor(
 
     init {
         cargar()
+        // Realtime: refresca el histórico ante cualquier cambio server-side.
+        viewModelScope.launch {
+            realtimeManager.revision.drop(1).collect { cargar() }
+        }
     }
 
     fun refrescar() = cargar()

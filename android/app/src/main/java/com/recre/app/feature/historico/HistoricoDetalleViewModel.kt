@@ -7,6 +7,7 @@ import com.recre.app.core.data.repository.RecaudacionHistorica
 import com.recre.app.core.data.repository.RecaudacionHistoricaRepository
 import com.recre.app.core.printer.PrintResult
 import com.recre.app.core.printer.PrinterError
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.util.DomainError
 import com.recre.app.core.util.DomainResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,6 +15,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -42,6 +44,7 @@ data class HistoricoDetalleUiState(
 class HistoricoDetalleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: RecaudacionHistoricaRepository,
+    private val realtimeManager: RealtimeManager,
 ) : ViewModel() {
 
     private val recaudacionId: String = checkNotNull(savedStateHandle[ARG_RECAUDACION_ID]) {
@@ -53,6 +56,10 @@ class HistoricoDetalleViewModel @Inject constructor(
 
     init {
         cargar()
+        // Realtime: refresca el detalle ante cualquier cambio server-side.
+        viewModelScope.launch {
+            realtimeManager.revision.drop(1).collect { cargar() }
+        }
     }
 
     fun cargar() {

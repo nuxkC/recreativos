@@ -10,12 +10,14 @@ import com.recre.app.core.data.repository.AveriaRepository
 import com.recre.app.core.data.repository.GestionResult
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.util.ConnectivityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -41,6 +43,7 @@ class AveriasMaquinaViewModel @Inject constructor(
     private val averiaRepository: AveriaRepository,
     private val sessionRepository: SessionRepository,
     connectivityRepository: ConnectivityRepository,
+    private val realtimeManager: RealtimeManager,
 ) : ViewModel() {
 
     private val maquinaId: String = checkNotNull(savedStateHandle[ARG_MAQUINA_ID]) {
@@ -57,6 +60,10 @@ class AveriasMaquinaViewModel @Inject constructor(
             }
         }
         cargar()
+        // Realtime: refresca el historial de averías ante cambios server-side.
+        viewModelScope.launch {
+            realtimeManager.revision.drop(1).collect { cargar() }
+        }
     }
 
     fun cargar() {

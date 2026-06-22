@@ -14,6 +14,7 @@ import com.recre.app.core.data.repository.GestionResult
 import com.recre.app.core.data.repository.RecuperacionLedger
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.util.ConnectivityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -71,6 +73,7 @@ class DeudasLocalViewModel @Inject constructor(
     localDao: LocalDao,
     private val sessionRepository: SessionRepository,
     connectivityRepository: ConnectivityRepository,
+    private val realtimeManager: RealtimeManager,
 ) : ViewModel() {
 
     private val localId: String = checkNotNull(savedStateHandle[ARG_LOCAL_ID]) {
@@ -128,6 +131,10 @@ class DeudasLocalViewModel @Inject constructor(
         }
 
         refrescarLedger()
+        // Realtime: refresca el ledger ante cambios server-side (recuperacion…).
+        viewModelScope.launch {
+            realtimeManager.revision.drop(1).collect { refrescarLedger() }
+        }
     }
 
     fun refrescarLedger() {
