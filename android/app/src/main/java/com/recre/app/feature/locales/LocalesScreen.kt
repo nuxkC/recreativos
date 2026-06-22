@@ -169,6 +169,7 @@ fun LocalesScreen(
                                 if (conQuery) R.string.locales_vacio_busqueda_desc else R.string.locales_vacio_descripcion,
                             ),
                             filtered = conQuery,
+                            lottieRes = if (conQuery) null else R.raw.empty_locales,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }

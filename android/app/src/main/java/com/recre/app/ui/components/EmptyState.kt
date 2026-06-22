@@ -79,6 +79,8 @@ private const val ENTER_TRANSLATE_DP = 4
  * @param filtered true cuando el vacío viene de un filtro/búsqueda: el CTA pasa
  *   a ghost "Quitar filtros" (sin acento, sin icono Plus).
  * @param compact true dentro de tabla/lista densa (padding e icono reducidos).
+ * @param lottieRes animación Lottie opcional (R.raw) que sustituye al glifo
+ *   estático. Decorativa y sutil; con reduce-motion se cae al [icon].
  * @param modifier modificador del contenedor (último parámetro).
  */
 @Composable
@@ -90,6 +92,7 @@ fun EmptyState(
     onActionClick: (() -> Unit)? = null,
     filtered: Boolean = false,
     compact: Boolean = false,
+    lottieRes: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val colors = RecreColors.current
@@ -127,13 +130,22 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Glifo decorativo en `muted` (jamás danger ni primary), plano, sin círculo.
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = colors.muted,
-            modifier = Modifier.size(if (compact) 40.dp else 48.dp),
-        )
+        // Glifo: animación Lottie sutil si se aporta (y hay animaciones); si no
+        // —o con reduce-motion— el glifo `muted` plano de siempre. Decorativo:
+        // el significado lo lleva el texto.
+        if (lottieRes != null && animate) {
+            LottieIllustration(
+                rawRes = lottieRes,
+                modifier = Modifier.size(if (compact) 72.dp else 96.dp),
+            )
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = colors.muted,
+                modifier = Modifier.size(if (compact) 40.dp else 48.dp),
+            )
+        }
         Spacer(Modifier.height(16.dp))
         Text(
             text = title,
