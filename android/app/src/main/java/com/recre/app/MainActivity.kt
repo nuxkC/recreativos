@@ -752,14 +752,28 @@ private fun navigateForState(
     navController: NavHostController,
     state: SessionState,
 ) {
+    val current = navController.currentBackStackEntry?.destination?.route
+    // ¿Ya estamos DENTRO de la app autenticada (cualquier pantalla: detalle,
+    // recaudación, gestión…)? Solo las cuatro rutas previas al login no cuentan.
+    val enAppAutenticada = current != null &&
+        current != Routes.SPLASH &&
+        current != Routes.LOGIN &&
+        current != Routes.SELECCIONAR_EMPRESA &&
+        current != Routes.SIN_ACCESO
+
     val target = when (state) {
-        SessionState.Loading -> Routes.SPLASH
+        // Estados transitorios: si ya estamos dentro de la app, NO tocamos la
+        // pila. Evita que al recrearse la Activity —p. ej. al apagar/encender la
+        // pantalla con "No conservar actividades", donde nace un RootViewModel
+        // nuevo que pasa por Loading→Active— se pierda la pantalla en curso y
+        // volvamos a la principal. La sesión real (logout, etc.) sí redirige.
+        SessionState.Loading -> if (enAppAutenticada) return else Routes.SPLASH
+        is SessionState.Active -> if (enAppAutenticada) return else Routes.LOCALES
+        // Redirecciones de sesión reales: estas SÍ deben resetear la navegación.
         SessionState.NotAuthenticated -> Routes.LOGIN
         SessionState.NoMemberships -> Routes.SIN_ACCESO
         is SessionState.NeedsEmpresaSelection -> Routes.SELECCIONAR_EMPRESA
-        is SessionState.Active -> Routes.LOCALES
     }
-    val current = navController.currentBackStackEntry?.destination?.route
     if (current == target) return
     navController.navigate(target) {
         popUpTo(navController.graph.startDestinationId) { inclusive = true }
