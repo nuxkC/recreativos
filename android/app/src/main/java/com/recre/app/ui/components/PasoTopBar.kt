@@ -1,5 +1,8 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.MaterialTheme
@@ -15,7 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,36 +34,29 @@ import com.recre.app.ui.theme.RecreTheme
 // =====================================================================
 // PasoTopBar · chrome propio del flujo de recaudación (rediseño F1, P1+M1).
 // SSOT visual: docs/superpowers/specs/2026-06-17-rediseno-ui-android-design.md
-// (§4 P1 cabecera de detalle, §5 M1 indicador de pasos animado).
+// (§4 P1 cabecera de detalle, §5 M1 indicador de pasos).
 //
-// Sustituye al TopAppBar M3 "gris" genérico de los tres pasos del flujo
-// (Contadores → Denominaciones → Confirmación) por una cabecera de la identidad
-// "Confianza Industrial": back + título a la izquierda y, bajo el título, el
-// [StepIndicator] en variante barra ("Paso n de 3") que marca el avance, más un
-// subtítulo opcional (serie de la máquina / objetivo / cadena).
+// Cabecera de la identidad "Confianza Industrial" para los tres pasos del flujo
+// (Contadores → Denominaciones → Confirmación). Para no malgastar altura, todo
+// vive en UNA fila: back + (título / subtítulo) y, a la derecha, un indicador
+// COMPACTO de segmentos ("• ▬ •") que marca el paso actual. Sustituye al bloque
+// "Paso n de 3" que ocupaba una segunda línea entera bajo el título.
 //
 // Pensada para el slot `topBar` de un Scaffold: gestiona su propio inset de
-// barra de estado (statusBarsPadding), igual que hacía el TopAppBar. El nº de
-// paso es constante por pantalla (cada destino sabe si es 1, 2 o 3): la barra se
-// pinta llena hasta ese segmento; el "morph" continuo entre pantallas es pulido
-// diferido (shared element, Fase 5).
+// barra de estado (statusBarsPadding).
 // =====================================================================
-
-// El IconAction reserva su propio target táctil de 48dp; el contenido (indicador
-// + subtítulo) se sangra para alinearse con el texto del título, no con el icono.
-private val ContentIndent = 48.dp
 
 /**
  * Cabecera de un paso del flujo de recaudación.
  *
  * @param titulo título del paso (ya localizado por el llamador).
  * @param pasoActual índice 1-based del paso (Contadores=1, Denominaciones=2,
- *   Confirmación=3); el StepIndicator pinta la barra llena hasta aquí.
+ *   Confirmación=3); los segmentos se rellenan hasta aquí.
  * @param onBack acción del back (la flecha). El llamador decide su semántica
  *   (liberar lock, confirmar descarte, etc.).
  * @param totalPasos total de pasos del flujo (3 por defecto).
- * @param subtitulo línea secundaria muted bajo el indicador (serie de máquina,
- *   objetivo, "Máquina X de N"…); null la oculta.
+ * @param subtitulo línea secundaria muted bajo el título (serie de máquina,
+ *   "Máquina X de N"…); null la oculta.
  * @param backEnabled si false, la flecha queda deshabilitada (p. ej. mientras se
  *   guarda/imprime en Confirmación) — el back no debe interrumpir esas fases.
  */
@@ -71,42 +72,29 @@ fun PasoTopBar(
 ) {
     val colors = RecreColors.current
     Surface(color = MaterialTheme.colorScheme.surface) {
-        Column(
+        Row(
             modifier =
                 modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(start = 4.dp, end = 16.dp, bottom = 12.dp),
+                    .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconAction(
-                    icon = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.action_back),
-                    onClick = onBack,
-                    enabled = backEnabled,
-                )
+            IconAction(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.action_back),
+                onClick = onBack,
+                enabled = backEnabled,
+            )
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = titulo,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            Column(modifier = Modifier.padding(start = ContentIndent, end = 4.dp)) {
-                StepIndicator(
-                    current = pasoActual,
-                    total = totalPasos,
-                    label = stringResource(R.string.recaudacion_step_label),
-                    connector = stringResource(R.string.recaudacion_step_connector),
-                    contentDescription =
-                        stringResource(R.string.recaudacion_step_descripcion, pasoActual, totalPasos),
-                    variant = StepVariant.Bar,
-                    modifier = Modifier.fillMaxWidth(),
                 )
                 if (subtitulo != null) {
-                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = subtitulo,
                         style = MaterialTheme.typography.bodySmall,
@@ -116,6 +104,48 @@ fun PasoTopBar(
                     )
                 }
             }
+            Spacer(Modifier.width(12.dp))
+            PasosSegmentos(
+                current = pasoActual,
+                total = totalPasos,
+                contentDescription =
+                    stringResource(R.string.recaudacion_step_descripcion, pasoActual, totalPasos),
+            )
+        }
+    }
+}
+
+/**
+ * Indicador compacto de pasos: una hilera de segmentos. Los pasos hechos/actual
+ * van en `primary`; el actual es un pill más largo para fijar la posición; los
+ * pendientes en muted tenue. Decorativo: el progreso real lo anuncia el
+ * [contentDescription] único (no se leen los segmentos sueltos).
+ */
+@Composable
+private fun PasosSegmentos(
+    current: Int,
+    total: Int,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+) {
+    val activo = MaterialTheme.colorScheme.primary
+    val inactivo = RecreColors.current.muted.copy(alpha = 0.3f)
+    Row(
+        modifier = modifier.clearAndSetSemantics { this.contentDescription = contentDescription },
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(total) { i ->
+            val esActual = i == current - 1
+            val hecho = i < current
+            Box(
+                modifier =
+                    Modifier
+                        .height(6.dp)
+                        .width(if (esActual) 22.dp else 8.dp)
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(if (hecho) activo else inactivo),
+            )
         }
     }
 }

@@ -5,16 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -45,10 +42,10 @@ import com.recre.app.ui.theme.RecreTheme
 // SSOT: .kiro/specs/recre/fase3-component-specs.md (§ Sistema keypad de denominaciones).
 //
 // El ÚNICO teclado numérico in-app del producto (exclusivo del extracto de
-// denominaciones): rejilla 3×4 anclada abajo en la thumb-zone que dirige la fila
-// activa de la lista. Captura SOLO enteros (cantidades de piezas); el cálculo
-// económico definitivo es SSOT servidor — este átomo no formatea ni recalcula
-// dinero, solo emite eventos de dígito/borrado/siguiente.
+// denominaciones): rejilla 3×4 PERFECTAMENTE alineada y anclada abajo en la
+// thumb-zone que dirige la fila activa de la lista. Captura SOLO enteros
+// (cantidades de piezas); el cálculo económico definitivo es SSOT servidor —
+// este átomo no formatea ni recalcula dinero, solo emite eventos.
 //
 // El resto de inputs numéricos de la app usan el teclado del SISTEMA (FieldNum);
 // este keypad NO se reutiliza fuera de denominaciones (anti-patrón del spec).
@@ -57,13 +54,11 @@ import com.recre.app.ui.theme.RecreTheme
 //  - Tecla en reposo: surfaceContainer (= surface-2) + borde `outline` (= muted,
 //    ≥3:1 sobre surface-1 para WCAG 1.4.11; NO outlineVariant #E3E6EA = 1.25:1).
 //  - Dígito: onSurface (foreground), Geist Mono tabular.
-//  - Tecla Siguiente (único acento del keypad): primary + onPrimary.
+//  - Tecla Siguiente (único acento del keypad): primary + onPrimary, icono "→".
 //  - Backspace: icono onSurfaceVariant (muted), contentDescription "Borrar".
 //
 // Haptic LIGERO tipo tick (KEYBOARD_TAP), NUNCA LongPress (fatiga en 30+ taps):
-// gobernado por [hapticsEnabled] (ajuste in-app) además del ajuste del sistema
-// (performHapticFeedback respeta el ajuste global salvo que se ignore, y no se
-// ignora). La supresión del IME del sistema y el readOnly los aporta la pantalla.
+// gobernado por [hapticsEnabled] (ajuste in-app) además del ajuste del sistema.
 
 private const val KEY_HEIGHT_DP = 64 // objetivo thumb-zone; muy por encima de 48dp mínimo
 private val KEY_SHAPE = RoundedCornerShape(12.dp)
@@ -80,16 +75,16 @@ private val KeypadDigitStyle =
 /**
  * Teclado numérico in-app 3×4 anclado al fondo (R5 del sistema de denominaciones).
  *
- * Filas: [1][2][3] / [4][5][6] / [7][8][9] / [⌫][0][Siguiente →]. La 4ª fila
- * reparte el ancho con weight 1f/1f/2f para que "Siguiente" (texto+icono) no se
- * trunque; toda tecla queda ≥48dp. El estado/valor lo posee la pantalla; aquí
- * solo se emiten eventos. Respeta safe-area inferior (navigationBarsPadding).
+ * Filas: [1][2][3] / [4][5][6] / [7][8][9] / [⌫][0][→]. **Las cuatro filas usan
+ * tres celdas con el MISMO weight(1f)**, de modo que la rejilla cuadra columna a
+ * columna: ⌫ bajo el 7, 0 bajo el 8, Siguiente (→) bajo el 9 y del mismo tamaño
+ * que un dígito. El estado/valor lo posee la pantalla; aquí solo se emiten
+ * eventos. Respeta safe-area inferior (navigationBarsPadding).
  *
  * @param onDigit dígito 0-9 pulsado (la pantalla lo concatena a la fila activa).
  * @param onBackspace borra el último dígito de la fila activa.
  * @param onNext salta a la siguiente denominación (siempre habilitado: mover el
  *   foco no depende de que cuadre — el gate de cuadre vive en el CTA "Continuar").
- * @param nextLabel texto de la tecla Siguiente. i18n por el llamador.
  * @param backspaceContentDescription descripción del backspace ("Borrar"). i18n.
  * @param nextContentDescription descripción de Siguiente ("Siguiente denominación"). i18n.
  * @param hapticsEnabled ajuste in-app de haptics; si false (o el sistema lo tiene
@@ -101,7 +96,6 @@ fun Keypad(
     onDigit: (Int) -> Unit,
     onBackspace: () -> Unit,
     onNext: () -> Unit,
-    nextLabel: String,
     backspaceContentDescription: String,
     nextContentDescription: String,
     hapticsEnabled: Boolean = true,
@@ -128,7 +122,7 @@ fun Keypad(
                 }
             }
         }
-        // 4ª fila: backspace (1f) · 0 (1f) · Siguiente (2f, texto+icono → no trunca).
+        // 4ª fila alineada a la rejilla: backspace (bajo 7) · 0 (bajo 8) · → (bajo 9).
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KeypadKey(
                 onClick = onBackspace,
@@ -156,13 +150,11 @@ fun Keypad(
                 border = null,
                 hapticsEnabled = hapticsEnabled,
                 contentDescription = nextContentDescription,
-                modifier = Modifier.weight(2f).testTag("keypad-next"),
+                modifier = Modifier.weight(1f).testTag("keypad-next"),
             ) {
-                Text(text = nextLabel, color = colors.onPrimary, style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.width(6.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
+                    contentDescription = null, // el contentDescription va en la tecla
                     tint = colors.onPrimary,
                 )
             }
@@ -243,7 +235,6 @@ private fun KeypadLightPreview() {
             onDigit = {},
             onBackspace = {},
             onNext = {},
-            nextLabel = "Siguiente",
             backspaceContentDescription = "Borrar",
             nextContentDescription = "Siguiente denominación",
             modifier = Modifier.padding(8.dp),
@@ -259,7 +250,6 @@ private fun KeypadDarkPreview() {
             onDigit = {},
             onBackspace = {},
             onNext = {},
-            nextLabel = "Siguiente",
             backspaceContentDescription = "Borrar",
             nextContentDescription = "Siguiente denominación",
             modifier = Modifier.padding(8.dp),

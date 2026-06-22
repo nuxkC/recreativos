@@ -238,7 +238,6 @@ fun ContadoresScreen(
                                     CampoContador.Entradas
                                 }
                         },
-                        nextLabel = stringResource(R.string.recaudacion_keypad_siguiente),
                         backspaceContentDescription = stringResource(R.string.recaudacion_keypad_borrar),
                         nextContentDescription = stringResource(R.string.recaudacion_keypad_siguiente),
                     )
