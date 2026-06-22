@@ -2,6 +2,7 @@ package com.recre.app.feature.historico
 
 import com.recre.app.ui.components.formatEur
 
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,8 +30,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -40,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.repository.EstadoHistorico
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.LottieIllustration
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
@@ -315,6 +321,15 @@ private fun EmptyState(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(32.dp),
         ) {
+            // Animación Lottie sutil solo en el vacío "sin recaudaciones" (no en
+            // carga ni en búsqueda sin resultados); con reduce-motion no aparece.
+            if (!cargando && !conQuery && rememberAnimationsEnabled()) {
+                LottieIllustration(
+                    rawRes = R.raw.empty_historico,
+                    modifier = Modifier.size(96.dp),
+                )
+                Spacer(Modifier.height(12.dp))
+            }
             Text(
                 text = when {
                     cargando -> stringResource(R.string.historico_vacio_cargando)
@@ -326,6 +341,21 @@ private fun EmptyState(
                 textAlign = TextAlign.Center,
             )
         }
+    }
+}
+
+@Composable
+private fun rememberAnimationsEnabled(): Boolean {
+    if (LocalInspectionMode.current) return false
+    val context = LocalContext.current
+    return remember(context) {
+        val scale =
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            )
+        scale != 0f
     }
 }
 

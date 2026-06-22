@@ -1,5 +1,10 @@
 package com.recre.app.feature.auth
 
+import android.provider.Settings
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +29,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -74,6 +84,18 @@ fun LoginScreen(
         if (state.success) onLoginSuccess()
     }
 
+    // Entrada sutil: marca y formulario aparecen con un fundido + leve ascenso,
+    // una sola vez. Con reduce-motion aparecen al instante.
+    val animaciones = rememberAnimationsEnabled()
+    var aparecido by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { aparecido = true }
+    val entrada by animateFloatAsState(
+        targetValue = if (aparecido) 1f else 0f,
+        animationSpec =
+            if (animaciones) tween(durationMillis = 520, easing = FastOutSlowInEasing) else snap(),
+        label = "login-entrada",
+    )
+
     Scaffold(
         snackbarHost = { RecreSnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -88,6 +110,10 @@ fun LoginScreen(
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
+                    .graphicsLayer {
+                        alpha = entrada
+                        translationY = (1f - entrada) * 20.dp.toPx()
+                    }
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -120,6 +146,7 @@ fun LoginScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .graphicsLayer { alpha = entrada }
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp, vertical = 16.dp),
             ) {
@@ -167,5 +194,20 @@ private fun MarcaRecre() {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@Composable
+private fun rememberAnimationsEnabled(): Boolean {
+    if (LocalInspectionMode.current) return false
+    val context = LocalContext.current
+    return remember(context) {
+        val scale =
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            )
+        scale != 0f
     }
 }
