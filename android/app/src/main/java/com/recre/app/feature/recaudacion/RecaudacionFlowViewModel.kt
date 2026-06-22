@@ -591,8 +591,10 @@ class RecaudacionFlowViewModel @Inject constructor(
                 return@launch
             }
 
-            // Encola el upload y espera unos segundos por si hay red.
+            // Encola el upload y espera unos segundos por si hay red. La fase
+            // "subiendo" alimenta el modal mientras dura esa espera.
             uploadManager.encolar(empresaId)
+            _uiState.update { it.copy(subiendo = true) }
             val finalState = uploadManager.esperarFinalizacion(empresaId)
             val subidoOnline = finalState == WorkInfo.State.SUCCEEDED
 
@@ -606,6 +608,7 @@ class RecaudacionFlowViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     guardando = false,
+                    subiendo = false,
                     guardado = true,
                     subidoOnline = subidoOnline,
                 )

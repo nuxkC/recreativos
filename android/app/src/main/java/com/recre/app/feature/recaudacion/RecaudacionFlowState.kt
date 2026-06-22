@@ -89,6 +89,14 @@ data class RecaudacionFlowState(
 
     // Paso 4 — confirmación
     val guardando: Boolean = false,
+
+    /**
+     * `true` durante la ventana de espera (≤5 s) en la que, ya persistida la
+     * recaudación en Room, aguardamos al Worker para saber si la subida al
+     * servidor entró en línea. Permite al modal distinguir la fase "Subiendo…"
+     * de la fase "Guardando…".
+     */
+    val subiendo: Boolean = false,
     val guardado: Boolean = false,
 
     /**

@@ -204,7 +204,7 @@
     <string name="recaudacion_firma_limpiar">Limpiar firma</string>
     <string name="recaudacion_accion_guardar">Guardar e imprimir</string>
     <string name="recaudacion_accion_guardando">Guardando…</string>
-    <string name="recaudacion_persistencia_offline">Si no hay red, la recaudación se sube automáticamente cuando vuelva la conexión. La impresión Bluetooth llega en T-62.</string>
+    <string name="recaudacion_persistencia_offline">Si no hay red, la recaudación se sube automáticamente cuando vuelva la conexión.</string>
 
     <!-- (A) Baseline cambió a mitad del flujo (otra recaudación / anulación) -->
     <string name="recaudacion_baseline_cambiada_titulo">Los contadores base han cambiado</string>
@@ -256,6 +256,11 @@
     <string name="recaudacion_impresion_ok">Ticket impreso</string>
     <string name="recaudacion_impresion_error_titulo">No se pudo imprimir el ticket</string>
     <string name="recaudacion_impresion_reintentar">Reintentar impresión</string>
+    <string name="recaudacion_guardado_guardando_sub">Registrando la recaudación…</string>
+    <string name="recaudacion_guardado_subiendo_titulo">Subiendo al servidor…</string>
+    <string name="recaudacion_guardado_subiendo_sub">Casi listo, enviando la recaudación.</string>
+    <string name="recaudacion_guardado_imprimiendo_sub">Enviando el ticket a la impresora.</string>
+    <string name="recaudacion_guardado_error_nota">La recaudación ya está guardada. Reintenta la impresión o continúa.</string>
 
     <!-- Lock optimista (T-58) -->
     <string name="recaudacion_lock_titulo">Otro técnico está recaudando</string>
