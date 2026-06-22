@@ -142,6 +142,8 @@
 
     <!-- OCR de contadores en vivo (T-100, HU-14 fase 2) -->
     <string name="recaudacion_ocr_escanear_contadores">Escanear contadores</string>
+    <string name="recaudacion_ocr_escanear_corto">Escanear</string>
+    <string name="recaudacion_contadores_intro">Introduce las lecturas</string>
     <string name="recaudacion_ocr_ayuda">La cámara lee los dos contadores en directo y rellena los campos. Revisa siempre los valores antes de continuar.</string>
     <string name="recaudacion_ocr_aviso_baja_confianza">Lectura poco clara. Comprueba los valores detectados y corrígelos si hace falta.</string>
     <string name="recaudacion_ocr_error_permiso_camara">Sin permiso de cámara. Concédelo para escanear o introduce los contadores a mano.</string>

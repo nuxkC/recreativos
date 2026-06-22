@@ -31,6 +31,7 @@ fun ContadorOcrBoton(
     testTag: String,
     onEscanear: () -> Unit,
     onPermisoDenegado: () -> Unit,
+    fullWidth: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -51,7 +52,7 @@ fun ContadorOcrBoton(
             }
         },
         leadingIcon = Icons.Filled.PhotoCamera,
-        fullWidth = true,
+        fullWidth = fullWidth,
         modifier = modifier.testTag(testTag),
     )
 }
