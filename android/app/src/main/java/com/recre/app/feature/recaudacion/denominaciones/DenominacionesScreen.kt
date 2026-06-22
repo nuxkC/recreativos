@@ -3,12 +3,13 @@ package com.recre.app.feature.recaudacion.denominaciones
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Warning
@@ -40,6 +41,7 @@ import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.ui.components.Keypad
+import com.recre.app.ui.components.LottieIllustration
 import com.recre.app.ui.components.MoneyText
 import com.recre.app.ui.components.MoneyTextSize
 import com.recre.app.ui.components.PasoTopBar
@@ -52,6 +54,7 @@ import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -136,18 +139,12 @@ fun DenominacionesScreen(
             ModoDenominaciones.Total -> stringResource(R.string.recaudacion_denominaciones_total_titulo)
             ModoDenominaciones.Local -> stringResource(R.string.recaudacion_denominaciones_local_titulo)
         }
-    val subtituloObjetivo =
-        target?.let {
-            stringResource(R.string.recaudacion_denominaciones_objetivo, formatEur(it.toPlainString()))
-        }
-
     Scaffold(
         topBar = {
             PasoTopBar(
                 titulo = tituloPaso,
                 pasoActual = 2,
                 onBack = ::intentarSalir,
-                subtitulo = subtituloObjetivo,
             )
         },
     ) { padding ->
@@ -165,22 +162,20 @@ fun DenominacionesScreen(
             }
 
             if (nadaQueEntregar) {
-                // "Nada que entregar": ni lista ni keypad; solo el texto y Continuar.
-                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(16.dp)) {
-                    Text(
-                        text =
-                            stringResource(
-                                if (huboRecuperacion) {
-                                    R.string.recaudacion_local_nada_deuda
-                                } else {
-                                    R.string.recaudacion_local_nada
-                                },
-                            ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                // Estado vacío con animación Lottie (antes era texto plano).
+                NadaQueEntregar(
+                    huboRecuperacion = huboRecuperacion,
+                    modifier = Modifier.weight(1f),
+                )
             } else {
+                // (R4) Objetivo/Total ARRIBA: deja la mitad inferior (rejilla + CTA +
+                // keypad) para el pulgar, mejorando el alcance de las denominaciones.
+                ProgresoInfo(
+                    objetivo = target,
+                    total = totalActual,
+                    diferencia = diferencia,
+                    cuadra = cuadra,
+                )
                 // (R3) Rejilla 3×3 sin scroll: monedas arriba, billetes abajo en orden
                 // ascendente. La tarjeta seleccionada (borde petróleo) dirige el keypad.
                 RejillaDenominaciones(
@@ -195,12 +190,8 @@ fun DenominacionesScreen(
                 )
             }
 
-            // (R4) Bloque de progreso STICKY: nunca tapado por el keypad.
-            BloqueProgreso(
-                objetivo = if (nadaQueEntregar) null else target,
-                total = totalActual,
-                diferencia = if (nadaQueEntregar) null else diferencia,
-                cuadra = cuadra,
+            // CTA Continuar STICKY en la thumb-zone, sobre el keypad.
+            ContinuarBar(
                 puedeContinuar = cuadra || nadaQueEntregar,
                 onContinuar = onContinuar,
             )
@@ -290,30 +281,27 @@ private fun RejillaDenominaciones(
 }
 
 /**
- * (R4) Bloque de progreso persistente: Objetivo, Total (héroe) + estado
- * (Cuadra/Faltan/Sobran con icono+texto+color) y CTA Continuar. Sticky sobre el
- * keypad (vive fuera del LazyColumn), separado por divisor outline para que el
- * límite se vea.
+ * (R4) Info de progreso ARRIBA: Objetivo + Total (héroe) + estado
+ * (Cuadra/Faltan/Sobran con icono+texto+color). Flash verde al cuadrar. Va
+ * encima de la rejilla, separada por un divisor inferior; el CTA se separó a
+ * [ContinuarBar] (abajo, en la thumb-zone).
  */
 @Composable
-private fun BloqueProgreso(
+private fun ProgresoInfo(
     objetivo: BigDecimal?,
     total: BigDecimal,
     diferencia: BigDecimal?,
     cuadra: Boolean,
-    puedeContinuar: Boolean,
-    onContinuar: () -> Unit,
 ) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             Column(
                 modifier =
                     Modifier
                         .fillMaxWidth()
                         .successFlash(trigger = if (cuadra) true else null)
-                        .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 if (objetivo != null) {
                     Row(
@@ -349,15 +337,69 @@ private fun BloqueProgreso(
                         EstadoChip(diferencia = diferencia, cuadra = cuadra)
                     }
                 }
-                RecrePrimaryButton(
-                    text = stringResource(R.string.recaudacion_accion_continuar),
-                    onClick = onContinuar,
-                    enabled = puedeContinuar,
-                    fullWidth = true,
-                    modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
-                )
             }
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
         }
+    }
+}
+
+/** CTA Continuar sticky en la thumb-zone, separado del contenido por un divisor. */
+@Composable
+private fun ContinuarBar(
+    puedeContinuar: Boolean,
+    onContinuar: () -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+            RecrePrimaryButton(
+                text = stringResource(R.string.recaudacion_accion_continuar),
+                onClick = onContinuar,
+                enabled = puedeContinuar,
+                fullWidth = true,
+                modifier =
+                    Modifier
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
+            )
+        }
+    }
+}
+
+/**
+ * Estado vacío de la parte local: no hay nada que entregar (parte_local = 0, con
+ * o sin deuda recuperada). Animación Lottie + el texto explicativo, en lugar de
+ * texto plano. Si el asset no carga, queda el texto (la animación es decorativa).
+ */
+@Composable
+private fun NadaQueEntregar(
+    huboRecuperacion: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        LottieIllustration(
+            rawRes = R.raw.recaudacion_sin_parte,
+            modifier = Modifier.size(140.dp),
+            iterations = 1,
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text =
+                stringResource(
+                    if (huboRecuperacion) {
+                        R.string.recaudacion_local_nada_deuda
+                    } else {
+                        R.string.recaudacion_local_nada
+                    },
+                ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
