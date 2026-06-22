@@ -16,25 +16,35 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Suscripción Realtime a las tablas que determinan el baseline (contadores) de
- * una recaudación. Su única responsabilidad es DETECTAR que algo cambió en el
- * servidor y disparar un re-sync; NO aplica deltas en local.
+ * Suscripción Realtime a las tablas operacionales: DETECTA que algo cambió en el
+ * servidor y refresca la UI en vivo. Dos mecanismos según dónde viva el dato:
  *
- * Por qué re-sync y no delta: el baseline lo calcula el servidor
- * (`obtener_baseline` / `v_instalacion_actual`), que es una vista —Realtime no
- * emite sobre vistas—. Suscribimos las tablas BASE que la alimentan y, ante
- * cualquier cambio, reusamos [SyncManager.encolarSincronizacion] (política KEEP,
- * que coalesce ráfagas), de modo que el recálculo sigue siendo server-side
- * (SSOT) y la UI se refresca por los Flows de Room ya existentes.
+ *  - [TABLAS_SYNC] (datos que viven en Room vía el sync masivo): un cambio
+ *    dispara [SyncManager.encolarSincronizacion] (política KEEP, coalesce
+ *    ráfagas); el recálculo sigue server-side (SSOT) y la UI se refresca por los
+ *    Flows de Room existentes (gestión, detalle de local, deudas, incidencias…).
+ *  - [revision]: ante CUALQUIER cambio se incrementa un contador que los
+ *    ViewModels que leen del servidor BAJO DEMANDA (vistas/tablas que no están en
+ *    Room: agenda, histórico, deudas-ledger, averías, alertas) observan para
+ *    refetch inmediato, sin esperar al ciclo de sync.
+ *
+ * Por qué re-sync/refetch y no aplicar deltas: muchas pantallas leen VISTAS
+ * (`v_instalacion_actual`, `v_agenda_operario`, `v_recaudacion_historica`,
+ * `v_credito_local_saldo`) y Realtime no emite sobre vistas; suscribimos sus
+ * tablas BASE y reconsultamos, manteniendo el SSOT en el servidor.
  *
  * Multi-tenant: no filtramos por `empresa_id` a mano; postgres_changes aplica
  * las policies RLS `*_select` con el JWT del técnico, así que solo llegan filas
@@ -55,6 +65,16 @@ class RealtimeManager @Inject constructor(
 
     /** Canal de la empresa activa; se reemplaza en cada transición de empresa. */
     private var canalJob: Job? = null
+
+    private val _revision = MutableStateFlow(0L)
+
+    /**
+     * Contador monótono que se incrementa ante cualquier cambio server-side de
+     * las tablas suscritas. Señal "algo cambió, refresca" para los ViewModels
+     * que leen del servidor bajo demanda. Es global (no por empresa); los
+     * consumidores combinan con su propio `empresaId`/argumentos.
+     */
+    val revision: StateFlow<Long> = _revision.asStateFlow()
 
     /**
      * Arranca la observación del [SessionState]. Llamar exactamente una vez
@@ -77,11 +97,16 @@ class RealtimeManager @Inject constructor(
         supabase.realtime.connect()
         val canal = supabase.channel("recre-operacional-$empresaId")
 
-        TABLAS_BASELINE.forEach { tabla ->
+        TABLAS.forEach { tabla ->
             canal.postgresChangeFlow<PostgresAction>(schema = "public") { table = tabla }
                 .onEach {
-                    Timber.i("Realtime: cambio en %s → re-sync %s", tabla, empresaId)
-                    syncManager.encolarSincronizacion(empresaId)
+                    // Señal "algo cambió" para los refetch bajo demanda…
+                    _revision.update { it + 1 }
+                    // …y, si el dato vive en Room, re-sync para refrescar sus Flows.
+                    if (tabla in TABLAS_SYNC) {
+                        syncManager.encolarSincronizacion(empresaId)
+                    }
+                    Timber.i("Realtime: cambio en %s (rev=%d, sync=%b)", tabla, _revision.value, tabla in TABLAS_SYNC)
                 }
                 .launchIn(this)
         }
@@ -104,15 +129,34 @@ class RealtimeManager @Inject constructor(
 
     private companion object {
         /**
-         * Tablas base que alimentan el baseline (ver migración
-         * 20260611200000). `recaudacion` y `cambio_placa` son las de mayor
-         * riesgo (otro técnico recauda / cambia placa de la misma máquina).
+         * Tablas cuyos datos viven en Room (vía el sync masivo): un cambio
+         * dispara re-sync y las pantallas con Flows de Room se refrescan solas.
+         * Alimentan también las vistas que el sync consume (v_instalacion_actual,
+         * v_credito_local_saldo, v_instalacion_tolva) y la agenda.
          */
-        val TABLAS_BASELINE = listOf(
+        val TABLAS_SYNC = setOf(
             "recaudacion",
             "cambio_placa",
             "instalacion",
             "maquina",
+            "local",
+            "licencia",
+            "credito_local",
+            "recuperacion",
+            "lectura_no_recaudada",
         )
+
+        /**
+         * Tablas que la app lee del servidor BAJO DEMANDA (no Room): solo
+         * incrementan [revision] para refetch directo de sus ViewModels.
+         */
+        val TABLAS_SOLO_REVISION = setOf(
+            "alerta",
+            "averia",
+            "averia_recambio",
+        )
+
+        /** Todo lo que escuchamos (publicado en supabase_realtime). */
+        val TABLAS = TABLAS_SYNC + TABLAS_SOLO_REVISION
     }
 }

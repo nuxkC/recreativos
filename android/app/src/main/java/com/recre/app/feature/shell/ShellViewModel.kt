@@ -7,6 +7,7 @@ import com.recre.app.core.data.repository.AveriaRepository
 import com.recre.app.core.data.repository.RecaudacionRepository
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.sync.SyncManager
 import com.recre.app.core.sync.SyncStatus
 import com.recre.app.core.util.DomainResult
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -64,6 +66,7 @@ constructor(
     private val alertasRepository: AlertasRepository,
     private val recaudacionRepository: RecaudacionRepository,
     private val averiaRepository: AveriaRepository,
+    private val realtimeManager: RealtimeManager,
 ) : ViewModel() {
 
     private val alertasBackendFlow = MutableStateFlow(0)
@@ -131,6 +134,10 @@ constructor(
 
     init {
         refrescarAlertas()
+        // Realtime: el badge de alertas reacciona a cambios server-side.
+        viewModelScope.launch {
+            realtimeManager.revision.drop(1).collect { refrescarAlertas() }
+        }
     }
 
     /**

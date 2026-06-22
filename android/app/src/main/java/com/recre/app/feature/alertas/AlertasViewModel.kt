@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.recre.app.core.data.repository.Alerta
 import com.recre.app.core.data.repository.AlertasRepository
+import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.util.DomainError
 import com.recre.app.core.util.DomainResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,6 +12,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -28,6 +30,7 @@ enum class AlertasErrorCode { Network, Auth, Unknown }
 @HiltViewModel
 class AlertasViewModel @Inject constructor(
     private val repository: AlertasRepository,
+    private val realtimeManager: RealtimeManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AlertasUiState())
@@ -35,6 +38,10 @@ class AlertasViewModel @Inject constructor(
 
     init {
         cargar()
+        // Realtime: ante cualquier cambio server-side (alerta…) recargamos.
+        viewModelScope.launch {
+            realtimeManager.revision.drop(1).collect { cargar() }
+        }
     }
 
     fun refrescar() = cargar()
