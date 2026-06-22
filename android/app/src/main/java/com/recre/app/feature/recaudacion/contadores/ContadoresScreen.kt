@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -17,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,7 +59,7 @@ import com.recre.app.ui.theme.RecreType
  *  - Banner "Sincronización obligatoria" si `state.syncStale` (T-59).
  *  - AlertDialog "Lock ocupado" cuando otro técnico tiene el lock (T-58).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ContadoresScreen(
     viewModel: RecaudacionFlowViewModel,
@@ -124,33 +129,54 @@ fun ContadoresScreen(
                         (state.contadorEntradasInput.toLongOrNull() ?: -1) < maquina.baselineEntradas
                     val salidasError = state.contadorSalidasInput.isNotBlank() &&
                         (state.contadorSalidasInput.toLongOrNull() ?: -1) < maquina.baselineSalidas
+                    val scrollState = rememberScrollState()
+                    val cifrasRequester = remember { BringIntoViewRequester() }
+                    // Al calcular (las cifras pasan a estar disponibles) llevamos el
+                    // resultado a la vista: hacer scroll a mano era engorroso.
+                    LaunchedEffect(cifras != null) {
+                        if (cifras != null) cifrasRequester.bringIntoView()
+                    }
                     // Contenido scrolleable; el keypad queda anclado abajo (sticky).
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
                             .padding(16.dp)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(scrollState),
                     ) {
                         BaselineHint(
                             baselineEntradas = maquina.baselineEntradas,
                             baselineSalidas = maquina.baselineSalidas,
                         )
                         Spacer(Modifier.height(12.dp))
+                        // Escanear integrado como acción de la sección de lecturas,
+                        // no como botón suelto: título a la izquierda, cámara a la derecha.
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.recaudacion_contadores_intro),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            ContadorOcrBoton(
+                                label = stringResource(R.string.recaudacion_ocr_escanear_corto),
+                                testTag = RecaudacionTestTags.OCR_ESCANEAR,
+                                fullWidth = false,
+                                onEscanear = {
+                                    permisoCamaraDenegado = false
+                                    mostrarEscaner = true
+                                },
+                                onPermisoDenegado = { permisoCamaraDenegado = true },
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.recaudacion_ocr_ayuda),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        ContadorOcrBoton(
-                            label = stringResource(R.string.recaudacion_ocr_escanear_contadores),
-                            testTag = RecaudacionTestTags.OCR_ESCANEAR,
-                            onEscanear = {
-                                permisoCamaraDenegado = false
-                                mostrarEscaner = true
-                            },
-                            onPermisoDenegado = { permisoCamaraDenegado = true },
                         )
                         if (permisoCamaraDenegado) {
                             Spacer(Modifier.height(8.dp))
@@ -191,7 +217,9 @@ fun ContadoresScreen(
                             CifrasResumenCard(
                                 cifras = cifras,
                                 recuperacion = state.recuperacion,
-                                modifier = Modifier.testTag(RecaudacionTestTags.CIFRAS_RESUMEN),
+                                modifier = Modifier
+                                    .testTag(RecaudacionTestTags.CIFRAS_RESUMEN)
+                                    .bringIntoViewRequester(cifrasRequester),
                             )
                         }
                         Spacer(Modifier.height(24.dp))
