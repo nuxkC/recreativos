@@ -8,33 +8,47 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.recre.app.R
 import com.recre.app.core.printer.PrintResult
 import com.recre.app.core.printer.PrinterError
@@ -52,21 +66,18 @@ import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.theme.RecreShapes
-import androidx.compose.ui.draw.clip
 
 /**
- * Paso final del flujo (T-56). Antes de "Guardar" pinta el resumen +
- * firma. Tras "Guardar" pinta una segunda vista compacta con:
+ * Paso final del flujo (T-56). La pantalla muestra el resumen + la firma y un
+ * botón "Guardar e imprimir".
  *
- *  - Confirmación de persistencia (online o pendiente).
- *  - Estado de la impresión Bluetooth (T-62): "Imprimiendo…" /
- *    "Ticket impreso" / "No se pudo imprimir: <motivo>".
- *  - Botón "Reintentar impresión" cuando el envío falló.
- *  - Botón "Continuar" que cierra el flujo (o salta al siguiente en
- *    modo cadena, T-60).
+ * Al pulsarlo se abre un **modal de estados no descartable** (rediseño UX) que
+ * hace legible lo que antes era un spinner opaco: acompaña el proceso real
+ * paso a paso —guardando → subiendo → imprimiendo → éxito / reintentar—, con
+ * una animación Lottie por estado. El técnico solo sale del modal con
+ * "Continuar" (o "Reintentar impresión" si el ticket falló).
  *
- * No auto-navega: el técnico decide cuándo cerrar para tener tiempo
- * de leer el resultado y reintentar la impresión si hace falta.
+ * No auto-navega: el técnico decide cuándo cerrar para leer el resultado.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,16 +115,17 @@ fun ConfirmacionScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            if (state.guardado) {
-                PostGuardadoBlock(
-                    state = state,
-                    onReintentarImpresion = viewModel::imprimirTicket,
-                    onContinuar = onFinalizar,
-                )
-            } else {
-                FormularioBlock(state = state, viewModel = viewModel, onRehacer = onRehacer)
-            }
+            FormularioBlock(state = state, viewModel = viewModel, onRehacer = onRehacer)
         }
+    }
+
+    // Tras pulsar Guardar, el modal acompaña el proceso real hasta el final.
+    if (state.guardando || state.guardado) {
+        GuardadoModal(
+            state = state,
+            onReintentarImpresion = viewModel::imprimirTicket,
+            onContinuar = onFinalizar,
+        )
     }
 }
 
@@ -193,7 +205,7 @@ private fun FormularioBlock(
         onClick = viewModel::onGuardar,
         loading = state.guardando,
         enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
-            !state.syncStale && !state.baselineCambiada,
+            !state.guardado && !state.syncStale && !state.baselineCambiada,
         modifier = Modifier
             .fillMaxWidth()
             .testTag(RecaudacionTestTags.CONFIRMACION_GUARDAR),
@@ -208,157 +220,200 @@ private fun FormularioBlock(
     )
 }
 
+// -----------------------------------------------------------------------------
+// Modal de estados de guardado/impresión
+// -----------------------------------------------------------------------------
+
+/** Fase visible del proceso, derivada del estado del flujo. */
+private enum class FaseGuardado { GUARDANDO, SUBIENDO, IMPRIMIENDO, EXITO, ERROR_IMPRESION }
+
+private fun faseGuardado(state: RecaudacionFlowState): FaseGuardado = when {
+    state.guardado && state.printResult is PrintResult.Success -> FaseGuardado.EXITO
+    state.guardado && state.printResult is PrintResult.Failure -> FaseGuardado.ERROR_IMPRESION
+    state.guardado -> FaseGuardado.IMPRIMIENDO
+    state.subiendo -> FaseGuardado.SUBIENDO
+    else -> FaseGuardado.GUARDANDO
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PostGuardadoBlock(
+private fun GuardadoModal(
     state: RecaudacionFlowState,
     onReintentarImpresion: () -> Unit,
     onContinuar: () -> Unit,
 ) {
-    // Si tras guardar todavía no hubo intento (printResult == null) y
-    // tampoco está imprimiendo, re-disparamos para cubrir el caso del
-    // proceso muerto entre `onGuardar` y la composición.
+    // Re-dispara la impresión si el proceso murió entre `onGuardar` y la
+    // composición (printResult quedó null sin estar imprimiendo).
     LaunchedEffect(state.guardado) {
         if (state.guardado && state.printResult == null && !state.imprimiendo) {
             onReintentarImpresion()
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        shape = RecreShapes.medium,
+    val fase = faseGuardado(state)
+    val terminal = fase == FaseGuardado.EXITO || fase == FaseGuardado.ERROR_IMPRESION
+    // `rememberUpdatedState` para que el bloqueo de swipe lea SIEMPRE el valor
+    // actual (el lambda de `rememberModalBottomSheetState` se fija una vez).
+    val terminalActual = rememberUpdatedState(terminal)
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        // Mientras hay trabajo en curso, no se puede descartar el modal.
+        confirmValueChange = { value -> value != SheetValue.Hidden || terminalActual.value },
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = { if (terminal) onContinuar() },
+        sheetState = sheetState,
+        shape = RecreShapes.extraLarge,
+        dragHandle = { if (terminal) BottomSheetDefaults.DragHandle() },
+        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f),
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(top = 8.dp, bottom = 24.dp)
+                .navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(
-                Icons.Default.Check,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = stringResource(R.string.recaudacion_post_guardado_titulo),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+            EstadoAnim(fase = fase, modifier = Modifier.size(128.dp))
+            Spacer(Modifier.height(12.dp))
+
+            when (fase) {
+                FaseGuardado.GUARDANDO -> EstadoTexto(
+                    titulo = stringResource(R.string.recaudacion_accion_guardando),
+                    subtitulo = stringResource(R.string.recaudacion_guardado_guardando_sub),
                 )
-                Text(
-                    text = if (state.subidoOnline) {
-                        stringResource(R.string.recaudacion_post_guardado_online)
-                    } else {
-                        stringResource(R.string.recaudacion_post_guardado_pendiente)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+
+                FaseGuardado.SUBIENDO -> EstadoTexto(
+                    titulo = stringResource(R.string.recaudacion_guardado_subiendo_titulo),
+                    subtitulo = stringResource(R.string.recaudacion_guardado_subiendo_sub),
                 )
+
+                FaseGuardado.IMPRIMIENDO -> EstadoTexto(
+                    titulo = stringResource(R.string.recaudacion_impresion_en_curso),
+                    subtitulo = stringResource(R.string.recaudacion_guardado_imprimiendo_sub),
+                )
+
+                FaseGuardado.EXITO -> {
+                    EstadoTexto(
+                        titulo = stringResource(R.string.recaudacion_post_guardado_titulo),
+                        subtitulo = if (state.subidoOnline) {
+                            stringResource(R.string.recaudacion_post_guardado_online)
+                        } else {
+                            stringResource(R.string.recaudacion_post_guardado_pendiente)
+                        },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.recaudacion_impresion_ok),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    RecrePrimaryButton(
+                        text = stringResource(R.string.recaudacion_post_guardado_continuar),
+                        onClick = onContinuar,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+
+                FaseGuardado.ERROR_IMPRESION -> {
+                    val error = (state.printResult as? PrintResult.Failure)?.error
+                    EstadoTexto(
+                        titulo = stringResource(R.string.recaudacion_impresion_error_titulo),
+                        subtitulo = error?.let { printerErrorTexto(it) } ?: "",
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.recaudacion_guardado_error_nota),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    RecreTonalButton(
+                        text = stringResource(R.string.recaudacion_impresion_reintentar),
+                        onClick = onReintentarImpresion,
+                        fullWidth = true,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    RecreTextButton(
+                        text = stringResource(R.string.recaudacion_post_guardado_continuar),
+                        onClick = onContinuar,
+                    )
+                }
             }
         }
     }
-
-    Spacer(Modifier.height(16.dp))
-
-    ImpresionStatusCard(
-        imprimiendo = state.imprimiendo,
-        printResult = state.printResult,
-        onReintentar = onReintentarImpresion,
-    )
-
-    Spacer(Modifier.height(24.dp))
-    RecrePrimaryButton(
-        text = stringResource(R.string.recaudacion_post_guardado_continuar),
-        onClick = onContinuar,
-        enabled = !state.imprimiendo,
-    )
 }
 
 @Composable
-private fun ImpresionStatusCard(
-    imprimiendo: Boolean,
-    printResult: PrintResult?,
-    onReintentar: () -> Unit,
-) {
-    val containerColor = when {
-        printResult is PrintResult.Failure -> MaterialTheme.colorScheme.errorContainer
-        printResult is PrintResult.Success -> MaterialTheme.colorScheme.surfaceVariant
-        else -> MaterialTheme.colorScheme.surfaceVariant
+private fun EstadoTexto(titulo: String, subtitulo: String) {
+    Text(
+        text = titulo,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    )
+    if (subtitulo.isNotEmpty()) {
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = subtitulo,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
-    val onContainer = when {
-        printResult is PrintResult.Failure -> MaterialTheme.colorScheme.onErrorContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+/**
+ * Animación Lottie del estado (loop en progreso, one-shot al terminar). Si el
+ * asset no parsea en algún dispositivo, cae a un icono/spinner equivalente: el
+ * modal nunca queda vacío.
+ */
+@Composable
+private fun EstadoAnim(fase: FaseGuardado, modifier: Modifier = Modifier) {
+    val rawRes = when (fase) {
+        FaseGuardado.EXITO -> R.raw.recaudacion_exito
+        FaseGuardado.ERROR_IMPRESION -> R.raw.recaudacion_error
+        else -> R.raw.recaudacion_progreso
     }
+    val terminal = fase == FaseGuardado.EXITO || fase == FaseGuardado.ERROR_IMPRESION
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(rawRes))
+    val iterations = if (terminal) 1 else LottieConstants.IterateForever
+    val progress by animateLottieCompositionAsState(composition, iterations = iterations)
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = containerColor,
-        contentColor = onContainer,
-        shape = RecreShapes.medium,
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                when {
-                    imprimiendo -> CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-
-                    printResult is PrintResult.Success -> Icon(
-                        Icons.Default.Print,
-                        contentDescription = null,
-                        tint = onContainer,
-                    )
-
-                    printResult is PrintResult.Failure -> Icon(
-                        Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = onContainer,
-                    )
-
-                    else -> Icon(
-                        Icons.Default.Print,
-                        contentDescription = null,
-                        tint = onContainer,
-                    )
-                }
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = when {
-                        imprimiendo -> stringResource(R.string.recaudacion_impresion_en_curso)
-                        printResult is PrintResult.Success ->
-                            stringResource(R.string.recaudacion_impresion_ok)
-                        printResult is PrintResult.Failure ->
-                            stringResource(R.string.recaudacion_impresion_error_titulo)
-                        else -> stringResource(R.string.recaudacion_impresion_pendiente)
-                    },
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                    color = onContainer,
-                )
-            }
-
-            if (printResult is PrintResult.Failure) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = printerErrorTexto(printResult.error),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = onContainer,
-                )
-                Spacer(Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    RecreTonalButton(
-                        text = stringResource(R.string.recaudacion_impresion_reintentar),
-                        onClick = onReintentar,
-                        enabled = !imprimiendo,
-                    )
-                }
-            }
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        if (composition != null) {
+            LottieAnimation(composition = composition, progress = { progress })
+        } else {
+            FallbackEstado(fase)
         }
+    }
+}
+
+@Composable
+private fun FallbackEstado(fase: FaseGuardado) {
+    when (fase) {
+        FaseGuardado.EXITO -> Icon(
+            Icons.Filled.CheckCircle,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(64.dp),
+        )
+
+        FaseGuardado.ERROR_IMPRESION -> Icon(
+            Icons.Filled.Warning,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(64.dp),
+        )
+
+        else -> CircularProgressIndicator(strokeWidth = 4.dp)
     }
 }
 
