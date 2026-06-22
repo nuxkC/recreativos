@@ -188,6 +188,7 @@
 
     <!-- Recuperación de deuda durante la recaudación (T-215) -->
     <string name="recaudacion_recuperacion_titulo">Recuperación de deuda</string>
+    <string name="recaudacion_recuperacion_compacta_sub">Se retiene de la parte del local para saldar su deuda.</string>
     <string name="recaudacion_recuperacion_retenido">Retenido de la parte del local</string>
     <string name="recaudacion_recuperacion_entregado">Se entrega al local</string>
     <string name="recaudacion_recuperacion_imputacion">Imputación (orden de pago)</string>
