@@ -39,7 +39,6 @@ import com.recre.app.ui.components.successFlash
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
-import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.ui.components.Keypad
 import com.recre.app.ui.components.MoneyText
 import com.recre.app.ui.components.MoneyTextSize
@@ -49,6 +48,10 @@ import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.theme.RecreShapes
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.font.FontWeight
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -149,16 +152,14 @@ fun DenominacionesScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // (R2) Recuperación: fija (fuera del scroll), SOLO LECTURA en esta pantalla.
+            // (R2) Recuperación: banner COMPACTO fijo. La card completa (con el
+            // detalle por deuda) desbordaba este Column sin scroll y empujaba la
+            // rejilla + keypad fuera de pantalla; el desglose íntegro se ve en
+            // Confirmación. Aquí basta recordar cuánto se retiene de la parte local.
             val plan = state.recuperacion
             if (modo == ModoDenominaciones.Local && plan != null && plan.recuperadoTotal.signum() > 0) {
-                RecuperacionResumenCard(
-                    creditos = state.creditosAbiertos,
-                    plan = plan,
-                    ordenManual = state.ordenManual,
-                    reordenable = false, // la reordenación se movió a un paso previo
-                    onSubir = {},
-                    onBajar = {},
+                RecuperacionBannerCompacto(
+                    recuperadoTotal = plan.recuperadoTotal,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
@@ -400,6 +401,50 @@ private fun siguienteDenominacion(activa: String?): String? {
         i < 0 -> claves.firstOrNull()
         i >= claves.lastIndex -> claves.lastOrNull()
         else -> claves[i + 1]
+    }
+}
+
+/**
+ * (R2) Banner compacto de recuperación de deuda para la pantalla de
+ * denominaciones (sin scroll). Solo recuerda cuánto se retiene de la parte del
+ * local; el reparto por deuda se ve en Confirmación. Ocupa ~64dp en vez de los
+ * ~220dp de [com.recre.app.feature.recaudacion.components.RecuperacionResumenCard],
+ * de modo que la rejilla y el keypad caben en pantalla.
+ */
+@Composable
+private fun RecuperacionBannerCompacto(
+    recuperadoTotal: BigDecimal,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shape = RecreShapes.medium,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.recaudacion_recuperacion_titulo),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = stringResource(R.string.recaudacion_recuperacion_compacta_sub),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = "− " + formatEur(recuperadoTotal.toPlainString()),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 
