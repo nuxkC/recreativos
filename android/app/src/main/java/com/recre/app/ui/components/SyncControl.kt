@@ -31,8 +31,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,8 +51,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.recre.app.R
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
+import kotlinx.coroutines.delay
 
 // Design System "Confianza Industrial" — atom C-SYNC-01 SyncControl (Fase 3).
 // SSOT: .kiro/specs/recre/fase3-component-specs.md.
@@ -64,8 +69,8 @@ import com.recre.app.ui.theme.RecreTheme
 //  - El spec pide Phosphor `ArrowsClockwise`; esa lib NO está. Se usa el
 //    equivalente material-icons-extended `Icons.Filled.Sync`.
 //  - reduce-motion: misma detección que Skeleton/OfflineBadge (ANIMATOR_DURATION_SCALE).
-//  - El flash success loading→idle no se implementa: el enum no tiene un estado
-//    Success y la propia referencia Android del spec tampoco lo materializa.
+//  - El flash success loading→idle: al pasar de Syncing a Idle se muestra un
+//    check Lottie breve (sync_ok) en lugar del icono, respetando reduce-motion.
 //  - El delta "hace Xh" y el metadato NO se calculan aquí (anti-patrón de fechas
 //    ad hoc): entran ya formateados por parámetro desde el estado de sync.
 
@@ -136,6 +141,21 @@ fun SyncControl(
     val colors = RecreColors.current
     val animate = rememberAnimationsEnabled()
 
+    // Flash de éxito al completar (Syncing → Idle): un check Lottie breve en vez
+    // de que el icono pase a muted sin más. Respeta reduce-motion.
+    var justSynced by remember { mutableStateOf(false) }
+    var statusPrevio by remember { mutableStateOf(status) }
+    LaunchedEffect(status) {
+        if (statusPrevio == SyncStatus.Syncing && status == SyncStatus.Idle && animate) {
+            justSynced = true
+            delay(1100)
+            justSynced = false
+        } else {
+            justSynced = false
+        }
+        statusPrevio = status
+    }
+
     // Tinte del icono por estado: idle/pending muted, syncing primary, stale warning.
     val tint =
         when (status) {
@@ -181,11 +201,11 @@ fun SyncControl(
                         },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Sync,
-                    contentDescription = null,
+                SyncGlifo(
+                    justSynced = justSynced,
+                    angle = angle,
                     tint = tint,
-                    modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = angle },
+                    modifier = Modifier.size(24.dp),
                 )
                 // Dot-badge: warning (pulsa) en stale; info (estático) si hay cola.
                 when {
@@ -220,11 +240,11 @@ fun SyncControl(
                     modifier = Modifier.padding(16.dp).heightIn(min = 56.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Sync,
-                        contentDescription = null,
+                    SyncGlifo(
+                        justSynced = justSynced,
+                        angle = angle,
                         tint = tint,
-                        modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = angle },
+                        modifier = Modifier.size(24.dp),
                     )
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -259,6 +279,30 @@ fun SyncControl(
 }
 
 /** Dot-badge de estado Ø8dp; pulsa opacidad 1↔0.6 (~1600ms) si [pulse]. Decorativo. */
+/**
+ * Glifo del control de sync: un check Lottie breve tras completar ([justSynced])
+ * o el icono Sync (que gira mientras [SyncStatus.Syncing]). Decorativo: el
+ * estado lo anuncia el contentDescription del contenedor.
+ */
+@Composable
+private fun SyncGlifo(
+    justSynced: Boolean,
+    angle: Float,
+    tint: Color,
+    modifier: Modifier = Modifier,
+) {
+    if (justSynced) {
+        LottieIllustration(rawRes = R.raw.sync_ok, modifier = modifier, iterations = 1)
+    } else {
+        Icon(
+            imageVector = Icons.Filled.Sync,
+            contentDescription = null,
+            tint = tint,
+            modifier = modifier.graphicsLayer { rotationZ = angle },
+        )
+    }
+}
+
 @Composable
 private fun SyncStatusDot(
     color: Color,
