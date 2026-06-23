@@ -75,7 +75,7 @@ import timber.log.Timber
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecaudacionFlowViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val inventoryRepository: InventoryRepository,
     empresaParamsDao: EmpresaParamsDao,
     creditoLocalDao: CreditoLocalDao,
@@ -96,8 +96,84 @@ class RecaudacionFlowViewModel @Inject constructor(
     /** Modo cadena (T-60): null si entramos desde MaquinaCard, no-null si desde "Recaudar todas". */
     private val cadenaLocalId: String? = savedStateHandle[ARG_CADENA_LOCAL_ID]
 
-    private val _uiState = MutableStateFlow(RecaudacionFlowState())
+    // Estado inicial = lo guardado en SavedStateHandle si la Activity se recreó
+    // o el proceso murió a mitad del flujo (ver `restaurarEstadoInicial`); si no,
+    // un estado limpio. Lo derivado se recalcula solo al observar Room.
+    private val _uiState = MutableStateFlow(restaurarEstadoInicial())
     val state: StateFlow<RecaudacionFlowState> = _uiState.asStateFlow()
+
+    // -------------------------------------------------------------------------
+    // Persistencia ante muerte del proceso / recreación de la Activity
+    //
+    // El estado vive en un MutableStateFlow en memoria, que se pierde si el
+    // sistema recrea la Activity (p. ej. "No conservar actividades" al apagar y
+    // encender la pantalla) o mata la app por memoria. Para que el técnico no
+    // pierda lo ya tecleado, volcamos las ENTRADAS del usuario a SavedStateHandle
+    // —respaldado por el Bundle de instancia, que sí sobrevive— tras cada cambio,
+    // y las restauramos en el init. Lo derivado (cifras, recuperación, máquina,
+    // empresa) NO se persiste: se reconstruye solo al re-observar Room.
+    // -------------------------------------------------------------------------
+
+    /**
+     * Reconstruye el estado inicial desde el snapshot guardado en
+     * [SavedStateHandle] si lo hay (recreación / muerte de proceso a mitad del
+     * flujo); si no, devuelve un estado limpio. `cargando` queda en `true` hasta
+     * que la máquina cargue de Room, igual que en un arranque normal.
+     */
+    private fun restaurarEstadoInicial(): RecaudacionFlowState {
+        val snap = savedStateHandle.get<RecaudacionInputSnapshot>(KEY_INPUTS)
+            ?: return RecaudacionFlowState()
+        return RecaudacionFlowState(
+            contadorEntradasInput = snap.contadorEntradasInput,
+            contadorSalidasInput = snap.contadorSalidasInput,
+            denominacionesTotal = snap.denominacionesTotal.toMap(),
+            denominacionesLocal = snap.denominacionesLocal.toMap(),
+            ordenManual = snap.ordenManual?.toList(),
+            firmaStrokes = snap.firmaStrokes.map { it.aOffsets() },
+            avisoBaselineVisto = snap.avisoBaselineVisto,
+        )
+    }
+
+    /**
+     * Vuelca las entradas del usuario al [SavedStateHandle] tras cada cambio.
+     * Barato: solo guarda la referencia en memoria; la serialización al Bundle
+     * solo ocurre cuando el sistema salva la instancia. No persiste una vez
+     * guardado: el flujo se cierra y no debe restaurarse.
+     */
+    private fun persistirInputs() {
+        val s = _uiState.value
+        if (s.guardado) return
+        savedStateHandle[KEY_INPUTS] = RecaudacionInputSnapshot(
+            contadorEntradasInput = s.contadorEntradasInput,
+            contadorSalidasInput = s.contadorSalidasInput,
+            denominacionesTotal = HashMap(s.denominacionesTotal),
+            denominacionesLocal = HashMap(s.denominacionesLocal),
+            ordenManual = s.ordenManual?.let { ArrayList(it) },
+            firmaStrokes = ArrayList(s.firmaStrokes.map { it.aFloatArray() }),
+            avisoBaselineVisto = s.avisoBaselineVisto,
+        )
+    }
+
+    /** Aplana un trazo de la firma a `[x0, y0, x1, y1, …]` (Offset no es serializable). */
+    private fun List<Offset>.aFloatArray(): FloatArray {
+        val out = FloatArray(size * 2)
+        forEachIndexed { i, p ->
+            out[i * 2] = p.x
+            out[i * 2 + 1] = p.y
+        }
+        return out
+    }
+
+    /** Inverso de [aFloatArray]: reconstruye el trazo de la firma. */
+    private fun FloatArray.aOffsets(): List<Offset> {
+        val out = ArrayList<Offset>(size / 2)
+        var i = 0
+        while (i + 1 < size) {
+            out.add(Offset(this[i], this[i + 1]))
+            i += 2
+        }
+        return out
+    }
 
     /** Snapshot de la baseline visto en la emisión anterior, para detectar cambios. */
     private data class BaselineSnapshot(
@@ -155,6 +231,7 @@ class RecaudacionFlowViewModel @Inject constructor(
                 avisoBaselineVisto = false,
             ).conRecuperacion()
         }
+        persistirInputs()
     }
 
     /**
@@ -164,6 +241,7 @@ class RecaudacionFlowViewModel @Inject constructor(
      */
     fun marcarAvisoBaselineVisto() {
         _uiState.update { it.copy(avisoBaselineVisto = true) }
+        persistirInputs()
     }
 
     init {
@@ -347,6 +425,7 @@ class RecaudacionFlowViewModel @Inject constructor(
             )
             current.copy(contadorEntradasInput = sanitized, cifras = cifras).conRecuperacion()
         }
+        persistirInputs()
     }
 
     fun onContadorSalidasChange(value: String) {
@@ -360,6 +439,7 @@ class RecaudacionFlowViewModel @Inject constructor(
             )
             current.copy(contadorSalidasInput = sanitized, cifras = cifras).conRecuperacion()
         }
+        persistirInputs()
     }
 
     // -------------------------------------------------------------------------
@@ -412,6 +492,7 @@ class RecaudacionFlowViewModel @Inject constructor(
             orden[i] = orden[j].also { orden[j] = orden[i] }
             current.copy(ordenManual = orden).conRecuperacion()
         }
+        persistirInputs()
     }
 
     private fun CreditoLocalEntity.toCreditoAbierto(): CreditoAbierto = CreditoAbierto(
@@ -488,6 +569,7 @@ class RecaudacionFlowViewModel @Inject constructor(
                     .toMap(),
             )
         }
+        persistirInputs()
     }
 
     fun onDenominacionLocalChange(denominacionKey: String, cantidad: Int) {
@@ -499,6 +581,7 @@ class RecaudacionFlowViewModel @Inject constructor(
                     .toMap(),
             )
         }
+        persistirInputs()
     }
 
     /** Total acumulado del desglose pasado (con escala 2). */
@@ -518,10 +601,12 @@ class RecaudacionFlowViewModel @Inject constructor(
         _uiState.update { current ->
             current.copy(firmaStrokes = current.firmaStrokes + listOf(stroke))
         }
+        persistirInputs()
     }
 
     fun onFirmaLimpiar() {
         _uiState.update { it.copy(firmaStrokes = emptyList()) }
+        persistirInputs()
     }
 
     // -------------------------------------------------------------------------
@@ -613,6 +698,9 @@ class RecaudacionFlowViewModel @Inject constructor(
                     subidoOnline = subidoOnline,
                 )
             }
+            // Ya persistida: descarta el snapshot de entradas para que una
+            // recreación posterior no restaure un flujo que ya está cerrado.
+            savedStateHandle.remove<RecaudacionInputSnapshot>(KEY_INPUTS)
 
             // Snapshot de los datos necesarios para el ticket impreso.
             // Lo guardamos aparte porque la impresión es una operación
@@ -696,5 +784,31 @@ class RecaudacionFlowViewModel @Inject constructor(
         const val ARG_INSTALACION_ID = "instalacionId"
         const val ARG_CADENA_LOCAL_ID = "cadenaLocalId"
         private const val MAX_CONTADOR_DIGITS = 12
+
+        /** Clave del snapshot de entradas en [SavedStateHandle]. */
+        private const val KEY_INPUTS = "recaudacion_inputs"
     }
 }
+
+/**
+ * Subconjunto de [RecaudacionFlowState] tecleado por el técnico que debe
+ * sobrevivir a la muerte del proceso / recreación de la Activity. Se persiste
+ * en [SavedStateHandle] tras cada cambio y se restaura en el init del
+ * ViewModel.
+ *
+ * Solo lleva ENTRADAS del usuario; lo derivado (cifras, recuperación, máquina,
+ * empresa) lo reconstruye el ViewModel observando Room al restaurar.
+ *
+ * Implementa [java.io.Serializable] con tipos Bundle-compatibles
+ * (HashMap/ArrayList/FloatArray); la firma se aplana a un FloatArray por trazo
+ * porque [Offset] no es serializable.
+ */
+internal data class RecaudacionInputSnapshot(
+    val contadorEntradasInput: String,
+    val contadorSalidasInput: String,
+    val denominacionesTotal: HashMap<String, Int>,
+    val denominacionesLocal: HashMap<String, Int>,
+    val ordenManual: ArrayList<String>?,
+    val firmaStrokes: ArrayList<FloatArray>,
+    val avisoBaselineVisto: Boolean,
+) : java.io.Serializable
