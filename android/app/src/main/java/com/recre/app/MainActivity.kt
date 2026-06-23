@@ -171,8 +171,18 @@ private fun RecreApp(
     // Sincroniza el destino raíz con el estado de sesión. Solo se ejecuta
     // cuando el SessionState cambia de clase, NO cuando estamos navegando
     // dentro de la sesión activa (p. ej. locales -> detalle -> recaudación).
+    //
+    // `navegadoActivo` sobrevive a recreaciones (rememberSaveable): recuerda si
+    // YA habíamos entrado en sesión activa. Al recrearse la Activity (apagar y
+    // encender la pantalla, "No conservar actividades"), el RootViewModel nuevo
+    // pasa por Loading→Active; este flag le dice a navigateForState que NO es un
+    // login nuevo, así que respeta el back stack restaurado en vez de resetear a
+    // la principal. Es un fix independiente del timing de restauración del
+    // NavHost (no nos fiamos de currentBackStackEntry, que puede leerse null
+    // justo en ese instante).
+    var navegadoActivo by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(sessionState::class) {
-        navigateForState(navController, sessionState)
+        navegadoActivo = navigateForState(navController, sessionState, navegadoActivo)
     }
 
     // Permiso de notificaciones (Android 13+): se pide una vez al entrar en
@@ -748,37 +758,54 @@ private fun PedirPermisoNotificaciones(sessionState: SessionState) {
     }
 }
 
+/**
+ * Sincroniza el destino raíz con el estado de sesión. Devuelve el nuevo valor
+ * de [yaNavegadoActivo] (si tras esta llamada estamos en sesión activa), que el
+ * caller persiste en `rememberSaveable` para que sobreviva a recreaciones.
+ *
+ * Fix de recreación (apagar/encender pantalla, "No conservar actividades"): la
+ * decisión de conservar la pantalla NO se apoya en `currentBackStackEntry`,
+ * porque en el instante en que corre este efecto el NavHost puede no haber
+ * restaurado aún el back stack y lo leeríamos `null` → navegaríamos a Locales
+ * pisando la pila que Navigation está a punto de restaurar. En su lugar usamos
+ * el flag persistido [yaNavegadoActivo]: si ya estábamos autenticados antes de
+ * la recreación, no tocamos la pila. `current` solo se usa para el caso de
+ * rescate (quedó EXPLÍCITAMENTE en una pantalla pre-auth).
+ */
 private fun navigateForState(
     navController: NavHostController,
     state: SessionState,
-) {
+    yaNavegadoActivo: Boolean,
+): Boolean {
     val current = navController.currentBackStackEntry?.destination?.route
-    // ¿Ya estamos DENTRO de la app autenticada (cualquier pantalla: detalle,
-    // recaudación, gestión…)? Solo las cuatro rutas previas al login no cuentan.
-    val enAppAutenticada = current != null &&
-        current != Routes.SPLASH &&
-        current != Routes.LOGIN &&
-        current != Routes.SELECCIONAR_EMPRESA &&
-        current != Routes.SIN_ACCESO
-
     val target = when (state) {
-        // Estados transitorios: si ya estamos dentro de la app, NO tocamos la
-        // pila. Evita que al recrearse la Activity —p. ej. al apagar/encender la
-        // pantalla con "No conservar actividades", donde nace un RootViewModel
-        // nuevo que pasa por Loading→Active— se pierda la pantalla en curso y
-        // volvamos a la principal. La sesión real (logout, etc.) sí redirige.
-        SessionState.Loading -> if (enAppAutenticada) return else Routes.SPLASH
-        is SessionState.Active -> if (enAppAutenticada) return else Routes.LOCALES
-        // Redirecciones de sesión reales: estas SÍ deben resetear la navegación.
+        // Transitorio: nunca navega; conserva el flag tal cual.
+        SessionState.Loading -> return yaNavegadoActivo
+        is SessionState.Active -> {
+            // Solo una pantalla EXPLÍCITAMENTE pre-auth obliga a ir a Locales
+            // (cold start, login recién hecho, o una restauración fallida que
+            // dejó splash). `current == null` es ambiguo —carrera de restauración
+            // del NavHost— y se trata como "no tocar". Si ya estábamos activos y
+            // no estamos parados en pre-auth, respetamos el back stack restaurado.
+            val enPreAuthExplicito = current == Routes.SPLASH ||
+                current == Routes.LOGIN ||
+                current == Routes.SELECCIONAR_EMPRESA ||
+                current == Routes.SIN_ACCESO
+            if (yaNavegadoActivo && !enPreAuthExplicito) return true
+            Routes.LOCALES
+        }
+        // Redirecciones de sesión reales: estas SÍ resetean la navegación.
         SessionState.NotAuthenticated -> Routes.LOGIN
         SessionState.NoMemberships -> Routes.SIN_ACCESO
         is SessionState.NeedsEmpresaSelection -> Routes.SELECCIONAR_EMPRESA
     }
-    if (current == target) return
-    navController.navigate(target) {
-        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-        launchSingleTop = true
+    if (current != target) {
+        navController.navigate(target) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            launchSingleTop = true
+        }
     }
+    return state is SessionState.Active
 }
 
 private object Routes {
