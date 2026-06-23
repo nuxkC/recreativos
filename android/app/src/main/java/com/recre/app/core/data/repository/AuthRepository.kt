@@ -9,6 +9,7 @@ import io.github.jan.supabase.auth.status.SessionStatus
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 /**
@@ -70,9 +71,25 @@ class SupabaseAuthRepository @Inject constructor(
     }
 
     override fun observeIsLoggedIn(): Flow<Boolean> =
-        supabase.auth.sessionStatus.map { status ->
-            status is SessionStatus.Authenticated
-        }
+        supabase.auth.sessionStatus
+            .map { status ->
+                when (status) {
+                    is SessionStatus.Authenticated -> true
+                    // Un fallo al refrescar el token (p. ej. sin red al volver de
+                    // pantalla bloqueada) NO es un cierre de sesión: la sesión local
+                    // sigue válida y supabase reintenta. Tratarlo como logout sacaba
+                    // al técnico de su pantalla a Login/Locales.
+                    is SessionStatus.RefreshFailure -> true
+                    is SessionStatus.NotAuthenticated -> false
+                    // Solo al arranque, mientras se lee la sesión de disco.
+                    SessionStatus.Initializing -> false
+                }
+            }
+            // Clave: sin esto, cada re-emisión de `Authenticated` (al reconectar el
+            // realtime / refrescar el token en el resume) re-emitía `true`, lo que en
+            // SessionRepository volvía a lanzar refreshMembresias() → estado Loading
+            // espurio → navigateForState reseteaba a la pantalla principal.
+            .distinctUntilChanged()
 
     override fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
