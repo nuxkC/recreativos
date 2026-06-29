@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -62,6 +65,7 @@ fun LocalesScreen(
     onLocalClick: (String) -> Unit,
     onAlertasClick: () -> Unit,
     onIncidenciasClick: () -> Unit,
+    onCuadreClick: () -> Unit,
     onSelectTab: (TopLevelDestination) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -139,6 +143,12 @@ fun LocalesScreen(
                             .padding(horizontal = 16.dp),
                     )
                 }
+                CuadreAccesoCard(
+                    onClick = onCuadreClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
                 SearchField(
                     value = state.query,
                     onValueChange = viewModel::onQueryChange,
@@ -228,6 +238,45 @@ private fun AgendaHero(pendientes: Int, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
+        }
+    }
+}
+
+/** Tarjeta de acceso al cuadre semanal ("Mi caja") desde el home del técnico. */
+@Composable
+private fun CuadreAccesoCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    AppCard(
+        onClick = onClick,
+        contentDescription = stringResource(R.string.cuadre_acceso),
+        modifier = modifier,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.AccountBalanceWallet,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.cuadre_acceso),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = stringResource(R.string.cuadre_acceso_sub),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

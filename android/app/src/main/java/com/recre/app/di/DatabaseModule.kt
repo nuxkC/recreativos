@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.recre.app.core.data.local.RecreDatabase
 import com.recre.app.core.data.local.dao.AveriaPendienteDao
 import com.recre.app.core.data.local.dao.CreditoLocalDao
+import com.recre.app.core.data.local.dao.CuadreRecuentoDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.LicenciaDao
@@ -40,6 +41,7 @@ object DatabaseModule {
                 RecreDatabase.MIGRATION_5_6,
                 RecreDatabase.MIGRATION_6_7,
                 RecreDatabase.MIGRATION_7_8,
+                RecreDatabase.MIGRATION_8_9,
             )
             // Solo como red de seguridad para builds antiguos (alpha) que
             // hubiera v=1; los técnicos en producción nunca pasarán por ahí.
@@ -79,4 +81,8 @@ object DatabaseModule {
     @Provides
     fun provideAveriaPendienteDao(db: RecreDatabase): AveriaPendienteDao =
         db.averiaPendienteDao()
+
+    @Provides
+    fun provideCuadreRecuentoDao(db: RecreDatabase): CuadreRecuentoDao =
+        db.cuadreRecuentoDao()
 }
