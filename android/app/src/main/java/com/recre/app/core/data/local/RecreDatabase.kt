@@ -7,6 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.recre.app.core.data.local.dao.AveriaPendienteDao
 import com.recre.app.core.data.local.dao.CreditoLocalDao
+import com.recre.app.core.data.local.dao.CuadreRecuentoDao
 import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.LicenciaDao
@@ -16,6 +17,7 @@ import com.recre.app.core.data.local.dao.RecaudacionPendienteDao
 import com.recre.app.core.data.local.dao.SyncMetaDao
 import com.recre.app.core.data.local.entity.AveriaPendienteEntity
 import com.recre.app.core.data.local.entity.CreditoLocalEntity
+import com.recre.app.core.data.local.entity.CuadreRecuentoEntity
 import com.recre.app.core.data.local.entity.EmpresaParamsEntity
 import com.recre.app.core.data.local.entity.InstalacionEntity
 import com.recre.app.core.data.local.entity.LicenciaEntity
@@ -53,6 +55,11 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * pagó de la tolva (§5.6). La cola lo sube a `crear_averia`, que inserta la
  * `merma` atómica; la próxima recaudación la repone antes del reparto.
  *
+ * Versión 9 (cuadre): añade `cuadre_recuento`, donde el técnico persiste su
+ * recuento físico de efectivo (mapa denominación->cantidad como JSON) mientras
+ * prepara el cuadre semanal. Una fila por (empresa, técnico, semana); sobrevive
+ * a cierres de la app sin tocar las colas de subida.
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -68,8 +75,9 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         RecaudacionPendienteEntity::class,
         CreditoLocalEntity::class,
         AveriaPendienteEntity::class,
+        CuadreRecuentoEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -83,6 +91,7 @@ abstract class RecreDatabase : RoomDatabase() {
     abstract fun recaudacionPendienteDao(): RecaudacionPendienteDao
     abstract fun creditoLocalDao(): CreditoLocalDao
     abstract fun averiaPendienteDao(): AveriaPendienteDao
+    abstract fun cuadreRecuentoDao(): CuadreRecuentoDao
 
     companion object {
         /**
@@ -278,6 +287,26 @@ abstract class RecreDatabase : RoomDatabase() {
                 )
                 db.execSQL(
                     "ALTER TABLE `averia_pendiente` ADD COLUMN `importe_tolva` TEXT",
+                )
+            }
+        }
+
+        /**
+         * v9 (cuadre): tabla `cuadre_recuento` para el recuento físico de
+         * efectivo del técnico mientras prepara el cuadre semanal. PK compuesta
+         * (empresa, técnico, semana); el recuento viaja como JSON. No toca las
+         * colas de subida, así que es una migración puramente aditiva.
+         */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `cuadre_recuento` (" +
+                        "`empresa_id` TEXT NOT NULL, " +
+                        "`tecnico_id` TEXT NOT NULL, " +
+                        "`semana_inicio` TEXT NOT NULL, " +
+                        "`recuento_json` TEXT NOT NULL, " +
+                        "`updated_at` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`empresa_id`, `tecnico_id`, `semana_inicio`))",
                 )
             }
         }
