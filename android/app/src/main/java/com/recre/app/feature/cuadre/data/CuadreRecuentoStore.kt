@@ -1,6 +1,8 @@
 package com.recre.app.feature.cuadre.data
 
 import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -16,7 +18,8 @@ import kotlinx.serialization.json.Json
  *
  * Sin estado: instanciable y testeable sin Room ni Android.
  */
-class CuadreRecuentoStore {
+@Singleton
+class CuadreRecuentoStore @Inject constructor() {
 
     private val json = Json { ignoreUnknownKeys = true }
     private val serializer = MapSerializer(String.serializer(), Long.serializer())

@@ -134,6 +134,19 @@ interface RecaudacionPendienteDao {
     )
     fun observarContadorPendientes(empresaId: String): Flow<Int>
 
+    /**
+     * Cuenta solo las TERMINALES ('fallida'): error no recuperable que no
+     * reintenta. El cuadre las resta de [observarContadorPendientes] para
+     * distinguir "reintentables" de "atascadas" en el aviso de bloqueo.
+     */
+    @Query(
+        """
+        SELECT COUNT(*) FROM recaudacion_pendiente
+        WHERE empresa_id = :empresaId AND estado = 'fallida'
+        """,
+    )
+    fun observarContadorFallidas(empresaId: String): Flow<Int>
+
     @Query(
         """
         SELECT * FROM recaudacion_pendiente
