@@ -55,6 +55,7 @@ import com.recre.app.feature.averias.ReportarAveriaScreen
 import com.recre.app.feature.averias.ReportarAveriaViewModel
 import com.recre.app.feature.cambio_placa.CambioPlacaScreen
 import com.recre.app.feature.cambio_placa.CambioPlacaViewModel
+import com.recre.app.feature.cuadre.CuadreScreen
 import com.recre.app.feature.deudas.DeudasGestorScreen
 import com.recre.app.feature.deudas.DeudasLocalScreen
 import com.recre.app.feature.deudas.DeudasLocalViewModel
@@ -241,9 +242,13 @@ private fun RecreApp(
                         navController.navigate(Routes.ALERTAS)
                     },
                     onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
+                    onCuadreClick = { navController.navigate(Routes.CUADRE) },
                     onSelectTab = { dest -> navController.navigateTab(dest) },
                 )
             }
+        }
+        composable(Routes.CUADRE) {
+            CuadreScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.IMPRESORA) {
             ImpresoraScreen(onBack = { navController.popBackStack() })
@@ -814,6 +819,7 @@ private object Routes {
     const val SELECCIONAR_EMPRESA = "seleccionarEmpresa"
     const val SIN_ACCESO = "sinAcceso"
     const val LOCALES = "locales"
+    const val CUADRE = "cuadre"
     const val LOCAL_DETALLE = "local/{${LocalDetalleViewModel.ARG_LOCAL_ID}}"
     const val LOCAL_DEUDAS = "local/{${DeudasLocalViewModel.ARG_LOCAL_ID}}/deudas"
     const val CAMBIO_PLACA = "cambio-placa/{${CambioPlacaViewModel.ARG_INSTALACION_ID}}"
