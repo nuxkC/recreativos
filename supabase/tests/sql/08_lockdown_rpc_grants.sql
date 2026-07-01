@@ -44,10 +44,13 @@ INSERT INTO _fns(sig) VALUES
     ('crear_recambio(uuid, text, integer, numeric, text)'),
     ('eliminar_recambio(uuid)'),
     -- tolva por avería (T-223)
-    ('saldar_tolva_pendiente(uuid, text)');
+    ('saldar_tolva_pendiente(uuid, text)'),
+    -- catálogo global (T-268)
+    ('crear_fabricante(text)'),
+    ('crear_modelo(uuid, text)');
 
--- 28 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 56
-SELECT plan(56);
+-- 30 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 60
+SELECT plan(60);
 
 SELECT ok(
     has_function_privilege('authenticated', 'public.' || sig, 'EXECUTE'),
