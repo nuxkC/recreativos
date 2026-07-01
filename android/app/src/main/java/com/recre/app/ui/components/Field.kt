@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Visibility
@@ -650,6 +651,121 @@ fun ComboboxCcaa(
                             },
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Combobox editable con filtro y ALTA opcional. Extiende el patrón de
+ * [ComboboxCcaa] (input de búsqueda + menú filtrado + "Sin coincidencias") con
+ * un ítem "crear" cuando `createLabel != null` y lo tecleado no casa ninguna
+ * opción: el valor emitido es el propio texto (el back-end lo resuelve/crea al
+ * guardar). Editable: `MenuAnchorType.PrimaryEditable`.
+ *
+ * @param value valor confirmado (texto). Cambia SOLO al elegir/crear, no al teclear.
+ * @param onValueChange se invoca con la etiqueta elegida o el texto a crear.
+ * @param options etiquetas visibles a filtrar.
+ * @param createLabel construye el texto del ítem de alta a partir de lo tecleado;
+ *   `null` desactiva el alta (lista cerrada, como [ComboboxCcaa]).
+ * @param emptyText mensaje cuando no hay coincidencias NI alta que ofrecer.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FieldAutocomplete(
+    value: String,
+    onValueChange: (String) -> Unit,
+    options: List<String>,
+    label: String,
+    emptyText: String,
+    modifier: Modifier = Modifier,
+    createLabel: ((String) -> String)? = null,
+    enabled: Boolean = true,
+    placeholder: String? = null,
+) {
+    val colors = RecreColors.current
+    var expanded by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    val filtered =
+        remember(query, options) {
+            if (query.isBlank()) options else options.filter { it.contains(query, ignoreCase = true) }
+        }
+    val queryTrim = query.trim()
+    val hayExacta =
+        remember(query, options) {
+            options.any { it.trim().equals(queryTrim, ignoreCase = true) }
+        }
+    val ofrecerCrear = createLabel != null && queryTrim.isNotEmpty() && !hayExacta
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { if (enabled) expanded = it },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = if (expanded) query else value,
+            onValueChange = { query = it },
+            enabled = enabled,
+            singleLine = true,
+            label = { Text(label) },
+            placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            shape = RoundedCornerShape(12.dp),
+            colors = recreFieldColors(),
+            modifier =
+                Modifier
+                    .menuAnchor(MenuAnchorType.PrimaryEditable, enabled)
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            filtered.forEach { opt ->
+                val selected = opt == value
+                DropdownMenuItem(
+                    text = { Text(opt) },
+                    onClick = {
+                        onValueChange(opt)
+                        query = ""
+                        expanded = false
+                    },
+                    trailingIcon =
+                        if (selected) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = colors.ring,
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                )
+            }
+            if (ofrecerCrear) {
+                DropdownMenuItem(
+                    text = { Text(createLabel!!(queryTrim)) },
+                    onClick = {
+                        onValueChange(queryTrim)
+                        query = ""
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = null, tint = colors.ring)
+                    },
+                )
+            } else if (filtered.isEmpty()) {
+                DropdownMenuItem(
+                    enabled = false,
+                    text = {
+                        Text(
+                            emptyText,
+                            color = colors.mutedStrong,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                        )
+                    },
+                    onClick = {},
+                )
             }
         }
     }
