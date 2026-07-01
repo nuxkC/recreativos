@@ -39,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.gestion.ESTADOS_MAQUINA
+import com.recre.app.feature.gestion.components.GestionAutocomplete
 import com.recre.app.feature.gestion.components.GestionDropdown
 import com.recre.app.feature.gestion.components.GestionTextField
 import com.recre.app.feature.gestion.resolveErrorRes
@@ -184,20 +185,31 @@ private fun MaquinaIdentificacion(
             stringResource(R.string.gestion_validacion_requerido)
         },
     )
+    val crearFmt = stringResource(R.string.gestion_catalogo_crear)
+    val sinCoincidencias = stringResource(R.string.gestion_catalogo_sin_coincidencias)
+    val modeloSinFabricante = stringResource(R.string.gestion_maquina_modelo_sin_fabricante)
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        GestionTextField(
+        GestionAutocomplete(
             label = stringResource(R.string.gestion_maquina_fabricante),
             value = state.fabricante,
+            options = state.fabricantesDisponibles,
             onValueChange = viewModel::onFabricanteChange,
+            emptyText = sinCoincidencias,
+            createLabel = { crearFmt.format(it) },
             modifier = Modifier.weight(1f),
         )
-        GestionTextField(
+        GestionAutocomplete(
             label = stringResource(R.string.gestion_maquina_modelo),
             value = state.modelo,
+            options = state.modelosDisponibles,
             onValueChange = viewModel::onModeloChange,
+            emptyText = sinCoincidencias,
+            createLabel = { crearFmt.format(it) },
+            enabled = state.fabricante.isNotBlank(),
+            placeholder = if (state.fabricante.isBlank()) modeloSinFabricante else null,
             modifier = Modifier.weight(1f),
         )
     }

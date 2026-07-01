@@ -4,11 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.recre.app.core.data.local.dao.MaquinaDao
+import com.recre.app.core.data.repository.CatalogoRepository
+import com.recre.app.core.data.repository.FabricanteCatalogo
 import com.recre.app.core.data.repository.GestionResult
 import com.recre.app.core.data.repository.MaquinaInput
 import com.recre.app.core.data.repository.MaquinasGestorRepository
+import com.recre.app.core.data.repository.ModeloCatalogo
 import com.recre.app.core.util.ConnectivityRepository
 import com.recre.app.feature.gestion.ESTADOS_MAQUINA
+import com.recre.app.feature.gestion.FkOption
+import com.recre.app.feature.gestion.fabricantesComoOpciones
+import com.recre.app.feature.gestion.modelosDeFabricante
 import com.recre.app.feature.gestion.normalizarDecimal
 import com.recre.app.feature.gestion.normalizarOpcional
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Form de Máquina (T-67).
@@ -44,6 +51,8 @@ data class MaquinaFormUiState(
     val guardado: Boolean = false,
     val esEdicion: Boolean = false,
     val online: Boolean = true,
+    val fabricantesDisponibles: List<FkOption> = emptyList(),
+    val modelosDisponibles: List<FkOption> = emptyList(),
 )
 
 @HiltViewModel
@@ -51,10 +60,15 @@ class MaquinaFormViewModel @Inject constructor(
     private val maquinaDao: MaquinaDao,
     private val repository: MaquinasGestorRepository,
     private val connectivityRepository: ConnectivityRepository,
+    private val catalogoRepository: CatalogoRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val maquinaId: String? = savedStateHandle[ARG_MAQUINA_ID]
+
+    // Catálogo crudo cacheado para recalcular la cascada sin re-consultar.
+    private var catalogoFabricantes: List<FabricanteCatalogo> = emptyList()
+    private var catalogoModelos: List<ModeloCatalogo> = emptyList()
 
     private val _state = MutableStateFlow(
         MaquinaFormUiState(esEdicion = maquinaId != null, cargando = maquinaId != null),
@@ -89,11 +103,21 @@ class MaquinaFormViewModel @Inject constructor(
                 _state.update { it.copy(online = online) }
             }
         }
+        viewModelScope.launch { cargarCatalogo() }
     }
 
     fun onNumeroSerieChange(v: String) = _state.update { it.copy(numeroSerie = v) }
     fun onModeloChange(v: String) = _state.update { it.copy(modelo = v) }
-    fun onFabricanteChange(v: String) = _state.update { it.copy(fabricante = v) }
+    fun onFabricanteChange(v: String) = _state.update { s ->
+        // Con el autocomplete, esto es un COMMIT (elegir/crear), no cada tecla.
+        val cambiaFabricante = v.trim() != s.fabricante.trim()
+        s.copy(
+            fabricante = v,
+            // Cambiar de fabricante invalida el modelo (pertenece a un fabricante).
+            modelo = if (cambiaFabricante) "" else s.modelo,
+            modelosDisponibles = modelosDeFabricante(v, catalogoFabricantes, catalogoModelos),
+        )
+    }
     fun onValorCreditoChange(v: String) = _state.update { it.copy(valorCredito = v) }
     fun onContadorEntradasChange(v: String) = _state.update { it.copy(contadorEntradasInicial = v) }
     fun onContadorSalidasChange(v: String) = _state.update { it.copy(contadorSalidasInicial = v) }
@@ -151,6 +175,25 @@ class MaquinaFormViewModel @Inject constructor(
                     is GestionResult.Failure -> it.copy(guardando = false, errorCode = result.code)
                 }
             }
+        }
+    }
+
+    private suspend fun cargarCatalogo() {
+        when (val r = catalogoRepository.cargar()) {
+            is GestionResult.Success -> {
+                catalogoFabricantes = r.value.fabricantes
+                catalogoModelos = r.value.modelos
+                _state.update {
+                    it.copy(
+                        fabricantesDisponibles = fabricantesComoOpciones(r.value.fabricantes),
+                        modelosDisponibles =
+                            modelosDeFabricante(it.fabricante, r.value.fabricantes, r.value.modelos),
+                    )
+                }
+            }
+            is GestionResult.Failure ->
+                // Silencioso: sin catálogo el usuario aún teclea libre; la RPC crea al guardar.
+                Timber.w("Catálogo de máquinas no disponible: %s", r.code)
         }
     }
 

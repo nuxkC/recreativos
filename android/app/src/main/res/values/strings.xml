@@ -523,6 +523,9 @@
     <string name="gestion_maquina_numero_serie">Número de serie</string>
     <string name="gestion_maquina_modelo">Modelo</string>
     <string name="gestion_maquina_fabricante">Fabricante</string>
+    <string name="gestion_catalogo_crear">Crear «%1$s»</string>
+    <string name="gestion_catalogo_sin_coincidencias">Sin coincidencias</string>
+    <string name="gestion_maquina_modelo_sin_fabricante">Elige primero un fabricante</string>
     <string name="gestion_maquina_valor_credito">Valor del crédito (€)</string>
     <string name="gestion_maquina_contador_entradas">Contador entradas inicial</string>
     <string name="gestion_maquina_contador_salidas">Contador salidas inicial</string>
