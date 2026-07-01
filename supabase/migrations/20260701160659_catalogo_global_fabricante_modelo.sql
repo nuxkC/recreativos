@@ -47,13 +47,15 @@ ALTER TABLE public.fabricante ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.modelo     ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY fabricante_select ON public.fabricante
-    FOR SELECT USING (true);
+    FOR SELECT TO authenticated USING (true);
 CREATE POLICY modelo_select ON public.modelo
-    FOR SELECT USING (true);
+    FOR SELECT TO authenticated USING (true);
 
 GRANT SELECT ON public.fabricante, public.modelo TO authenticated;
-REVOKE INSERT, UPDATE, DELETE ON public.fabricante FROM authenticated, anon;
-REVOKE INSERT, UPDATE, DELETE ON public.modelo     FROM authenticated, anon;
+REVOKE ALL ON public.fabricante FROM anon;
+REVOKE ALL ON public.modelo     FROM anon;
+REVOKE INSERT, UPDATE, DELETE ON public.fabricante FROM authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.modelo     FROM authenticated;
 
 -- ---------------------------------------------------------------- helper: gestor en ALGUNA empresa
 
@@ -75,6 +77,8 @@ $$;
 
 COMMENT ON FUNCTION public.usuario_es_gestor_en_alguna_empresa() IS
     'TRUE si el usuario autenticado es gestor (owner/admin/gestor) en alguna empresa. Guard del alta al catálogo global.';
+
+REVOKE ALL ON FUNCTION public.usuario_es_gestor_en_alguna_empresa() FROM PUBLIC, anon, authenticated;
 
 -- ---------------------------------------------------------------- RPC de alta idempotente
 

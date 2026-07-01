@@ -5,7 +5,7 @@
 
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap;
-SELECT plan(6);
+SELECT plan(7);
 
 -- ---- fixtures: un gestor (owner) y un no-gestor (tecnico) en una empresa
 INSERT INTO auth.users (id) VALUES
@@ -59,6 +59,16 @@ SELECT throws_ok(
     '23503',
     NULL,
     'crear_modelo con fabricante inexistente falla (23503)'
+);
+
+-- anon NO puede leer el catálogo (permiso revocado)
+RESET ROLE;
+SET LOCAL ROLE anon;
+SELECT throws_ok(
+    $$ SELECT count(*) FROM public.fabricante $$,
+    '42501',
+    NULL,
+    'anon NO puede leer el catalogo (permiso denegado)'
 );
 
 RESET ROLE;
