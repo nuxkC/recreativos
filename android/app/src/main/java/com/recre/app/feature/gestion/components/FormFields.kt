@@ -3,6 +3,8 @@ package com.recre.app.feature.gestion.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import com.recre.app.feature.gestion.FkOption
+import com.recre.app.ui.components.FieldAutocomplete
 import com.recre.app.ui.components.FieldSelect
 import com.recre.app.ui.components.FieldText
 
@@ -66,6 +68,37 @@ fun <T> GestionDropdown(
         enabled = enabled,
         isError = error != null,
         errorText = error,
+        modifier = modifier,
+    )
+}
+
+/**
+ * Autocomplete editable con alta al vuelo, sobre opciones de FK (`FkOption`).
+ * Muestra/emite la **etiqueta** (texto); el `id` lo usa el ViewModel para la
+ * cascada. Delega en `FieldAutocomplete` del design system. Con `createLabel`
+ * ofrece "Crear «lo tecleado»" cuando no casa ninguna opción.
+ */
+@Composable
+fun GestionAutocomplete(
+    label: String,
+    value: String,
+    options: List<FkOption>,
+    onValueChange: (String) -> Unit,
+    emptyText: String,
+    createLabel: (String) -> String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    placeholder: String? = null,
+) {
+    FieldAutocomplete(
+        value = value,
+        onValueChange = onValueChange,
+        options = options.map { it.label },
+        label = label,
+        emptyText = emptyText,
+        createLabel = createLabel,
+        enabled = enabled,
+        placeholder = placeholder,
         modifier = modifier,
     )
 }

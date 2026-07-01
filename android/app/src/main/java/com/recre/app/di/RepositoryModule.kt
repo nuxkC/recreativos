@@ -5,6 +5,8 @@ import com.recre.app.core.data.repository.AlertasRepositoryImpl
 import com.recre.app.core.data.repository.AuthRepository
 import com.recre.app.core.data.repository.AveriaRepository
 import com.recre.app.core.data.repository.AveriaRepositoryImpl
+import com.recre.app.core.data.repository.CatalogoRepository
+import com.recre.app.core.data.repository.CatalogoRepositoryImpl
 import com.recre.app.core.data.repository.DeudasRepository
 import com.recre.app.core.data.repository.DeudasRepositoryImpl
 import com.recre.app.core.data.repository.EmpresaRepository
@@ -91,6 +93,10 @@ abstract class RepositoryModule {
     abstract fun bindMaquinasGestorRepository(
         impl: MaquinasGestorRepositoryImpl,
     ): MaquinasGestorRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCatalogoRepository(impl: CatalogoRepositoryImpl): CatalogoRepository
 
     @Binds
     @Singleton
