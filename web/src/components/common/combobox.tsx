@@ -66,7 +66,11 @@ export type ComboboxProps = {
   searchPlaceholder?: string;
   /** Mensaje cuando el filtro no deja coincidencias (se anuncia aria-live). */
   emptyMessage?: string;
-  /** id del listbox (aria-controls del trigger). Único si hay varios en página. */
+  /**
+   * id del TRIGGER, para que un `<label htmlFor>` externo (p. ej. el de
+   * shadcn Form) lo enfoque al hacer clic. El listbox interno deriva su propio
+   * id (`${id}-listbox`). Único si hay varios combobox en la página.
+   */
   id?: string;
   /** Deshabilitado: sin foco, sin teclado, opacidad reducida. */
   disabled?: boolean;
@@ -116,7 +120,7 @@ export function Combobox({
   placeholder = "Elegir…",
   searchPlaceholder = "Buscar…",
   emptyMessage = "Sin coincidencias",
-  id = "combobox-listbox",
+  id = "combobox",
   disabled = false,
   loading = false,
   error = false,
@@ -136,6 +140,10 @@ export function Combobox({
   // El trigger no se abre mientras carga (no hay opciones reales que filtrar).
   const triggerDisabled = disabled || loading;
 
+  // `id` identifica al TRIGGER (para que <label htmlFor> lo enfoque); el listbox
+  // deriva su propio id, referenciado por aria-controls del trigger y del input.
+  const listboxId = `${id}-listbox`;
+
   function handleOpenChange(next: boolean) {
     if (triggerDisabled) return;
     setOpen(next);
@@ -147,9 +155,10 @@ export function Combobox({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         type="button"
+        id={id}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls={id}
+        aria-controls={listboxId}
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedBy}
         aria-invalid={error || undefined}
@@ -196,10 +205,10 @@ export function Combobox({
             placeholder={searchPlaceholder}
             role="combobox"
             aria-expanded={open}
-            aria-controls={id}
+            aria-controls={listboxId}
             aria-label={searchPlaceholder}
           />
-          <CommandList id={id} role="listbox">
+          <CommandList id={listboxId} role="listbox">
             {/* Vacío tras filtrar: solo cuando NO hay opción ni ítem de alta que
                 mostrar. Con "Crear «X»" presente, cmdk no lo considera vacío. */}
             {!ofrecerCrear ? (
