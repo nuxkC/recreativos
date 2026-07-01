@@ -5,7 +5,7 @@
 
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap;
-SELECT plan(7);
+SELECT plan(9);
 
 -- ---- fixtures: un gestor (owner) y un no-gestor (tecnico) en una empresa
 INSERT INTO auth.users (id) VALUES
@@ -34,6 +34,12 @@ SELECT throws_ok(
     '42501',
     NULL,
     'un no-gestor no puede crear fabricante (42501)'
+);
+SELECT throws_ok(
+    $$ SELECT public.crear_modelo('00000000-0000-0000-0000-000000000000'::uuid, 'X') $$,
+    '42501',
+    NULL,
+    'un no-gestor no puede crear modelo (42501)'
 );
 
 -- gestor: alta idempotente + dedup por nombre normalizado
@@ -69,6 +75,12 @@ SELECT throws_ok(
     '42501',
     NULL,
     'anon NO puede leer el catalogo (permiso denegado)'
+);
+SELECT throws_ok(
+    $$ SELECT count(*) FROM public.modelo $$,
+    '42501',
+    NULL,
+    'anon NO puede leer modelo (permiso denegado)'
 );
 
 RESET ROLE;
