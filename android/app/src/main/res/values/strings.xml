@@ -492,6 +492,8 @@
     <string name="gestion_validacion_fecha">Formato YYYY-MM-DD.</string>
     <string name="gestion_validacion_fecha_caducidad_orden">La caducidad debe ser igual o posterior a la expedición.</string>
     <string name="gestion_validacion_email">Email no válido.</string>
+    <string name="gestion_validacion_cif">CIF/NIF no válido.</string>
+    <string name="gestion_validacion_telefono">Teléfono no válido (9 dígitos, empieza por 6-9).</string>
     <string name="gestion_validacion_valor_credito">Valor del crédito entre 0,01 € y 999,99 € con dos decimales.</string>
     <string name="gestion_validacion_contador">Entero ≥ 0.</string>
     <string name="gestion_validacion_tasa">Tasa entre 0 y 999999,99 con dos decimales.</string>

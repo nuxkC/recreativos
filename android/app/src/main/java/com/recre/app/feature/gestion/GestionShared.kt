@@ -58,6 +58,71 @@ private val EMAIL_REGEX: Pattern =
 /** True si `raw` parece un email razonable. La validación final la hace el server. */
 fun esEmailValido(raw: String): Boolean = EMAIL_REGEX.matcher(raw).matches()
 
+// ---------------------------------------------------------- documentos (CIF/NIF/NIE)
+
+private const val DNI_LETRAS = "TRWAGMYFPDXBNJZSQVHLCKE"
+private const val CIF_LETRAS_CONTROL = "JABCDEFGHI"
+
+private fun normalizarDocumento(raw: String): String =
+    raw.uppercase().replace(Regex("[\\s-]"), "")
+
+private fun esNif(doc: String): Boolean {
+    val numero = doc.substring(0, 8).toInt()
+    return doc[8] == DNI_LETRAS[numero % 23]
+}
+
+private fun esNie(doc: String): Boolean {
+    val prefijo = when (doc[0]) {
+        'X' -> "0"
+        'Y' -> "1"
+        else -> "2"
+    }
+    val numero = (prefijo + doc.substring(1, 8)).toInt()
+    return doc[8] == DNI_LETRAS[numero % 23]
+}
+
+private fun esCif(doc: String): Boolean {
+    val letra = doc[0]
+    val control = doc[8]
+    var suma = 0
+    for (i in 0 until 7) {
+        var n = doc[i + 1] - '0' // dígitos en posiciones 1..7
+        if (i % 2 == 0) {
+            n *= 2
+            if (n > 9) n -= 9
+        }
+        suma += n
+    }
+    val e = (10 - (suma % 10)) % 10
+    val digitoControl = '0' + e
+    val letraControl = CIF_LETRAS_CONTROL[e]
+    return when {
+        "PQSNWK".contains(letra) -> control == letraControl
+        "ABEH".contains(letra) -> control == digitoControl
+        else -> control == digitoControl || control == letraControl
+    }
+}
+
+/** True si `raw` es un NIF, NIE o CIF español válido (dígito de control real). */
+fun esCifNif(raw: String): Boolean {
+    val doc = normalizarDocumento(raw)
+    return when {
+        Regex("^\\d{8}[A-Z]$").matches(doc) -> esNif(doc)
+        Regex("^[XYZ]\\d{7}[A-Z]$").matches(doc) -> esNie(doc)
+        Regex("^[ABCDEFGHJKLMNPQRSUVW]\\d{7}[0-9A-J]$").matches(doc) -> esCif(doc)
+        else -> false
+    }
+}
+
+// ---------------------------------------------------------- teléfono
+
+private fun normalizarTelefonoEs(raw: String): String =
+    raw.replace(Regex("[\\s-]"), "").replace(Regex("^(\\+34|0034)"), "")
+
+/** True si `raw` es un teléfono español válido (9 dígitos, empieza 6-9). */
+fun esTelefono(raw: String): Boolean =
+    Regex("^[6-9]\\d{8}$").matches(normalizarTelefonoEs(raw))
+
 // ---------------------------------------------------------- ids
 
 private val UUID_REGEX = Regex(

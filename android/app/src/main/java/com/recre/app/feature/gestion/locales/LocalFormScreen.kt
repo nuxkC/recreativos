@@ -76,6 +76,9 @@ fun LocalFormScreen(
                 label = stringResource(R.string.gestion_local_cif),
                 value = state.cifONif,
                 onValueChange = viewModel::onCifChange,
+                error = state.errores["cifONif"]?.let {
+                    stringResource(R.string.gestion_validacion_cif)
+                },
                 modifier = Modifier.weight(1f),
             )
             GestionTextField(
@@ -83,6 +86,9 @@ fun LocalFormScreen(
                 value = state.telefono,
                 onValueChange = viewModel::onTelefonoChange,
                 keyboardType = KeyboardType.Phone,
+                error = state.errores["telefono"]?.let {
+                    stringResource(R.string.gestion_validacion_telefono)
+                },
                 modifier = Modifier.weight(1f),
             )
         }

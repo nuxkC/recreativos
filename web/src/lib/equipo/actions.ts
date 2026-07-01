@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ROLES, type Rol } from "@/lib/auth/roles";
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_ADMIN } from "@/lib/auth/roles";
+import { esEmailValido } from "@/lib/shared/validators";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult<T = void> =
@@ -25,7 +26,7 @@ const InvitarInputSchema = z.object({
     .string()
     .trim()
     .min(1, { message: "emailRequerido" })
-    .email({ message: "emailInvalido" }),
+    .refine((v) => esEmailValido(v), { message: "emailInvalido" }),
   rol: z.enum(ROLES, { message: "rolInvalido" }),
   nombreCompleto: z
     .string()

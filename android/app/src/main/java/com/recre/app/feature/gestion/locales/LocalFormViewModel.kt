@@ -8,7 +8,9 @@ import com.recre.app.core.data.repository.GestionResult
 import com.recre.app.core.data.repository.LocalInputData
 import com.recre.app.core.data.repository.LocalesGestorRepository
 import com.recre.app.core.util.ConnectivityRepository
+import com.recre.app.feature.gestion.esCifNif
 import com.recre.app.feature.gestion.esEmailValido
+import com.recre.app.feature.gestion.esTelefono
 import com.recre.app.feature.gestion.normalizarOpcional
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -102,6 +104,10 @@ class LocalFormViewModel @Inject constructor(
         if (s.nombre.trim().isEmpty()) errores["nombre"] = "requerido"
         val email = s.email.trim()
         if (email.isNotEmpty() && !esEmailValido(email)) errores["email"] = "email_invalido"
+        val cif = s.cifONif.trim()
+        if (cif.isNotEmpty() && !esCifNif(cif)) errores["cifONif"] = "cif_invalido"
+        val telefono = s.telefono.trim()
+        if (telefono.isNotEmpty() && !esTelefono(telefono)) errores["telefono"] = "telefono_invalido"
 
         if (errores.isNotEmpty()) {
             _state.update { it.copy(errores = errores) }

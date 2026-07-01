@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { esEmailValido } from "@/lib/shared/validators";
+
 /**
  * Schema del registro self-service (T-200). Lo comparten el formulario cliente
  * (validación inmediata con react-hook-form) y la Server Action (defensa en
@@ -24,7 +26,7 @@ export const RegistroInputSchema = z.object({
     .string()
     .trim()
     .min(1, { message: "emailRequerido" })
-    .email({ message: "emailInvalido" }),
+    .refine((v) => esEmailValido(v), { message: "emailInvalido" }),
   password: z
     .string()
     .min(1, { message: "passwordRequerida" })
