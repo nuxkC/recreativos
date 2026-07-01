@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 /**
  * Form de alta/edición de Licencia (T-66).
  *
- * - Campos: número (obligatorio), tipo, fechas ISO opcionales,
+ * - Campos: número (obligatorio), fechas ISO opcionales,
  *   comunidad autónoma, estado (enum), notas.
  * - Validación lexica local: número no vacío, fechas en formato
  *   `YYYY-MM-DD`, fechaCaducidad ≥ fechaExpedicion. El resto lo aplica
@@ -35,7 +35,6 @@ import kotlinx.coroutines.launch
 data class LicenciaFormUiState(
     val cargando: Boolean = false,
     val numero: String = "",
-    val tipo: String = "",
     val fechaExpedicion: String = "",
     val fechaCaducidad: String = "",
     val comunidadAutonoma: String = "",
@@ -73,7 +72,6 @@ class LicenciaFormViewModel @Inject constructor(
                         it.copy(
                             cargando = false,
                             numero = entity.numero,
-                            tipo = entity.tipo.orEmpty(),
                             fechaExpedicion = entity.fechaExpedicion.orEmpty(),
                             fechaCaducidad = entity.fechaCaducidad.orEmpty(),
                             comunidadAutonoma = entity.comunidadAutonoma.orEmpty(),
@@ -96,7 +94,6 @@ class LicenciaFormViewModel @Inject constructor(
     }
 
     fun onNumeroChange(v: String) = _state.update { it.copy(numero = v) }
-    fun onTipoChange(v: String) = _state.update { it.copy(tipo = v) }
     fun onFechaExpedicionChange(v: String) = _state.update { it.copy(fechaExpedicion = v) }
     fun onFechaCaducidadChange(v: String) = _state.update { it.copy(fechaCaducidad = v) }
     fun onComunidadAutonomaChange(v: String) = _state.update { it.copy(comunidadAutonoma = v) }
@@ -118,7 +115,6 @@ class LicenciaFormViewModel @Inject constructor(
 
         val input = LicenciaInput(
             numero = current.numero.trim(),
-            tipo = current.tipo.normalizarOpcional(),
             fechaExpedicion = current.fechaExpedicion.normalizarOpcional(),
             fechaCaducidad = current.fechaCaducidad.normalizarOpcional(),
             comunidadAutonoma = current.comunidadAutonoma.normalizarOpcional(),

@@ -506,10 +506,10 @@
     <string name="gestion_licencia_nueva">Nueva licencia</string>
     <string name="gestion_licencia_editar">Editar licencia</string>
     <string name="gestion_licencia_numero">Número</string>
-    <string name="gestion_licencia_tipo">Tipo</string>
     <string name="gestion_licencia_fecha_expedicion">Fecha de expedición</string>
     <string name="gestion_licencia_fecha_caducidad">Fecha de caducidad</string>
     <string name="gestion_licencia_comunidad">Comunidad autónoma</string>
+    <string name="gestion_ccaa_sin_coincidencias">Sin coincidencias</string>
     <string name="gestion_licencia_estado">Estado</string>
     <string name="gestion_licencia_notas">Notas</string>
     <string name="gestion_licencia_caduca">Caduca: %1$s</string>

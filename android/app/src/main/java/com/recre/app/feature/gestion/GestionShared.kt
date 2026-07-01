@@ -137,6 +137,15 @@ val ESTADOS_LICENCIA = listOf("activa", "suspendida", "caducada", "baja")
 
 val ESTADOS_MAQUINA = listOf("instalada", "almacen", "averiada", "baja")
 
+/** Las 19 comunidades y ciudades autónomas. Lista de oro: idéntica byte a byte
+ *  a COMUNIDADES_AUTONOMAS de web y al CHECK de BBDD. */
+val COMUNIDADES_AUTONOMAS = listOf(
+    "Andalucía", "Aragón", "Asturias", "Islas Baleares", "Canarias",
+    "Cantabria", "Castilla-La Mancha", "Castilla y León", "Cataluña",
+    "Comunidad Valenciana", "Extremadura", "Galicia", "Madrid", "Murcia",
+    "Navarra", "País Vasco", "La Rioja", "Ceuta", "Melilla",
+)
+
 // ---------------------------------------------------------- error codes
 
 /**
