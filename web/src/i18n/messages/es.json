@@ -270,6 +270,16 @@
       "estado": "Estado",
       "notas": "Notas"
     },
+    "catalogo": {
+      "elegirFabricante": "Elegir fabricante",
+      "buscarFabricante": "Buscar o escribir fabricante…",
+      "sinFabricantes": "Sin fabricantes; escribe para crear uno",
+      "elegirModelo": "Elegir modelo",
+      "buscarModelo": "Buscar o escribir modelo…",
+      "sinModelos": "Sin modelos; escribe para crear uno",
+      "modeloSinFabricante": "Elige primero un fabricante.",
+      "crear": "Crear «{valor}»"
+    },
     "estado": {
       "almacen": "Almacén",
       "instalada": "Instalada",
