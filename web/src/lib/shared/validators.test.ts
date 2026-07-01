@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { cifNifSchema, esCifNif, esTelefonoEs, telefonoSchema } from "./validators";
+import {
+  cifNifSchema,
+  esCifNif,
+  esEmailValido,
+  esTelefonoEs,
+  telefonoSchema,
+} from "./validators";
 
 describe("esCifNif (vectores oro)", () => {
   it.each([
@@ -33,6 +39,21 @@ describe("esTelefonoEs (vectores oro)", () => {
     ["1234", false],
   ])("esTelefonoEs(%j) === %s", (input, expected) => {
     expect(esTelefonoEs(input as string)).toBe(expected);
+  });
+});
+
+describe("esEmailValido (vectores oro)", () => {
+  it.each([
+    ["user@example.com", true],
+    ["first.last+tag@sub.domain.co", true],
+    ["n@dominio.es", true],
+    ["a@b", false],
+    ["sin-arroba.com", false],
+    ["@example.com", false],
+    ["user@dominio", false],
+    ["user@dominio.c", false],
+  ])("esEmailValido(%j) === %s", (input, expected) => {
+    expect(esEmailValido(input as string)).toBe(expected);
   });
 });
 

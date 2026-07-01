@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { esEmailValido } from "@/lib/shared/validators";
 import { createClient } from "@/lib/supabase/client";
 
 const PASSWORD_MIN_LENGTH = 6;
@@ -28,7 +29,7 @@ function buildSchema(t: ReturnType<typeof useTranslations<"validation">>) {
     email: z
       .string()
       .min(1, { message: t("emailRequired") })
-      .email({ message: t("emailInvalid") }),
+      .refine((v) => esEmailValido(v), { message: t("emailInvalid") }),
     password: z
       .string()
       .min(1, { message: t("passwordRequired") })

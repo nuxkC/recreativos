@@ -37,4 +37,16 @@ class GestionValidadoresTest {
         // sanity: el helper no rompe el módulo existente
         assertEquals(true, esEmailValido("a@b.com"))
     }
+
+    @Test
+    fun email_validos() {
+        listOf("user@example.com", "first.last+tag@sub.domain.co", "n@dominio.es")
+            .forEach { assertTrue("esperaba valido: $it", esEmailValido(it)) }
+    }
+
+    @Test
+    fun email_invalidos() {
+        listOf("a@b", "sin-arroba.com", "@example.com", "user@dominio", "user@dominio.c")
+            .forEach { assertFalse("esperaba invalido: $it", esEmailValido(it)) }
+    }
 }

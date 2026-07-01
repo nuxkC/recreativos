@@ -14,12 +14,27 @@ export const trimmedString = z
   .trim()
   .transform((v) => (v.length === 0 ? null : v));
 
+// Regex de email canónico: pragmático, exige dominio con TLD (2+ letras).
+// Byte-idéntico al de android GestionShared.kt (esEmailValido); ambos se fijan
+// con los mismos vectores oro. Sustituye a z.string().email, deprecado en zod 4.
+const EMAIL_REGEX = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+/** True si `raw` tiene formato de email válido (local@dominio.tld). */
+export function esEmailValido(raw: string): boolean {
+  return EMAIL_REGEX.test(raw);
+}
+
 /** Email opcional: vacío → null; si hay valor, valida formato. */
 export const emailOptional = z
   .string()
   .trim()
   .transform((v) => (v.length === 0 ? null : v))
-  .pipe(z.string().email({ message: "emailInvalido" }).nullable());
+  .pipe(
+    z
+      .string()
+      .refine((v) => esEmailValido(v), { message: "emailInvalido" })
+      .nullable(),
+  );
 
 const DNI_LETRAS = "TRWAGMYFPDXBNJZSQVHLCKE";
 const CIF_LETRAS_CONTROL = "JABCDEFGHI";

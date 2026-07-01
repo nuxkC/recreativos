@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { registrarEmpresa } from "@/lib/registro/actions";
 import { PASSWORD_MIN_LENGTH } from "@/lib/registro/schemas";
+import { esEmailValido } from "@/lib/shared/validators";
 
 function buildSchema(t: ReturnType<typeof useTranslations<"registro.validacion">>) {
   return z.object({
@@ -37,7 +38,7 @@ function buildSchema(t: ReturnType<typeof useTranslations<"registro.validacion">
     email: z
       .string()
       .min(1, { message: t("emailRequerido") })
-      .email({ message: t("emailInvalido") }),
+      .refine((v) => esEmailValido(v), { message: t("emailInvalido") }),
     password: z
       .string()
       .min(1, { message: t("passwordRequerida") })
