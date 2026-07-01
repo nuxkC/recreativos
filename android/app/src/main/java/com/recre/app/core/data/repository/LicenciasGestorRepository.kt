@@ -42,7 +42,6 @@ interface LicenciasGestorRepository {
  */
 data class LicenciaInput(
     val numero: String,
-    val tipo: String?,
     val fechaExpedicion: String?,
     val fechaCaducidad: String?,
     val comunidadAutonoma: String?,
@@ -66,7 +65,8 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
                 CrearLicenciaParams(
                     empresaId = empresaId,
                     numero = input.numero,
-                    tipo = input.tipo,
+                    // El tipo de licencia se retiró de la UI (T-273); la RPC aún exige p_tipo.
+                    tipo = null,
                     fechaExpedicion = input.fechaExpedicion,
                     fechaCaducidad = input.fechaCaducidad,
                     comunidadAutonoma = input.comunidadAutonoma,
@@ -92,7 +92,8 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
                 ActualizarLicenciaParams(
                     id = id,
                     numero = input.numero,
-                    tipo = input.tipo,
+                    // El tipo de licencia se retiró de la UI (T-273); la RPC aún exige p_tipo.
+                    tipo = null,
                     fechaExpedicion = input.fechaExpedicion,
                     fechaCaducidad = input.fechaCaducidad,
                     comunidadAutonoma = input.comunidadAutonoma,

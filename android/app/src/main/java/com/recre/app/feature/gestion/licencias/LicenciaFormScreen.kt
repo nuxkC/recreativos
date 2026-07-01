@@ -15,11 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.feature.gestion.COMUNIDADES_AUTONOMAS
 import com.recre.app.feature.gestion.ESTADOS_LICENCIA
 import com.recre.app.feature.gestion.components.GestionDropdown
 import com.recre.app.feature.gestion.components.GestionFormScaffold
 import com.recre.app.feature.gestion.components.GestionTextField
 import com.recre.app.feature.gestion.resolveErrorRes
+import com.recre.app.ui.components.ComboboxCcaa
 import com.recre.app.ui.components.FieldDate
 import com.recre.app.ui.components.SnackbarEstado
 import com.recre.app.ui.components.mostrar
@@ -71,11 +73,6 @@ fun LicenciaFormScreen(
                 stringResource(R.string.gestion_validacion_requerido)
             },
         )
-        GestionTextField(
-            label = stringResource(R.string.gestion_licencia_tipo),
-            value = state.tipo,
-            onValueChange = viewModel::onTipoChange,
-        )
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -108,10 +105,12 @@ fun LicenciaFormScreen(
                 modifier = Modifier.weight(1f),
             )
         }
-        GestionTextField(
-            label = stringResource(R.string.gestion_licencia_comunidad),
+        ComboboxCcaa(
             value = state.comunidadAutonoma,
             onValueChange = viewModel::onComunidadAutonomaChange,
+            options = COMUNIDADES_AUTONOMAS,
+            label = stringResource(R.string.gestion_licencia_comunidad),
+            emptyText = stringResource(R.string.gestion_ccaa_sin_coincidencias),
         )
         GestionDropdown(
             label = stringResource(R.string.gestion_licencia_estado),

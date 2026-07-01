@@ -87,7 +87,6 @@ fun LicenciasGestorScreen(
             if (q.isEmpty()) state.licencias
             else state.licencias.filter {
                 it.numero.lowercase().contains(q) ||
-                    (it.tipo ?: "").lowercase().contains(q) ||
                     (it.comunidadAutonoma ?: "").lowercase().contains(q)
             }
         }
@@ -164,13 +163,6 @@ private fun LicenciaCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(licencia.numero, style = MaterialTheme.typography.titleSmall)
-                licencia.tipo?.takeIf { it.isNotBlank() }?.let { tipo ->
-                    Text(
-                        tipo,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
                 licencia.fechaCaducidad?.takeIf { it.isNotBlank() }?.let { fc ->
                     Text(
                         stringResource(R.string.gestion_licencia_caduca, fc),
