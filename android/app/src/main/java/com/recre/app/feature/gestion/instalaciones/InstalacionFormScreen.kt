@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.feature.gestion.FkOption
 import com.recre.app.feature.gestion.components.GestionDropdown
 import com.recre.app.feature.gestion.components.GestionTextField
 import com.recre.app.feature.gestion.resolveErrorRes

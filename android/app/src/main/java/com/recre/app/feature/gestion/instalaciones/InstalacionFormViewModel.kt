@@ -14,6 +14,7 @@ import com.recre.app.core.data.repository.InstalacionesGestorRepository
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import com.recre.app.core.util.ConnectivityRepository
+import com.recre.app.feature.gestion.FkOption
 import com.recre.app.feature.gestion.esFechaIsoValida
 import com.recre.app.feature.gestion.normalizarDecimal
 import com.recre.app.feature.gestion.normalizarOpcional
@@ -27,8 +28,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-data class FkOption(val id: String, val label: String)
 
 data class InstalacionFormUiState(
     val cargando: Boolean = true,
