@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Combobox } from "@/components/common/combobox";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -27,6 +28,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  opcionesFabricante,
+  opcionesModelo,
+  type FabricanteOpcion,
+  type ModeloOpcion,
+} from "@/lib/catalogo/opciones";
 import { actualizarMaquina, crearMaquina, type ActionResult } from "@/lib/maquinas/actions";
 import { MaquinaInputSchema } from "@/lib/maquinas/schemas";
 import { ESTADOS_MAQUINA, type EstadoMaquina, type Maquina } from "@/lib/maquinas/types";
@@ -47,6 +54,8 @@ type MaquinaFormValues = {
 interface MaquinaFormProps {
   mode: "create" | "edit";
   maquina?: Maquina;
+  fabricantes: FabricanteOpcion[];
+  modelos: ModeloOpcion[];
 }
 
 function defaultsFromMaquina(maquina?: Maquina): MaquinaFormValues {
@@ -79,9 +88,10 @@ function buildFormData(values: MaquinaFormValues): FormData {
   return fd;
 }
 
-export function MaquinaForm({ mode, maquina }: MaquinaFormProps) {
+export function MaquinaForm({ mode, maquina, fabricantes, modelos }: MaquinaFormProps) {
   const t = useTranslations("maquinas");
   const tCampos = useTranslations("maquinas.campos");
+  const tCatalogo = useTranslations("maquinas.catalogo");
   const tEstado = useTranslations("maquinas.estado");
   const tValidacion = useTranslations("maquinas.validacion");
   const tErrores = useTranslations("maquinas.errores");
@@ -98,6 +108,24 @@ export function MaquinaForm({ mode, maquina }: MaquinaFormProps) {
     }),
     defaultValues: defaultsFromMaquina(maquina),
   });
+
+  // El modelo depende del fabricante seleccionado; observamos su valor para
+  // recalcular las opciones de modelo y para deshabilitar el combo si no hay
+  // fabricante todavía.
+  const fabricanteSel = form.watch("fabricante");
+  const fabricanteOpts = opcionesFabricante(fabricantes);
+  const modeloOpts = opcionesModelo(modelos, fabricantes, fabricanteSel || null);
+
+  // Cambiar de fabricante invalida el modelo elegido (un modelo pertenece a un
+  // fabricante concreto). Al elegir/crear otro fabricante se limpia el modelo
+  // para no dejar un par incoherente; el usuario vuelve a elegir/crear modelo.
+  function handleFabricanteChange(nuevo: string) {
+    const actual = form.getValues("fabricante");
+    form.setValue("fabricante", nuevo, { shouldDirty: true, shouldValidate: true });
+    if (nuevo !== actual) {
+      form.setValue("modelo", "", { shouldDirty: true, shouldValidate: true });
+    }
+  }
 
   function applyServerErrors(fieldErrors: Record<string, string[]> | undefined): boolean {
     if (!fieldErrors) return false;
@@ -215,12 +243,23 @@ export function MaquinaForm({ mode, maquina }: MaquinaFormProps) {
           />
           <FormField
             control={form.control}
-            name="modelo"
-            render={({ field }) => (
+            name="fabricante"
+            render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>{tCampos("modelo")}</FormLabel>
+                <FormLabel>{tCampos("fabricante")}</FormLabel>
                 <FormControl>
-                  <Input autoComplete="off" maxLength={80} {...field} />
+                  <Combobox
+                    options={fabricanteOpts}
+                    value={field.value || null}
+                    onChange={handleFabricanteChange}
+                    onCreate={handleFabricanteChange}
+                    placeholder={tCatalogo("elegirFabricante")}
+                    searchPlaceholder={tCatalogo("buscarFabricante")}
+                    emptyMessage={tCatalogo("sinFabricantes")}
+                    formatCreateLabel={(valor) => tCatalogo("crear", { valor })}
+                    error={!!fieldState.error}
+                    aria-label={tCampos("fabricante")}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -228,13 +267,28 @@ export function MaquinaForm({ mode, maquina }: MaquinaFormProps) {
           />
           <FormField
             control={form.control}
-            name="fabricante"
-            render={({ field }) => (
+            name="modelo"
+            render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>{tCampos("fabricante")}</FormLabel>
+                <FormLabel>{tCampos("modelo")}</FormLabel>
                 <FormControl>
-                  <Input autoComplete="off" maxLength={80} {...field} />
+                  <Combobox
+                    options={modeloOpts}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    onCreate={field.onChange}
+                    placeholder={tCatalogo("elegirModelo")}
+                    searchPlaceholder={tCatalogo("buscarModelo")}
+                    emptyMessage={tCatalogo("sinModelos")}
+                    formatCreateLabel={(valor) => tCatalogo("crear", { valor })}
+                    disabled={!fabricanteSel}
+                    error={!!fieldState.error}
+                    aria-label={tCampos("modelo")}
+                  />
                 </FormControl>
+                {!fabricanteSel ? (
+                  <FormDescription>{tCatalogo("modeloSinFabricante")}</FormDescription>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}

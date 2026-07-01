@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { listarAveriasMaquina, maquinaTieneInstalacionActiva } from "@/lib/averias/queries";
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
+import { listarFabricantes, listarModelos } from "@/lib/catalogo/queries";
 import { obtenerMaquina } from "@/lib/maquinas/queries";
 
 const IdSchema = z.string().guid();
@@ -45,9 +46,11 @@ export default async function MaquinaDetallePage(props: MaquinaDetallePageProps)
     notFound();
   }
 
-  const [averias, maquinaInstalada] = await Promise.all([
+  const [averias, maquinaInstalada, fabricantes, modelos] = await Promise.all([
     listarAveriasMaquina(activa.empresa.id, maquina.id),
     maquinaTieneInstalacionActiva(activa.empresa.id, maquina.id),
+    listarFabricantes(),
+    listarModelos(),
   ]);
 
   return (
@@ -82,7 +85,7 @@ export default async function MaquinaDetallePage(props: MaquinaDetallePageProps)
           <CardDescription>{t("formulario.descripcion")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <MaquinaForm mode="edit" maquina={maquina} />
+          <MaquinaForm mode="edit" maquina={maquina} fabricantes={fabricantes} modelos={modelos} />
         </CardContent>
       </Card>
       <HistorialAverias

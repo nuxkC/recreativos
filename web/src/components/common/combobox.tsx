@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -26,6 +26,12 @@ import { cn } from "@/lib/utils";
  * Teclado: flechas mueven el activedescendant, Enter selecciona, Escape cierra
  * y devuelve el foco al trigger (lo hace Radix Popover), click-fuera cierra.
  *
+ * Alta por texto libre (opcional): con `onCreate`, si lo tecleado no coincide
+ * con ninguna opción se ofrece un ítem "Crear «X»" al final. El valor emitido
+ * sigue siendo el texto (no un id): quien consume decide qué hacer con él (en
+ * máquinas, la RPC lo resuelve/crea en el catálogo al guardar). Sin `onCreate`
+ * el componente es una lista cerrada, idéntico al comportamiento anterior.
+ *
  * Token nota: la spec FieldNum pide `muted-strong` para chevron/placeholder/
  * vacío (objetivo ~7:1 Android). Ese token AÚN no existe en el tema (pendiente
  * de T-227); para no inventar una clase que Tailwind ignoraría en silencio se
@@ -47,13 +53,24 @@ export type ComboboxProps = {
   value: string | null;
   /** Notifica el nuevo `value` al seleccionar un ítem. */
   onChange: (value: string) => void;
+  /**
+   * Habilita el alta por texto libre: recibe el texto tecleado (trim) cuando el
+   * usuario activa "Crear «…»". Si se omite, el combobox es una lista cerrada.
+   */
+  onCreate?: (label: string) => void;
+  /** Texto del ítem de alta a partir de lo tecleado. Default: «Crear «X»». */
+  formatCreateLabel?: (value: string) => string;
   /** Texto del trigger cuando no hay valor. */
   placeholder?: string;
   /** Placeholder del input de búsqueda dentro del popover. */
   searchPlaceholder?: string;
   /** Mensaje cuando el filtro no deja coincidencias (se anuncia aria-live). */
   emptyMessage?: string;
-  /** id del listbox (aria-controls del trigger). Único si hay varios en página. */
+  /**
+   * id del TRIGGER, para que un `<label htmlFor>` externo (p. ej. el de
+   * shadcn Form) lo enfoque al hacer clic. El listbox interno deriva su propio
+   * id (`${id}-listbox`). Único si hay varios combobox en la página.
+   */
   id?: string;
   /** Deshabilitado: sin foco, sin teclado, opacidad reducida. */
   disabled?: boolean;
@@ -72,14 +89,38 @@ export type ComboboxProps = {
   className?: string;
 };
 
+/**
+ * ¿Debe ofrecerse "crear «X»" para lo tecleado? Sí cuando hay texto no vacío y
+ * ninguna opción tiene ese label (comparación laxa: trim + minúsculas), para no
+ * ofrecer un duplicado de algo que ya existe. Función pura → testeable sin render.
+ */
+export function debeOfrecerCrear(options: ComboboxOption[], busqueda: string): boolean {
+  const objetivo = busqueda.trim().toLowerCase();
+  if (objetivo.length === 0) return false;
+  return !options.some((o) => o.label.trim().toLowerCase() === objetivo);
+}
+
+/**
+ * Etiqueta a mostrar en el trigger para `value`: el label de la opción si el
+ * valor está catalogado; si no (valor tecleado libremente o dato heredado que
+ * ya no está en el catálogo), el propio valor. `null` = sin valor → placeholder.
+ */
+export function etiquetaValor(options: ComboboxOption[], value: string | null): string | null {
+  if (!value) return null;
+  const encontrada = options.find((o) => o.value === value);
+  return encontrada?.label ?? value;
+}
+
 export function Combobox({
   options,
   value,
   onChange,
+  onCreate,
+  formatCreateLabel = (valor) => `Crear «${valor}»`,
   placeholder = "Elegir…",
   searchPlaceholder = "Buscar…",
   emptyMessage = "Sin coincidencias",
-  id = "combobox-listbox",
+  id = "combobox",
   disabled = false,
   loading = false,
   error = false,
@@ -88,21 +129,36 @@ export function Combobox({
   "aria-describedby": ariaDescribedBy,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
+  // Texto de búsqueda controlado: necesario para saber qué "Crear" ofrecer.
+  const [search, setSearch] = React.useState("");
 
-  // Etiqueta visible del valor actual. noUncheckedIndexedAccess: find() puede
-  // devolver undefined, así que se cae al placeholder si no se encuentra.
-  const selected = value ? options.find((o) => o.value === value) : undefined;
+  // Etiqueta visible del valor actual (soporta valores fuera de la lista).
+  const etiqueta = etiquetaValor(options, value);
+  const textoCrear = search.trim();
+  const ofrecerCrear = onCreate !== undefined && debeOfrecerCrear(options, search);
 
   // El trigger no se abre mientras carga (no hay opciones reales que filtrar).
   const triggerDisabled = disabled || loading;
 
+  // `id` identifica al TRIGGER (para que <label htmlFor> lo enfoque); el listbox
+  // deriva su propio id, referenciado por aria-controls del trigger y del input.
+  const listboxId = `${id}-listbox`;
+
+  function handleOpenChange(next: boolean) {
+    if (triggerDisabled) return;
+    setOpen(next);
+    // Al cerrar se descarta el texto tecleado: cada apertura empieza limpia.
+    if (!next) setSearch("");
+  }
+
   return (
-    <Popover open={open} onOpenChange={triggerDisabled ? undefined : setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         type="button"
+        id={id}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls={id}
+        aria-controls={listboxId}
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedBy}
         aria-invalid={error || undefined}
@@ -121,8 +177,8 @@ export function Combobox({
           className,
         )}
       >
-        {selected ? (
-          <span className="truncate">{selected.label}</span>
+        {etiqueta ? (
+          <span className="truncate">{etiqueta}</span>
         ) : (
           <span className="text-muted-foreground truncate">{placeholder}</span>
         )}
@@ -144,22 +200,26 @@ export function Combobox({
           {/* El role=combobox real vive en el input (no en el trigger): es quien
               recibe el texto y gestiona aria-activedescendant vía cmdk. */}
           <CommandInput
+            value={search}
+            onValueChange={setSearch}
             placeholder={searchPlaceholder}
             role="combobox"
             aria-expanded={open}
-            aria-controls={id}
+            aria-controls={listboxId}
             aria-label={searchPlaceholder}
           />
-          <CommandList id={id} role="listbox">
-            {/* Vacío tras filtrar: texto centrado + aria-live para que el lector
-                anuncie que la lista quedó sin coincidencias. */}
-            <CommandEmpty
-              className="text-muted-strong py-4 text-center text-sm"
-              role="status"
-              aria-live="polite"
-            >
-              {emptyMessage}
-            </CommandEmpty>
+          <CommandList id={listboxId} role="listbox">
+            {/* Vacío tras filtrar: solo cuando NO hay opción ni ítem de alta que
+                mostrar. Con "Crear «X»" presente, cmdk no lo considera vacío. */}
+            {!ofrecerCrear ? (
+              <CommandEmpty
+                className="text-muted-strong py-4 text-center text-sm"
+                role="status"
+                aria-live="polite"
+              >
+                {emptyMessage}
+              </CommandEmpty>
+            ) : null}
             {options.map((option) => {
               const isSelected = option.value === value;
               return (
@@ -175,6 +235,7 @@ export function Combobox({
                   onSelect={() => {
                     onChange(option.value);
                     setOpen(false);
+                    setSearch("");
                   }}
                 >
                   <Check
@@ -188,6 +249,23 @@ export function Combobox({
                 </CommandItem>
               );
             })}
+            {/* Alta por texto libre: value = texto tecleado para que cmdk no lo
+                filtre (coincide con la búsqueda). Emite el texto trim al consumidor. */}
+            {ofrecerCrear ? (
+              <CommandItem
+                key="__crear__"
+                role="option"
+                value={search}
+                onSelect={() => {
+                  if (textoCrear.length > 0) onCreate?.(textoCrear);
+                  setOpen(false);
+                  setSearch("");
+                }}
+              >
+                <Plus className="text-primary mr-2 size-4" aria-hidden="true" />
+                {formatCreateLabel(textoCrear)}
+              </CommandItem>
+            ) : null}
           </CommandList>
         </Command>
       </PopoverContent>
