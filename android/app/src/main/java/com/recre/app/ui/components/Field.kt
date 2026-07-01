@@ -686,13 +686,13 @@ fun FieldAutocomplete(
     val colors = RecreColors.current
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
-    val filtered =
-        remember(query, options) {
-            if (query.isBlank()) options else options.filter { it.contains(query, ignoreCase = true) }
-        }
     val queryTrim = query.trim()
+    val filtered =
+        remember(queryTrim, options) {
+            if (queryTrim.isEmpty()) options else options.filter { it.contains(queryTrim, ignoreCase = true) }
+        }
     val hayExacta =
-        remember(query, options) {
+        remember(queryTrim, options) {
             options.any { it.trim().equals(queryTrim, ignoreCase = true) }
         }
     val ofrecerCrear = createLabel != null && queryTrim.isNotEmpty() && !hayExacta

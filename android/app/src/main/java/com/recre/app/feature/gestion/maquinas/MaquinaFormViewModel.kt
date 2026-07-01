@@ -86,6 +86,16 @@ class MaquinaFormViewModel @Inject constructor(
                             numeroSerie = entity.numeroSerie,
                             modelo = entity.modelo.orEmpty(),
                             fabricante = entity.fabricante.orEmpty(),
+                            // Cierra la carrera con cargarCatalogo(): si el catálogo llegó
+                            // antes que la entidad, ya recalcula la lista de modelos del
+                            // fabricante cargado (si aún no llegó, queda vacío y lo rellena
+                            // cargarCatalogo). El valor de modelo se preserva siempre.
+                            modelosDisponibles =
+                                modelosDeFabricante(
+                                    entity.fabricante.orEmpty(),
+                                    catalogoFabricantes,
+                                    catalogoModelos,
+                                ),
                             valorCredito = entity.valorCredito,
                             contadorEntradasInicial = entity.contadorEntradasInicial.toString(),
                             contadorSalidasInicial = entity.contadorSalidasInicial.toString(),
