@@ -17,12 +17,35 @@ export function isEstadoLicencia(value: string): value is EstadoLicencia {
   return (ESTADOS_LICENCIA as readonly string[]).includes(value);
 }
 
+/** Las 19 comunidades y ciudades autónomas. Lista de oro: debe ser idéntica
+ *  (byte a byte) al CHECK de BBDD y a la constante Kotlin de Android. */
+export const COMUNIDADES_AUTONOMAS = [
+  "Andalucía",
+  "Aragón",
+  "Asturias",
+  "Islas Baleares",
+  "Canarias",
+  "Cantabria",
+  "Castilla-La Mancha",
+  "Castilla y León",
+  "Cataluña",
+  "Comunidad Valenciana",
+  "Extremadura",
+  "Galicia",
+  "Madrid",
+  "Murcia",
+  "Navarra",
+  "País Vasco",
+  "La Rioja",
+  "Ceuta",
+  "Melilla",
+] as const;
+
 /** Forma normalizada que consume la UI. */
 export interface Licencia {
   id: string;
   empresaId: string;
   numero: string;
-  tipo: string | null;
   fechaExpedicion: string | null;
   fechaCaducidad: string | null;
   comunidadAutonoma: string | null;
@@ -37,7 +60,6 @@ export interface LicenciaRow {
   id: string;
   empresa_id: string;
   numero: string;
-  tipo: string | null;
   fecha_expedicion: string | null;
   fecha_caducidad: string | null;
   comunidad_autonoma: string | null;
@@ -52,7 +74,6 @@ export function mapLicenciaRow(row: LicenciaRow): Licencia {
     id: row.id,
     empresaId: row.empresa_id,
     numero: row.numero,
-    tipo: row.tipo,
     fechaExpedicion: row.fecha_expedicion,
     fechaCaducidad: row.fecha_caducidad,
     comunidadAutonoma: row.comunidad_autonoma,

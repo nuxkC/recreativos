@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Combobox } from "@/components/common/combobox";
 import { FieldDate } from "@/components/common/date-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,17 +30,24 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { actualizarLicencia, crearLicencia, type ActionResult } from "@/lib/licencias/actions";
 import { LicenciaInputSchema } from "@/lib/licencias/schemas";
-import { ESTADOS_LICENCIA, type EstadoLicencia, type Licencia } from "@/lib/licencias/types";
+import {
+  COMUNIDADES_AUTONOMAS,
+  ESTADOS_LICENCIA,
+  type EstadoLicencia,
+  type Licencia,
+} from "@/lib/licencias/types";
 
 type LicenciaFormValues = {
   numero: string;
-  tipo: string;
   fechaExpedicion: string;
   fechaCaducidad: string;
   comunidadAutonoma: string;
   estado: EstadoLicencia;
   notas: string;
 };
+
+/** Opciones del desplegable de CCAA: lista cerrada (value = label). */
+const CCAA_OPTIONS = COMUNIDADES_AUTONOMAS.map((c) => ({ value: c, label: c }));
 
 interface LicenciaFormProps {
   mode: "create" | "edit";
@@ -49,7 +57,6 @@ interface LicenciaFormProps {
 function defaultsFromLicencia(licencia?: Licencia): LicenciaFormValues {
   return {
     numero: licencia?.numero ?? "",
-    tipo: licencia?.tipo ?? "",
     fechaExpedicion: licencia?.fechaExpedicion ?? "",
     fechaCaducidad: licencia?.fechaCaducidad ?? "",
     comunidadAutonoma: licencia?.comunidadAutonoma ?? "",
@@ -61,7 +68,6 @@ function defaultsFromLicencia(licencia?: Licencia): LicenciaFormValues {
 function buildFormData(values: LicenciaFormValues): FormData {
   const fd = new FormData();
   fd.set("numero", values.numero);
-  fd.set("tipo", values.tipo);
   fd.set("fechaExpedicion", values.fechaExpedicion);
   fd.set("fechaCaducidad", values.fechaCaducidad);
   fd.set("comunidadAutonoma", values.comunidadAutonoma);
@@ -73,6 +79,7 @@ function buildFormData(values: LicenciaFormValues): FormData {
 export function LicenciaForm({ mode, licencia }: LicenciaFormProps) {
   const t = useTranslations("licencias");
   const tCampos = useTranslations("licencias.campos");
+  const tCcaa = useTranslations("licencias.ccaa");
   const tEstado = useTranslations("licencias.estado");
   const tValidacion = useTranslations("licencias.validacion");
   const tErrores = useTranslations("licencias.errores");
@@ -182,19 +189,6 @@ export function LicenciaForm({ mode, licencia }: LicenciaFormProps) {
           />
           <FormField
             control={form.control}
-            name="tipo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tCampos("tipo")}</FormLabel>
-                <FormControl>
-                  <Input autoComplete="off" maxLength={80} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="fechaExpedicion"
             render={({ field, fieldState }) => (
               <FieldDate
@@ -222,11 +216,20 @@ export function LicenciaForm({ mode, licencia }: LicenciaFormProps) {
           <FormField
             control={form.control}
             name="comunidadAutonoma"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>{tCampos("comunidadAutonoma")}</FormLabel>
                 <FormControl>
-                  <Input autoComplete="off" maxLength={80} {...field} />
+                  <Combobox
+                    options={CCAA_OPTIONS}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    placeholder={tCcaa("elegir")}
+                    searchPlaceholder={tCcaa("buscar")}
+                    emptyMessage={tCcaa("sinCoincidencias")}
+                    error={!!fieldState.error}
+                    aria-label={tCampos("comunidadAutonoma")}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

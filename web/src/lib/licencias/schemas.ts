@@ -28,7 +28,6 @@ export const LicenciaInputSchema = z
       .trim()
       .min(1, { message: "numeroRequerido" })
       .max(80, { message: "numeroMuyLargo" }),
-    tipo: trimmedString.pipe(z.string().max(80).nullable()),
     fechaExpedicion: isoDateOptional,
     fechaCaducidad: isoDateOptional,
     comunidadAutonoma: trimmedString.pipe(z.string().max(80).nullable()),
