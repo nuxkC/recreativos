@@ -27,11 +27,13 @@ INSERT INTO _tablas_dominio(t) VALUES
     ('device_token'),
     ('empresa'),
     ('empresa_usuario'),
+    ('fabricante'),
     ('instalacion'),
     ('lectura_no_recaudada'),
     ('licencia'),
     ('local'),
     ('maquina'),
+    ('modelo'),
     ('recaudacion'),
     ('recaudacion_lock'),
     ('recuperacion'),
@@ -39,8 +41,8 @@ INSERT INTO _tablas_dominio(t) VALUES
     ('tolva_movimiento'),
     ('usuario');
 
--- 20 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 140
-SELECT plan(140);
+-- 22 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 154
+SELECT plan(154);
 
 -- authenticated CONSERVA lectura.
 SELECT ok(
