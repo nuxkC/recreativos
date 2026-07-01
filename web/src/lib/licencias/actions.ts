@@ -44,7 +44,6 @@ function fieldErrorsFromZod(err: z.ZodError): Record<string, string[]> {
 function parseLicenciaForm(formData: FormData): Record<string, unknown> {
   return {
     numero: formData.get("numero") ?? "",
-    tipo: formData.get("tipo") ?? "",
     fechaExpedicion: formData.get("fechaExpedicion") ?? "",
     fechaCaducidad: formData.get("fechaCaducidad") ?? "",
     comunidadAutonoma: formData.get("comunidadAutonoma") ?? "",
@@ -78,7 +77,9 @@ export async function crearLicencia(
   const { data, error } = await supabase.rpc("crear_licencia", {
     p_empresa_id: activa.empresa.id,
     p_numero: parsed.data.numero,
-    p_tipo: parsed.data.tipo,
+    // El contrato de la RPC aún exige p_tipo (3.ª posición); el campo se eliminó
+    // del formulario, así que enviamos siempre null hasta que la RPC lo retire.
+    p_tipo: null,
     p_fecha_expedicion: parsed.data.fechaExpedicion,
     p_fecha_caducidad: parsed.data.fechaCaducidad,
     p_comunidad_autonoma: parsed.data.comunidadAutonoma,
@@ -138,7 +139,9 @@ export async function actualizarLicencia(
   const { error } = await supabase.rpc("actualizar_licencia", {
     p_id: licenciaId,
     p_numero: parsed.data.numero,
-    p_tipo: parsed.data.tipo,
+    // El contrato de la RPC aún exige p_tipo (3.ª posición); el campo se eliminó
+    // del formulario, así que enviamos siempre null hasta que la RPC lo retire.
+    p_tipo: null,
     p_fecha_expedicion: parsed.data.fechaExpedicion,
     p_fecha_caducidad: parsed.data.fechaCaducidad,
     p_comunidad_autonoma: parsed.data.comunidadAutonoma,

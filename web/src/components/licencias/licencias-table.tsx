@@ -34,7 +34,7 @@ export function LicenciasTable({ licencias }: LicenciasTableProps) {
 
   if (licencias.length === 0) {
     return (
-      <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm">
         {t("vacio")}
       </div>
     );
@@ -46,7 +46,6 @@ export function LicenciasTable({ licencias }: LicenciasTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>{t("campos.numero")}</TableHead>
-            <TableHead className="hidden md:table-cell">{t("campos.tipo")}</TableHead>
             <TableHead className="hidden lg:table-cell">{t("campos.comunidadAutonoma")}</TableHead>
             <TableHead className="hidden md:table-cell">{t("campos.fechaCaducidad")}</TableHead>
             <TableHead>{t("campos.estado")}</TableHead>
@@ -63,13 +62,10 @@ export function LicenciasTable({ licencias }: LicenciasTableProps) {
                   {licencia.numero}
                 </Link>
               </TableCell>
-              <TableCell className="hidden text-muted-foreground md:table-cell">
-                {licencia.tipo ?? "—"}
-              </TableCell>
-              <TableCell className="hidden text-muted-foreground lg:table-cell">
+              <TableCell className="text-muted-foreground hidden lg:table-cell">
                 {licencia.comunidadAutonoma ?? "—"}
               </TableCell>
-              <TableCell className="hidden text-muted-foreground md:table-cell">
+              <TableCell className="text-muted-foreground hidden md:table-cell">
                 {formatDate(licencia.fechaCaducidad)}
               </TableCell>
               <TableCell>
@@ -79,7 +75,7 @@ export function LicenciasTable({ licencias }: LicenciasTableProps) {
                 <Link
                   href={`/licencias/${licencia.id}`}
                   aria-label={t("accion.abrir")}
-                  className="inline-flex items-center text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground inline-flex items-center"
                 >
                   <ChevronRight className="size-4" aria-hidden />
                 </Link>

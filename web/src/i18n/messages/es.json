@@ -197,12 +197,16 @@
     "guardadoOk": "Licencia guardada.",
     "campos": {
       "numero": "Número",
-      "tipo": "Tipo",
       "fechaExpedicion": "Fecha de expedición",
       "fechaCaducidad": "Fecha de caducidad",
       "comunidadAutonoma": "Comunidad autónoma",
       "estado": "Estado",
       "notas": "Notas"
+    },
+    "ccaa": {
+      "elegir": "Elegir comunidad",
+      "buscar": "Buscar comunidad…",
+      "sinCoincidencias": "Sin coincidencias"
     },
     "estado": {
       "activa": "Activa",
