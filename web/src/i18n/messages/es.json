@@ -447,11 +447,27 @@
     "campos": {
       "nombre": "Nombre",
       "direccion": "Dirección",
+      "comunidadAutonoma": "Comunidad autónoma",
+      "provincia": "Provincia",
+      "municipio": "Municipio",
+      "calle": "Calle y número",
+      "codigoPostal": "Código postal",
       "cifONif": "CIF / NIF",
       "titularNombre": "Titular",
       "telefono": "Teléfono",
       "email": "Correo electrónico",
       "notas": "Notas"
+    },
+    "geo": {
+      "elegirCcaa": "Elegir comunidad",
+      "buscarCcaa": "Buscar comunidad…",
+      "elegirProvincia": "Elegir provincia",
+      "buscarProvincia": "Buscar provincia…",
+      "elegirMunicipio": "Elegir municipio",
+      "buscarMunicipio": "Buscar municipio…",
+      "sinCoincidencias": "Sin coincidencias",
+      "provinciaSinCcaa": "Elige primero una comunidad autónoma.",
+      "municipioSinProvincia": "Elige primero una provincia."
     },
     "filtros": {
       "buscar": "Buscar por nombre",
@@ -503,6 +519,8 @@
       "nombreRequerido": "El nombre es obligatorio.",
       "nombreMuyLargo": "El nombre no puede tener más de 200 caracteres.",
       "direccionMuyLarga": "La dirección no puede tener más de 300 caracteres.",
+      "calleMuyLarga": "La calle no puede tener más de 300 caracteres.",
+      "codigoPostalInvalido": "El código postal debe tener 5 dígitos.",
       "cifONifMuyLargo": "El CIF/NIF no puede tener más de 20 caracteres.",
       "cifInvalido": "El CIF/NIF no es válido.",
       "telefonoInvalido": "El teléfono no es válido (9 dígitos, empieza por 6-9).",

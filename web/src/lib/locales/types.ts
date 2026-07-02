@@ -20,6 +20,12 @@ export interface Local {
   empresaId: string;
   nombre: string;
   direccion: string | null;
+  /** Dirección estructurada (T-277). CCAA = lista de oro; códigos = INE. */
+  comunidadAutonoma: string | null;
+  provinciaCodigo: string | null;
+  municipioCodigo: string | null;
+  calle: string | null;
+  codigoPostal: string | null;
   cifONif: string | null;
   titularNombre: string | null;
   telefono: string | null;
@@ -42,6 +48,11 @@ export interface LocalRow {
   empresa_id: string;
   nombre: string;
   direccion: string | null;
+  comunidad_autonoma: string | null;
+  provincia_codigo: string | null;
+  municipio_codigo: string | null;
+  calle: string | null;
+  codigo_postal: string | null;
   cif_o_nif: string | null;
   titular_nombre: string | null;
   telefono: string | null;
@@ -61,6 +72,11 @@ export function mapLocalRow(row: LocalRow): Local {
     empresaId: row.empresa_id,
     nombre: row.nombre,
     direccion: row.direccion,
+    comunidadAutonoma: row.comunidad_autonoma,
+    provinciaCodigo: row.provincia_codigo,
+    municipioCodigo: row.municipio_codigo,
+    calle: row.calle,
+    codigoPostal: row.codigo_postal,
     cifONif: row.cif_o_nif,
     titularNombre: row.titular_nombre,
     telefono: row.telefono,
