@@ -41,3 +41,26 @@ export async function listarModelos(): Promise<ModeloOpcion[]> {
     fabricanteId: row.fabricante_id,
   }));
 }
+
+/**
+ * ¿El usuario actual es administrador GLOBAL del catálogo? Self-read de la
+ * propia fila de `usuario` (permitido por la RLS `usuario_select_self`). Se
+ * usa solo para mostrar/ocultar UI (p. ej. el enlace en ajustes); la
+ * autorización real la aplican las RPCs de curación.
+ */
+export async function esAdminCatalogo(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data } = await supabase
+    .from("usuario")
+    .select("es_admin_catalogo")
+    .eq("id", user.id)
+    .limit(1)
+    .returns<Array<{ es_admin_catalogo: boolean | null }>>();
+
+  return Boolean(data?.[0]?.es_admin_catalogo);
+}
