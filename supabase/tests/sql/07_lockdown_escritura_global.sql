@@ -34,6 +34,8 @@ INSERT INTO _tablas_dominio(t) VALUES
     ('local'),
     ('maquina'),
     ('modelo'),
+    ('municipio'),
+    ('provincia'),
     ('recaudacion'),
     ('recaudacion_lock'),
     ('recuperacion'),
@@ -41,8 +43,8 @@ INSERT INTO _tablas_dominio(t) VALUES
     ('tolva_movimiento'),
     ('usuario');
 
--- 22 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 154
-SELECT plan(154);
+-- 24 tablas × (1 SELECT authenticated + 3 no-write authenticated + 3 no-write anon) = 168
+SELECT plan(168);
 
 -- authenticated CONSERVA lectura.
 SELECT ok(

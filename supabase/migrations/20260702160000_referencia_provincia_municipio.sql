@@ -24,6 +24,11 @@ CREATE POLICY municipio_select ON public.municipio FOR SELECT TO authenticated U
 GRANT SELECT ON public.provincia, public.municipio TO authenticated;
 REVOKE ALL ON public.provincia FROM anon;
 REVOKE ALL ON public.municipio FROM anon;
+-- Solo lectura para los clientes: revoca la escritura directa que Supabase
+-- concede por defecto a authenticated (ALTER DEFAULT PRIVILEGES). La escritura
+-- de datos de referencia no la hace el cliente (mismo patrón que el catálogo).
+REVOKE INSERT, UPDATE, DELETE ON public.provincia FROM authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.municipio FROM authenticated;
 
 INSERT INTO public.provincia (codigo, nombre, comunidad_autonoma) VALUES
   ('01', 'Araba/Álava', 'País Vasco'),
