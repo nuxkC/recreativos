@@ -13,6 +13,7 @@ import { TolvaInstalaciones } from "@/components/tolva/tolva-instalaciones";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
+import { listarMunicipios, listarProvincias } from "@/lib/locales/geo-queries";
 import { obtenerLocal } from "@/lib/locales/queries";
 import { listarOperarios } from "@/lib/operarios/queries";
 import { obtenerTolvaInstalaciones } from "@/lib/tolva/queries";
@@ -49,11 +50,12 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
 
   const tolvaInstalaciones = await obtenerTolvaInstalaciones(local.id);
   const operarios = await listarOperarios(activa.empresa.id);
+  const [provincias, municipios] = await Promise.all([listarProvincias(), listarMunicipios()]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="space-y-1">
-        <Link href="/locales" className="text-sm text-muted-foreground hover:underline">
+        <Link href="/locales" className="text-muted-foreground text-sm hover:underline">
           ← {t("accion.volver")}
         </Link>
         <div className="flex items-center justify-between gap-4">
@@ -65,8 +67,8 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
             >
               {local.nombre}
             </h1>
-            <p className="text-sm text-muted-foreground">{local.direccion ?? "—"}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-sm">{local.direccion ?? "—"}</p>
+            <p className="text-muted-foreground text-xs">
               {t("detalle.actualizado", {
                 fecha: formatDate(local.updatedAt),
               })}
@@ -81,7 +83,7 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
           <CardDescription>{t("formulario.descripcion")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalForm mode="edit" local={local} />
+          <LocalForm mode="edit" local={local} provincias={provincias} municipios={municipios} />
         </CardContent>
       </Card>
 
@@ -106,13 +108,13 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
       {/* La gestión de deuda vive en la sección Deudas (centro de mando, T-218):
           desde aquí solo se redirige a la página del local en esa sección. */}
       <Link href={`/deudas/${local.id}`} className="block">
-        <Card className="transition-colors hover:bg-accent">
+        <Card className="hover:bg-accent transition-colors">
           <CardContent className="flex items-center justify-between gap-4 py-4">
             <div className="space-y-0.5">
               <p className="font-medium">{t("deudas.titulo")}</p>
-              <p className="text-sm text-muted-foreground">{t("deudas.descripcion")}</p>
+              <p className="text-muted-foreground text-sm">{t("deudas.descripcion")}</p>
             </div>
-            <ArrowRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+            <ArrowRight className="text-muted-foreground size-5 shrink-0" aria-hidden />
           </CardContent>
         </Card>
       </Link>

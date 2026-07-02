@@ -8,10 +8,12 @@ import { useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Combobox } from "@/components/common/combobox";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,13 +21,25 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { COMUNIDADES_AUTONOMAS } from "@/lib/licencias/types";
 import { actualizarLocal, crearLocal, type ActionResult } from "@/lib/locales/actions";
+import {
+  opcionesMunicipio,
+  opcionesProvincia,
+  type MunicipioOpcion,
+  type ProvinciaOpcion,
+} from "@/lib/locales/geo-opciones";
 import { LocalInputSchema } from "@/lib/locales/schemas";
 import type { Local } from "@/lib/locales/types";
 
 type LocalFormValues = {
   nombre: string;
   direccion: string;
+  comunidadAutonoma: string;
+  provinciaCodigo: string;
+  municipioCodigo: string;
+  calle: string;
+  codigoPostal: string;
   cifONif: string;
   titularNombre: string;
   telefono: string;
@@ -36,12 +50,23 @@ type LocalFormValues = {
 interface LocalFormProps {
   mode: "create" | "edit";
   local?: Local;
+  /** Referencia geográfica precargada (INE); la cascada filtra en cliente. */
+  provincias: ProvinciaOpcion[];
+  municipios: MunicipioOpcion[];
 }
+
+/** CCAA como lista cerrada (value = label): la "lista de oro" de 19. */
+const CCAA_OPTIONS = COMUNIDADES_AUTONOMAS.map((c) => ({ value: c, label: c }));
 
 function defaultsFromLocal(local?: Local): LocalFormValues {
   return {
     nombre: local?.nombre ?? "",
     direccion: local?.direccion ?? "",
+    comunidadAutonoma: local?.comunidadAutonoma ?? "",
+    provinciaCodigo: local?.provinciaCodigo ?? "",
+    municipioCodigo: local?.municipioCodigo ?? "",
+    calle: local?.calle ?? "",
+    codigoPostal: local?.codigoPostal ?? "",
     cifONif: local?.cifONif ?? "",
     titularNombre: local?.titularNombre ?? "",
     telefono: local?.telefono ?? "",
@@ -54,6 +79,11 @@ function buildFormData(values: LocalFormValues): FormData {
   const fd = new FormData();
   fd.set("nombre", values.nombre);
   fd.set("direccion", values.direccion);
+  fd.set("comunidadAutonoma", values.comunidadAutonoma);
+  fd.set("provinciaCodigo", values.provinciaCodigo);
+  fd.set("municipioCodigo", values.municipioCodigo);
+  fd.set("calle", values.calle);
+  fd.set("codigoPostal", values.codigoPostal);
   fd.set("cifONif", values.cifONif);
   fd.set("titularNombre", values.titularNombre);
   fd.set("telefono", values.telefono);
@@ -62,9 +92,10 @@ function buildFormData(values: LocalFormValues): FormData {
   return fd;
 }
 
-export function LocalForm({ mode, local }: LocalFormProps) {
+export function LocalForm({ mode, local, provincias, municipios }: LocalFormProps) {
   const t = useTranslations("locales");
   const tCampos = useTranslations("locales.campos");
+  const tGeo = useTranslations("locales.geo");
   const tValidacion = useTranslations("locales.validacion");
   const tErrores = useTranslations("locales.errores");
   const router = useRouter();
@@ -80,6 +111,32 @@ export function LocalForm({ mode, local }: LocalFormProps) {
     }),
     defaultValues: defaultsFromLocal(local),
   });
+
+  // Cascada de dirección: provincia depende de la CCAA y municipio de la
+  // provincia. Observamos ambos para recalcular opciones y deshabilitar los
+  // combos hijos. Al cambiar un padre se limpia el hijo para no dejar un par
+  // incoherente (lo mismo que hace el CHECK/validador de BBDD).
+  const comunidadSel = form.watch("comunidadAutonoma");
+  const provinciaSel = form.watch("provinciaCodigo");
+  const provinciaOpts = opcionesProvincia(provincias, comunidadSel || null);
+  const municipioOpts = opcionesMunicipio(municipios, provinciaSel || null);
+
+  function handleComunidadChange(nueva: string) {
+    const actual = form.getValues("comunidadAutonoma");
+    form.setValue("comunidadAutonoma", nueva, { shouldDirty: true, shouldValidate: true });
+    if (nueva !== actual) {
+      form.setValue("provinciaCodigo", "", { shouldDirty: true });
+      form.setValue("municipioCodigo", "", { shouldDirty: true });
+    }
+  }
+
+  function handleProvinciaChange(nueva: string) {
+    const actual = form.getValues("provinciaCodigo");
+    form.setValue("provinciaCodigo", nueva, { shouldDirty: true, shouldValidate: true });
+    if (nueva !== actual) {
+      form.setValue("municipioCodigo", "", { shouldDirty: true });
+    }
+  }
 
   function applyServerErrors(fieldErrors: Record<string, string[]> | undefined): boolean {
     if (!fieldErrors) return false;
@@ -179,6 +236,112 @@ export function LocalForm({ mode, local }: LocalFormProps) {
                 <FormLabel>{tCampos("direccion")}</FormLabel>
                 <FormControl>
                   <Input autoComplete="off" maxLength={300} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="comunidadAutonoma"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>{tCampos("comunidadAutonoma")}</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={CCAA_OPTIONS}
+                    value={field.value || null}
+                    onChange={handleComunidadChange}
+                    placeholder={tGeo("elegirCcaa")}
+                    searchPlaceholder={tGeo("buscarCcaa")}
+                    emptyMessage={tGeo("sinCoincidencias")}
+                    error={!!fieldState.error}
+                    aria-label={tCampos("comunidadAutonoma")}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="provinciaCodigo"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>{tCampos("provincia")}</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={provinciaOpts}
+                    value={field.value || null}
+                    onChange={handleProvinciaChange}
+                    placeholder={tGeo("elegirProvincia")}
+                    searchPlaceholder={tGeo("buscarProvincia")}
+                    emptyMessage={tGeo("sinCoincidencias")}
+                    disabled={!comunidadSel}
+                    error={!!fieldState.error}
+                    aria-label={tCampos("provincia")}
+                  />
+                </FormControl>
+                {!comunidadSel ? (
+                  <FormDescription>{tGeo("provinciaSinCcaa")}</FormDescription>
+                ) : null}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="municipioCodigo"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>{tCampos("municipio")}</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={municipioOpts}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    placeholder={tGeo("elegirMunicipio")}
+                    searchPlaceholder={tGeo("buscarMunicipio")}
+                    emptyMessage={tGeo("sinCoincidencias")}
+                    disabled={!provinciaSel}
+                    error={!!fieldState.error}
+                    aria-label={tCampos("municipio")}
+                  />
+                </FormControl>
+                {!provinciaSel ? (
+                  <FormDescription>{tGeo("municipioSinProvincia")}</FormDescription>
+                ) : null}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="calle"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{tCampos("calle")}</FormLabel>
+                <FormControl>
+                  <Input autoComplete="off" maxLength={300} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="codigoPostal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{tCampos("codigoPostal")}</FormLabel>
+                <FormControl>
+                  <Input
+                    autoComplete="off"
+                    inputMode="numeric"
+                    maxLength={5}
+                    placeholder="28001"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

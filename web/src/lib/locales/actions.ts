@@ -45,6 +45,11 @@ function parseLocalForm(formData: FormData): Record<string, unknown> {
   return {
     nombre: formData.get("nombre") ?? "",
     direccion: formData.get("direccion") ?? "",
+    comunidadAutonoma: formData.get("comunidadAutonoma") ?? "",
+    provinciaCodigo: formData.get("provinciaCodigo") ?? "",
+    municipioCodigo: formData.get("municipioCodigo") ?? "",
+    calle: formData.get("calle") ?? "",
+    codigoPostal: formData.get("codigoPostal") ?? "",
     cifONif: formData.get("cifONif") ?? "",
     titularNombre: formData.get("titularNombre") ?? "",
     telefono: formData.get("telefono") ?? "",
@@ -84,6 +89,11 @@ export async function crearLocal(
     p_telefono: parsed.data.telefono,
     p_email: parsed.data.email,
     p_notas: parsed.data.notas ?? null,
+    p_comunidad_autonoma: parsed.data.comunidadAutonoma,
+    p_provincia_codigo: parsed.data.provinciaCodigo,
+    p_municipio_codigo: parsed.data.municipioCodigo,
+    p_calle: parsed.data.calle,
+    p_codigo_postal: parsed.data.codigoPostal,
   });
 
   if (error) {
@@ -135,6 +145,11 @@ export async function actualizarLocal(
     p_telefono: parsed.data.telefono,
     p_email: parsed.data.email,
     p_notas: parsed.data.notas ?? null,
+    p_comunidad_autonoma: parsed.data.comunidadAutonoma,
+    p_provincia_codigo: parsed.data.provinciaCodigo,
+    p_municipio_codigo: parsed.data.municipioCodigo,
+    p_calle: parsed.data.calle,
+    p_codigo_postal: parsed.data.codigoPostal,
   });
 
   if (error) {
