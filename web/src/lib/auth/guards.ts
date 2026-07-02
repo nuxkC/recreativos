@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { obtenerMembresiaActiva } from "@/lib/empresas/queries";
+import { createClient } from "@/lib/supabase/server";
 import type { MembresiaActiva } from "@/lib/empresas/types";
 
 import type { Rol } from "./roles";
@@ -34,6 +35,42 @@ export async function requireRol(permitidos: readonly Rol[]): Promise<MembresiaA
   if (!permitidos.includes(activa.rol)) {
     redirect("/sin-permiso");
   }
+  return activa;
+}
+
+/**
+ * Asegura que el usuario es administrador GLOBAL del catálogo.
+ *
+ * Primero exige una sesión con empresa activa (igual que el resto de guards),
+ * luego lee su propia fila de `usuario` (permitido por la RLS `usuario_select_self`)
+ * y comprueba el flag `es_admin_catalogo`. Si es `false`/`null` → `/sin-permiso`.
+ *
+ * OJO: esto es solo UX (mostrar/ocultar la sección). La autorización REAL la
+ * hacen las RPCs de curación con el guard SQL `es_admin_catalogo` (error 42501).
+ */
+export async function requireAdminCatalogo(): Promise<MembresiaActiva> {
+  const activa = await requireMembresiaActiva();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/sin-permiso");
+  }
+
+  // El cliente Supabase no está tipado → `.returns<...>()` como en el resto del repo.
+  const { data } = await supabase
+    .from("usuario")
+    .select("es_admin_catalogo")
+    .eq("id", user.id)
+    .limit(1)
+    .returns<Array<{ es_admin_catalogo: boolean | null }>>();
+
+  if (!data?.[0]?.es_admin_catalogo) {
+    redirect("/sin-permiso");
+  }
+
   return activa;
 }
 

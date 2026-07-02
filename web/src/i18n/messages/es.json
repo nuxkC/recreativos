@@ -1169,6 +1169,53 @@
       "desconocido": "Ha ocurrido un error inesperado."
     }
   },
+  "catalogoAdmin": {
+    "titulo": "Catálogo de fabricantes y modelos",
+    "descripcion": "Depura el catálogo global: renombra entradas mal escritas y fusiona duplicados. Los cambios afectan a todas las empresas.",
+    "vacio": "Todavía no hay fabricantes en el catálogo.",
+    "sinModelos": "Sin modelos.",
+    "accion": {
+      "renombrar": "Renombrar",
+      "fusionar": "Fusionar",
+      "cancelar": "Cancelar",
+      "confirmar": "Guardar"
+    },
+    "renombrar": {
+      "tituloFabricante": "Renombrar fabricante",
+      "tituloModelo": "Renombrar modelo",
+      "descripcion": "Escribe el nombre correcto para «{nombre}».",
+      "etiqueta": "Nuevo nombre",
+      "placeholder": "Nombre canónico"
+    },
+    "fusionar": {
+      "tituloFabricante": "Fusionar fabricante",
+      "tituloModelo": "Fusionar modelo",
+      "descripcion": "Absorbe «{nombre}» en otra entrada: todo lo que apunta a «{nombre}» pasará al destino y «{nombre}» se eliminará del catálogo.",
+      "etiqueta": "Fusionar en",
+      "placeholder": "Elige la entrada de destino",
+      "buscar": "Buscar…",
+      "sinDestinos": "No hay otra entrada con la que fusionar.",
+      "aviso": "Esta acción es irreversible: la entrada absorbida se elimina del catálogo.",
+      "destinoRequerido": "Elige una entrada de destino."
+    },
+    "toast": {
+      "renombrado": "Nombre actualizado.",
+      "fusionado": "Entradas fusionadas."
+    },
+    "enlace": {
+      "titulo": "Catálogo global",
+      "descripcion": "Renombra y fusiona fabricantes y modelos duplicados del catálogo compartido.",
+      "accion": "Abrir catálogo"
+    },
+    "errores": {
+      "sinPermiso": "No tienes permiso para curar el catálogo.",
+      "yaExiste": "Ya existe una entrada con ese nombre. Usa «Fusionar» en su lugar.",
+      "fusionInvalida": "No se puede fusionar con esa entrada.",
+      "idInvalido": "La entrada seleccionada no es válida.",
+      "nombreInvalido": "Escribe un nombre válido (entre 1 y 120 caracteres).",
+      "desconocido": "Ha ocurrido un error inesperado."
+    }
+  },
   "validation": {
     "emailRequired": "El correo es obligatorio",
     "emailInvalid": "Correo no válido",
