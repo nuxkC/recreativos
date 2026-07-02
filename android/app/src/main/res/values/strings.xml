@@ -541,6 +541,14 @@
     <string name="gestion_local_editar">Editar local</string>
     <string name="gestion_local_nombre">Nombre</string>
     <string name="gestion_local_direccion">Dirección</string>
+    <string name="gestion_local_comunidad">Comunidad autónoma</string>
+    <string name="gestion_local_provincia">Provincia</string>
+    <string name="gestion_local_municipio">Municipio</string>
+    <string name="gestion_local_calle">Calle y número</string>
+    <string name="gestion_local_codigo_postal">Código postal</string>
+    <string name="gestion_local_provincia_sin_ccaa">Elige antes la comunidad</string>
+    <string name="gestion_local_municipio_sin_provincia">Elige antes la provincia</string>
+    <string name="gestion_local_codigo_postal_invalido">Código postal inválido (5 dígitos)</string>
     <string name="gestion_local_cif">CIF / NIF</string>
     <string name="gestion_local_titular">Titular</string>
     <string name="gestion_local_telefono">Teléfono</string>

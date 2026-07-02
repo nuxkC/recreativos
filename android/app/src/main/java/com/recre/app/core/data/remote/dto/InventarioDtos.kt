@@ -56,6 +56,15 @@ data class LocalDto(
     val telefono: String? = null,
     val email: String? = null,
     val notas: String? = null,
+    @SerialName("comunidad_autonoma")
+    val comunidadAutonoma: String? = null,
+    @SerialName("provincia_codigo")
+    val provinciaCodigo: String? = null,
+    @SerialName("municipio_codigo")
+    val municipioCodigo: String? = null,
+    val calle: String? = null,
+    @SerialName("codigo_postal")
+    val codigoPostal: String? = null,
     @SerialName("porcentaje_recuperacion")
     val porcentajeRecuperacion: Int? = null,
     @SerialName("updated_at")

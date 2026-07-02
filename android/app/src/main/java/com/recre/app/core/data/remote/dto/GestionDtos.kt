@@ -142,6 +142,16 @@ data class CrearLocalParams(
     val email: String?,
     @SerialName("p_notas")
     val notas: String?,
+    @SerialName("p_comunidad_autonoma")
+    val comunidadAutonoma: String?,
+    @SerialName("p_provincia_codigo")
+    val provinciaCodigo: String?,
+    @SerialName("p_municipio_codigo")
+    val municipioCodigo: String?,
+    @SerialName("p_calle")
+    val calle: String?,
+    @SerialName("p_codigo_postal")
+    val codigoPostal: String?,
 )
 
 @Serializable
@@ -162,6 +172,16 @@ data class ActualizarLocalParams(
     val email: String?,
     @SerialName("p_notas")
     val notas: String?,
+    @SerialName("p_comunidad_autonoma")
+    val comunidadAutonoma: String?,
+    @SerialName("p_provincia_codigo")
+    val provinciaCodigo: String?,
+    @SerialName("p_municipio_codigo")
+    val municipioCodigo: String?,
+    @SerialName("p_calle")
+    val calle: String?,
+    @SerialName("p_codigo_postal")
+    val codigoPostal: String?,
 )
 
 @Serializable

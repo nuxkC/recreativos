@@ -10,6 +10,8 @@ import com.recre.app.core.data.repository.CatalogoRepositoryImpl
 import com.recre.app.core.data.repository.DeudasRepository
 import com.recre.app.core.data.repository.DeudasRepositoryImpl
 import com.recre.app.core.data.repository.EmpresaRepository
+import com.recre.app.core.data.repository.GeoRepository
+import com.recre.app.core.data.repository.GeoRepositoryImpl
 import com.recre.app.core.data.repository.InstalacionesGestorRepository
 import com.recre.app.core.data.repository.InstalacionesGestorRepositoryImpl
 import com.recre.app.core.data.repository.InventoryRepository
@@ -97,6 +99,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCatalogoRepository(impl: CatalogoRepositoryImpl): CatalogoRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGeoRepository(impl: GeoRepositoryImpl): GeoRepository
 
     @Binds
     @Singleton

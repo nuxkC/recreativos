@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.recre.app.feature.gestion.FkOption
+import com.recre.app.ui.components.ComboboxCcaa
 import com.recre.app.ui.components.FieldAutocomplete
 import com.recre.app.ui.components.FieldSelect
 import com.recre.app.ui.components.FieldText
@@ -97,6 +98,40 @@ fun GestionAutocomplete(
         label = label,
         emptyText = emptyText,
         createLabel = createLabel,
+        enabled = enabled,
+        placeholder = placeholder,
+        modifier = modifier,
+    )
+}
+
+/**
+ * Combo CERRADO sobre opciones de clave foránea (`FkOption`), a diferencia de
+ * [GestionAutocomplete] (que permite alta y emite la etiqueta). El estado guarda
+ * el `id` (p. ej. el código INE de provincia/municipio) y se muestra el `label`.
+ * Reutiliza [ComboboxCcaa] (lista cerrada con filtro) traduciendo id <-> etiqueta:
+ * la etiqueta es estado DERIVADO de `value` + `options`, así que en edición, al
+ * cargar las opciones tras el prefill, el nombre aparece solo (sin carrera).
+ */
+@Composable
+fun GestionComboboxFk(
+    label: String,
+    value: String,
+    options: List<FkOption>,
+    onValueChange: (String) -> Unit,
+    emptyText: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    placeholder: String? = null,
+) {
+    val etiquetaActual = options.firstOrNull { it.id == value }?.label.orEmpty()
+    ComboboxCcaa(
+        value = etiquetaActual,
+        onValueChange = { etiqueta ->
+            onValueChange(options.firstOrNull { it.label == etiqueta }?.id.orEmpty())
+        },
+        options = options.map { it.label },
+        label = label,
+        emptyText = emptyText,
         enabled = enabled,
         placeholder = placeholder,
         modifier = modifier,

@@ -60,6 +60,9 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * prepara el cuadre semanal. Una fila por (empresa, técnico, semana); sobrevive
  * a cierres de la app sin tocar las colas de subida.
  *
+ * Versión 10 (T-277): dirección estructurada del local (comunidad_autonoma,
+ * provincia_codigo, municipio_codigo, calle, codigo_postal), puramente aditiva.
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -77,7 +80,7 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         AveriaPendienteEntity::class,
         CuadreRecuentoEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class)
@@ -308,6 +311,21 @@ abstract class RecreDatabase : RoomDatabase() {
                         "`updated_at` INTEGER NOT NULL, " +
                         "PRIMARY KEY(`empresa_id`, `tecnico_id`, `semana_inicio`))",
                 )
+            }
+        }
+
+        /**
+         * v10 (T-277): dirección estructurada del local. Cinco columnas text
+         * nullable (espejo de las nuevas columnas de `public.local`); aditiva,
+         * sin DEFAULT/NOT NULL para casar con los `String?` de LocalEntity.
+         */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `local` ADD COLUMN `comunidad_autonoma` TEXT")
+                db.execSQL("ALTER TABLE `local` ADD COLUMN `provincia_codigo` TEXT")
+                db.execSQL("ALTER TABLE `local` ADD COLUMN `municipio_codigo` TEXT")
+                db.execSQL("ALTER TABLE `local` ADD COLUMN `calle` TEXT")
+                db.execSQL("ALTER TABLE `local` ADD COLUMN `codigo_postal` TEXT")
             }
         }
     }

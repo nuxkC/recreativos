@@ -15,9 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.feature.gestion.COMUNIDADES_AUTONOMAS
+import com.recre.app.feature.gestion.components.GestionComboboxFk
 import com.recre.app.feature.gestion.components.GestionFormScaffold
 import com.recre.app.feature.gestion.components.GestionTextField
 import com.recre.app.feature.gestion.resolveErrorRes
+import com.recre.app.ui.components.ComboboxCcaa
 import com.recre.app.ui.components.SnackbarEstado
 import com.recre.app.ui.components.mostrar
 
@@ -67,6 +70,56 @@ fun LocalFormScreen(
             label = stringResource(R.string.gestion_local_direccion),
             value = state.direccion,
             onValueChange = viewModel::onDireccionChange,
+        )
+        // Dirección estructurada (T-277): cascada CCAA -> provincia -> municipio.
+        ComboboxCcaa(
+            value = state.comunidadAutonoma,
+            onValueChange = viewModel::onComunidadAutonomaChange,
+            options = COMUNIDADES_AUTONOMAS,
+            label = stringResource(R.string.gestion_local_comunidad),
+            emptyText = stringResource(R.string.gestion_ccaa_sin_coincidencias),
+        )
+        GestionComboboxFk(
+            label = stringResource(R.string.gestion_local_provincia),
+            value = state.provinciaCodigo,
+            options = state.provinciasDisponibles,
+            onValueChange = viewModel::onProvinciaChange,
+            emptyText = stringResource(R.string.gestion_ccaa_sin_coincidencias),
+            enabled = state.comunidadAutonoma.isNotBlank(),
+            placeholder =
+                if (state.comunidadAutonoma.isBlank()) {
+                    stringResource(R.string.gestion_local_provincia_sin_ccaa)
+                } else {
+                    null
+                },
+        )
+        GestionComboboxFk(
+            label = stringResource(R.string.gestion_local_municipio),
+            value = state.municipioCodigo,
+            options = state.municipiosDisponibles,
+            onValueChange = viewModel::onMunicipioChange,
+            emptyText = stringResource(R.string.gestion_ccaa_sin_coincidencias),
+            enabled = state.provinciaCodigo.isNotBlank(),
+            placeholder =
+                if (state.provinciaCodigo.isBlank()) {
+                    stringResource(R.string.gestion_local_municipio_sin_provincia)
+                } else {
+                    null
+                },
+        )
+        GestionTextField(
+            label = stringResource(R.string.gestion_local_calle),
+            value = state.calle,
+            onValueChange = viewModel::onCalleChange,
+        )
+        GestionTextField(
+            label = stringResource(R.string.gestion_local_codigo_postal),
+            value = state.codigoPostal,
+            onValueChange = viewModel::onCodigoPostalChange,
+            keyboardType = KeyboardType.Number,
+            error = state.errores["codigoPostal"]?.let {
+                stringResource(R.string.gestion_local_codigo_postal_invalido)
+            },
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
