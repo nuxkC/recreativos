@@ -88,6 +88,10 @@ insert into public.usuario (id, nombre_completo, telefono) values
     ('a0000000-0000-0000-0000-000000000005', 'Sara Molina',     '600555666')
 on conflict (id) do nothing;
 
+-- El owner es admin del catálogo global (curación: renombrar/fusionar).
+update public.usuario set es_admin_catalogo = true
+    where id = 'a0000000-0000-0000-0000-000000000001';
+
 insert into public.empresa_usuario (empresa_id, usuario_id, rol, activo) values
     ('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'owner',    true),
     ('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'admin',    true),
