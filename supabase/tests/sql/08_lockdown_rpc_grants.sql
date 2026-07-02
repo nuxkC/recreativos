@@ -47,10 +47,15 @@ INSERT INTO _fns(sig) VALUES
     ('saldar_tolva_pendiente(uuid, text)'),
     -- catálogo global (T-268)
     ('crear_fabricante(text)'),
-    ('crear_modelo(uuid, text)');
+    ('crear_modelo(uuid, text)'),
+    -- curación del catálogo (T-275)
+    ('renombrar_fabricante(uuid, text)'),
+    ('renombrar_modelo(uuid, text)'),
+    ('fusionar_fabricante(uuid, uuid)'),
+    ('fusionar_modelo(uuid, uuid)');
 
--- 30 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 60
-SELECT plan(60);
+-- 34 funciones × (authenticated EXECUTE + anon NO EXECUTE) = 68
+SELECT plan(68);
 
 SELECT ok(
     has_function_privilege('authenticated', 'public.' || sig, 'EXECUTE'),
