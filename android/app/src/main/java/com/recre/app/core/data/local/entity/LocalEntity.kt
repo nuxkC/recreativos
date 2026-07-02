@@ -33,6 +33,17 @@ data class LocalEntity(
     val telefono: String?,
     val email: String?,
     val notas: String?,
+    // Dirección estructurada (T-277); espejo de las columnas text nullable de
+    // `public.local`. Provincia/municipio son códigos INE; CCAA la lista de oro.
+    @ColumnInfo(name = "comunidad_autonoma")
+    val comunidadAutonoma: String?,
+    @ColumnInfo(name = "provincia_codigo")
+    val provinciaCodigo: String?,
+    @ColumnInfo(name = "municipio_codigo")
+    val municipioCodigo: String?,
+    val calle: String?,
+    @ColumnInfo(name = "codigo_postal")
+    val codigoPostal: String?,
     /**
      * Override del % de recuperación de deuda del local (T-215). `null` =
      * hereda el de la empresa ([EmpresaParamsEntity.porcentajeRecuperacion]).

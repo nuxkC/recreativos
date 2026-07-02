@@ -197,6 +197,11 @@ class SyncRepositoryImpl @Inject constructor(
         telefono = telefono,
         email = email,
         notas = notas,
+        comunidadAutonoma = comunidadAutonoma,
+        provinciaCodigo = provinciaCodigo,
+        municipioCodigo = municipioCodigo,
+        calle = calle,
+        codigoPostal = codigoPostal,
         porcentajeRecuperacion = porcentajeRecuperacion,
         updatedAt = parseTimestamp(updatedAt),
     )

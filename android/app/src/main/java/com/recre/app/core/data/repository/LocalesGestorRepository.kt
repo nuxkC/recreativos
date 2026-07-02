@@ -45,6 +45,11 @@ data class LocalInputData(
     val telefono: String?,
     val email: String?,
     val notas: String?,
+    val comunidadAutonoma: String?,
+    val provinciaCodigo: String?,
+    val municipioCodigo: String?,
+    val calle: String?,
+    val codigoPostal: String?,
 )
 
 @Singleton
@@ -69,6 +74,11 @@ class LocalesGestorRepositoryImpl @Inject constructor(
                     telefono = input.telefono,
                     email = input.email,
                     notas = input.notas,
+                    comunidadAutonoma = input.comunidadAutonoma,
+                    provinciaCodigo = input.provinciaCodigo,
+                    municipioCodigo = input.municipioCodigo,
+                    calle = input.calle,
+                    codigoPostal = input.codigoPostal,
                 ),
             )
         }.fold(
@@ -95,6 +105,11 @@ class LocalesGestorRepositoryImpl @Inject constructor(
                     telefono = input.telefono,
                     email = input.email,
                     notas = input.notas,
+                    comunidadAutonoma = input.comunidadAutonoma,
+                    provinciaCodigo = input.provinciaCodigo,
+                    municipioCodigo = input.municipioCodigo,
+                    calle = input.calle,
+                    codigoPostal = input.codigoPostal,
                 ),
             )
         }.fold(
