@@ -5,6 +5,12 @@ import { LocalInputSchema } from "./schemas";
 const base = {
   nombre: "Bar Pepe",
   direccion: "",
+  // Dirección estructurada (T-277): el formulario siempre envía los 5, vacíos → null.
+  comunidadAutonoma: "",
+  provinciaCodigo: "",
+  municipioCodigo: "",
+  calle: "",
+  codigoPostal: "",
   cifONif: "",
   titularNombre: "",
   telefono: "",

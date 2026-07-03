@@ -12,6 +12,7 @@ import {
   obtenerPorcentajeRecuperacionEmpresa,
   obtenerSaldoLocal,
 } from "@/lib/deudas/queries";
+import { formatearDireccion } from "@/lib/locales/direccion";
 import { obtenerLocal } from "@/lib/locales/queries";
 
 const IdSchema = z.string().guid();
@@ -52,11 +53,11 @@ export default async function DeudasLocalPage(props: DeudasLocalPageProps) {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="space-y-1">
-        <Link href="/deudas" className="text-sm text-muted-foreground hover:underline">
+        <Link href="/deudas" className="text-muted-foreground text-sm hover:underline">
           ← {t("seccion.volver")}
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">{local.nombre}</h1>
-        <p className="text-sm text-muted-foreground">{local.direccion ?? "—"}</p>
+        <p className="text-muted-foreground text-sm">{formatearDireccion(local) ?? "—"}</p>
       </div>
 
       <DeudasLocal
