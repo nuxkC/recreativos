@@ -65,8 +65,6 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
                 CrearLicenciaParams(
                     empresaId = empresaId,
                     numero = input.numero,
-                    // El tipo de licencia se retiró de la UI (T-273); la RPC aún exige p_tipo.
-                    tipo = null,
                     fechaExpedicion = input.fechaExpedicion,
                     fechaCaducidad = input.fechaCaducidad,
                     comunidadAutonoma = input.comunidadAutonoma,
@@ -92,8 +90,6 @@ class LicenciasGestorRepositoryImpl @Inject constructor(
                 ActualizarLicenciaParams(
                     id = id,
                     numero = input.numero,
-                    // El tipo de licencia se retiró de la UI (T-273); la RPC aún exige p_tipo.
-                    tipo = null,
                     fechaExpedicion = input.fechaExpedicion,
                     fechaCaducidad = input.fechaCaducidad,
                     comunidadAutonoma = input.comunidadAutonoma,

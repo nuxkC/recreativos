@@ -28,8 +28,6 @@ data class CrearLicenciaParams(
     val empresaId: String,
     @SerialName("p_numero")
     val numero: String,
-    @SerialName("p_tipo")
-    val tipo: String?,
     @SerialName("p_fecha_expedicion")
     val fechaExpedicion: String?,
     @SerialName("p_fecha_caducidad")
@@ -48,8 +46,6 @@ data class ActualizarLicenciaParams(
     val id: String,
     @SerialName("p_numero")
     val numero: String,
-    @SerialName("p_tipo")
-    val tipo: String?,
     @SerialName("p_fecha_expedicion")
     val fechaExpedicion: String?,
     @SerialName("p_fecha_caducidad")
