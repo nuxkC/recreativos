@@ -10,8 +10,8 @@ CREATE EXTENSION IF NOT EXISTS pgtap;
 CREATE TEMP TABLE _fns(sig text) ON COMMIT DROP;
 INSERT INTO _fns(sig) VALUES
     -- inventario
-    ('crear_licencia(uuid, text, text, date, date, text, text, text)'),
-    ('actualizar_licencia(uuid, text, text, date, date, text, text, text)'),
+    ('crear_licencia(uuid, text, date, date, text, text, text)'),
+    ('actualizar_licencia(uuid, text, date, date, text, text, text)'),
     ('eliminar_licencia(uuid)'),
     ('crear_maquina(uuid, text, text, text, numeric, bigint, bigint, text, text)'),
     ('actualizar_maquina(uuid, text, text, text, numeric, bigint, bigint, text, text)'),

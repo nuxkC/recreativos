@@ -4,7 +4,7 @@
 --
 -- Cubre:
 --   * La columna `tipo` se eliminó de licencia.
---   * crear_licencia CONSERVA su firma exacta (p_tipo inerte, no-breaking).
+--   * crear_licencia ya no recibe el parámetro inerte p_tipo (firma de 7 args).
 --   * INSERT con una CCAA válida ('Cataluña') pasa.
 --   * INSERT con CCAA NULL pasa (permitido).
 --   * INSERT con una CCAA fuera de la lista es rechazado por el CHECK (23514).
@@ -26,11 +26,11 @@ INSERT INTO public.empresa (id, nombre, trial_inicio, trial_fin)
 SELECT hasnt_column('public', 'licencia', 'tipo',
     'licencia ya no tiene la columna tipo');
 
--- 2. crear_licencia conserva su firma exacta (p_tipo inerte, no-breaking).
+-- 2. crear_licencia ya no expone el parámetro inerte p_tipo (firma de 7 args).
 SELECT has_function(
     'public', 'crear_licencia',
-    ARRAY['uuid', 'text', 'text', 'date', 'date', 'text', 'text', 'text'],
-    'crear_licencia conserva su firma con p_tipo inerte'
+    ARRAY['uuid', 'text', 'date', 'date', 'text', 'text', 'text'],
+    'crear_licencia ya no tiene el parámetro p_tipo'
 );
 
 -- 3. CCAA válida de la lista cerrada.
