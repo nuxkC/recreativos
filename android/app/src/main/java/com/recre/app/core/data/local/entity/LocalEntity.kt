@@ -25,7 +25,6 @@ data class LocalEntity(
     @ColumnInfo(name = "empresa_id")
     val empresaId: String,
     val nombre: String,
-    val direccion: String?,
     @ColumnInfo(name = "cif_o_nif")
     val cifONif: String?,
     @ColumnInfo(name = "titular_nombre")

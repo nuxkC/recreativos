@@ -518,7 +518,6 @@
     "validacion": {
       "nombreRequerido": "El nombre es obligatorio.",
       "nombreMuyLargo": "El nombre no puede tener más de 200 caracteres.",
-      "direccionMuyLarga": "La dirección no puede tener más de 300 caracteres.",
       "calleMuyLarga": "La calle no puede tener más de 300 caracteres.",
       "codigoPostalInvalido": "El código postal debe tener 5 dígitos.",
       "cifONifMuyLargo": "El CIF/NIF no puede tener más de 20 caracteres.",

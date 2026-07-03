@@ -540,7 +540,6 @@
     <string name="gestion_local_nuevo">Nuevo local</string>
     <string name="gestion_local_editar">Editar local</string>
     <string name="gestion_local_nombre">Nombre</string>
-    <string name="gestion_local_direccion">Dirección</string>
     <string name="gestion_local_comunidad">Comunidad autónoma</string>
     <string name="gestion_local_provincia">Provincia</string>
     <string name="gestion_local_municipio">Municipio</string>

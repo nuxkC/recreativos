@@ -66,11 +66,6 @@ fun LocalFormScreen(
                 stringResource(R.string.gestion_validacion_requerido)
             },
         )
-        GestionTextField(
-            label = stringResource(R.string.gestion_local_direccion),
-            value = state.direccion,
-            onValueChange = viewModel::onDireccionChange,
-        )
         // Dirección estructurada (T-277): cascada CCAA -> provincia -> municipio.
         ComboboxCcaa(
             value = state.comunidadAutonoma,

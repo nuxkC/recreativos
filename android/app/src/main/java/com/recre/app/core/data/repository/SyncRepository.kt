@@ -191,7 +191,6 @@ class SyncRepositoryImpl @Inject constructor(
         id = id,
         empresaId = empresaId,
         nombre = nombre,
-        direccion = direccion,
         cifONif = cifONif,
         titularNombre = titularNombre,
         telefono = telefono,

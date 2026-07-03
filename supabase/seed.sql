@@ -103,12 +103,13 @@ on conflict (empresa_id, usuario_id) do nothing;
 -- -----------------------------------------------------------------------------
 -- 4. Locales (establecimientos).
 -- -----------------------------------------------------------------------------
-insert into public.local (id, empresa_id, nombre, direccion, cif_o_nif, titular_nombre, telefono, email) values
-    ('b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 'Bar El Rincón',     'C/ Sagunto, 12, Valencia',    '12345678Z', 'José Pérez',              '961001001', 'elrincon@example.com'),
-    ('b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 'Cafetería Central', 'Plaza Mayor, 3, Valencia',    '87654321X', 'María López',             '961002002', 'central@example.com'),
-    ('b0000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000001', 'Pub La Esquina',    'Av. Lauri Volpi, 8, Torrent', 'B98712345', 'Hostelería Torrent S.L.', '961003003', 'laesquina@example.com'),
-    ('b0000000-0000-0000-0000-000000000004', 'e0000000-0000-0000-0000-000000000001', 'Salón Oasis',       'C/ Mayor, 45, Paterna',       'B45612378', 'Oasis Ocio S.L.',         '961004004', 'oasis@example.com'),
-    ('b0000000-0000-0000-0000-000000000005', 'e0000000-0000-0000-0000-000000000001', 'Bar Gol',           'C/ Russafa, 21, Valencia',    '11223344C', 'Antonio Ruiz',            '961005005', 'bargol@example.com')
+-- Dirección estructurada (T-277): calle + CP + municipio/provincia INE + CCAA.
+insert into public.local (id, empresa_id, nombre, calle, codigo_postal, municipio_codigo, provincia_codigo, comunidad_autonoma, cif_o_nif, titular_nombre, telefono, email) values
+    ('b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 'Bar El Rincón',     'C/ Sagunto, 12',     '46009', '46250', '46', 'Comunidad Valenciana', '12345678Z', 'José Pérez',              '961001001', 'elrincon@example.com'),
+    ('b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 'Cafetería Central', 'Plaza Mayor, 3',     '46001', '46250', '46', 'Comunidad Valenciana', '87654321X', 'María López',             '961002002', 'central@example.com'),
+    ('b0000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000001', 'Pub La Esquina',    'Av. Lauri Volpi, 8', '46900', '46244', '46', 'Comunidad Valenciana', 'B98712345', 'Hostelería Torrent S.L.', '961003003', 'laesquina@example.com'),
+    ('b0000000-0000-0000-0000-000000000004', 'e0000000-0000-0000-0000-000000000001', 'Salón Oasis',       'C/ Mayor, 45',       '46980', '46190', '46', 'Comunidad Valenciana', 'B45612378', 'Oasis Ocio S.L.',         '961004004', 'oasis@example.com'),
+    ('b0000000-0000-0000-0000-000000000005', 'e0000000-0000-0000-0000-000000000001', 'Bar Gol',           'C/ Russafa, 21',     '46004', '46250', '46', 'Comunidad Valenciana', '11223344C', 'Antonio Ruiz',            '961005005', 'bargol@example.com')
 on conflict (id) do nothing;
 
 -- -----------------------------------------------------------------------------

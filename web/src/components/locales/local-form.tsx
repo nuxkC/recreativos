@@ -34,7 +34,6 @@ import type { Local } from "@/lib/locales/types";
 
 type LocalFormValues = {
   nombre: string;
-  direccion: string;
   comunidadAutonoma: string;
   provinciaCodigo: string;
   municipioCodigo: string;
@@ -61,7 +60,6 @@ const CCAA_OPTIONS = COMUNIDADES_AUTONOMAS.map((c) => ({ value: c, label: c }));
 function defaultsFromLocal(local?: Local): LocalFormValues {
   return {
     nombre: local?.nombre ?? "",
-    direccion: local?.direccion ?? "",
     comunidadAutonoma: local?.comunidadAutonoma ?? "",
     provinciaCodigo: local?.provinciaCodigo ?? "",
     municipioCodigo: local?.municipioCodigo ?? "",
@@ -78,7 +76,6 @@ function defaultsFromLocal(local?: Local): LocalFormValues {
 function buildFormData(values: LocalFormValues): FormData {
   const fd = new FormData();
   fd.set("nombre", values.nombre);
-  fd.set("direccion", values.direccion);
   fd.set("comunidadAutonoma", values.comunidadAutonoma);
   fd.set("provinciaCodigo", values.provinciaCodigo);
   fd.set("municipioCodigo", values.municipioCodigo);
@@ -223,19 +220,6 @@ export function LocalForm({ mode, local, provincias, municipios }: LocalFormProp
                 <FormLabel>{tCampos("nombre")}</FormLabel>
                 <FormControl>
                   <Input autoComplete="off" maxLength={200} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="direccion"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tCampos("direccion")}</FormLabel>
-                <FormControl>
-                  <Input autoComplete="off" maxLength={300} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

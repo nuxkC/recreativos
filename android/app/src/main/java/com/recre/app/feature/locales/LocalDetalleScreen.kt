@@ -227,7 +227,6 @@ private fun CabeceraLocal(detalle: LocalDetalle) {
             detalle.local.calle,
             detalle.local.codigoPostal,
             detalle.local.comunidadAutonoma,
-            detalle.local.direccion,
         )
         if (!direccion.isNullOrBlank()) {
             Text(

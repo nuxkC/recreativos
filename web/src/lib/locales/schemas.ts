@@ -19,7 +19,6 @@ export const LocalInputSchema = z.object({
     .trim()
     .min(1, { message: "nombreRequerido" })
     .max(200, { message: "nombreMuyLargo" }),
-  direccion: trimmedString.pipe(z.string().max(300, { message: "direccionMuyLarga" }).nullable()),
   // Dirección estructurada (T-277). CCAA/provincia/municipio vienen de selectores
   // cerrados (validados por el CHECK/FK de BBDD); calle y CP son texto libre.
   comunidadAutonoma: trimmedString.pipe(z.string().max(80).nullable()),

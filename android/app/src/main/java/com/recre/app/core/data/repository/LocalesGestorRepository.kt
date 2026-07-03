@@ -39,7 +39,6 @@ interface LocalesGestorRepository {
  */
 data class LocalInputData(
     val nombre: String,
-    val direccion: String?,
     val cifONif: String?,
     val titularNombre: String?,
     val telefono: String?,
@@ -68,7 +67,6 @@ class LocalesGestorRepositoryImpl @Inject constructor(
                 CrearLocalParams(
                     empresaId = empresaId,
                     nombre = input.nombre,
-                    direccion = input.direccion,
                     cifONif = input.cifONif,
                     titularNombre = input.titularNombre,
                     telefono = input.telefono,
@@ -99,7 +97,6 @@ class LocalesGestorRepositoryImpl @Inject constructor(
                 ActualizarLocalParams(
                     id = id,
                     nombre = input.nombre,
-                    direccion = input.direccion,
                     cifONif = input.cifONif,
                     titularNombre = input.titularNombre,
                     telefono = input.telefono,

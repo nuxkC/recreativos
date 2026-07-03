@@ -16,9 +16,9 @@ INSERT INTO _fns(sig) VALUES
     ('crear_maquina(uuid, text, text, text, numeric, bigint, bigint, text, text)'),
     ('actualizar_maquina(uuid, text, text, text, numeric, bigint, bigint, text, text)'),
     ('eliminar_maquina(uuid)'),
-    -- crear/actualizar_local ganan dirección estructurada (T-277): +5 args text
-    ('crear_local(uuid, text, text, text, text, text, text, text, text, text, text, text, text)'),
-    ('actualizar_local(uuid, text, text, text, text, text, text, text, text, text, text, text, text)'),
+    -- crear/actualizar_local: dirección estructurada, sin el p_direccion de texto libre (T-277)
+    ('crear_local(uuid, text, text, text, text, text, text, text, text, text, text, text)'),
+    ('actualizar_local(uuid, text, text, text, text, text, text, text, text, text, text, text)'),
     ('eliminar_local(uuid)'),
     -- gestión de empresa (actualizar_ajustes_empresa lleva redondeo T-211 + % recuperación T-212)
     ('actualizar_ajustes_empresa(uuid, text, text, text, text, text, text, text, text, smallint, smallint)'),
