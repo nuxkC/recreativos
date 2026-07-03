@@ -21,6 +21,11 @@ data class LocalResumen(
     val id: String,
     val nombre: String,
     val direccion: String?,
+    // Dirección estructurada (T-277) para mostrar offline: calle + CP + CCAA
+    // (provincia/municipio son códigos INE que no se resuelven a nombre sin red).
+    val calle: String?,
+    val codigoPostal: String?,
+    val comunidadAutonoma: String?,
     val titularNombre: String?,
     val telefono: String?,
     val maquinasActivas: Int,

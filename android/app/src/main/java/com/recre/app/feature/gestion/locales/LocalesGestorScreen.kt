@@ -41,6 +41,7 @@ import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.OverflowAccion
 import com.recre.app.ui.components.RecreOverflowMenu
 import com.recre.app.ui.components.SnackbarEstado
+import com.recre.app.feature.locales.formatearDireccionLocal
 import com.recre.app.ui.components.mostrar
 import com.recre.app.ui.theme.RecreMotion
 
@@ -159,7 +160,12 @@ private fun LocalCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(local.nombre, style = MaterialTheme.typography.titleSmall)
-                local.direccion?.takeIf { it.isNotBlank() }?.let {
+                formatearDireccionLocal(
+                    local.calle,
+                    local.codigoPostal,
+                    local.comunidadAutonoma,
+                    local.direccion,
+                )?.let {
                     Text(
                         it,
                         style = MaterialTheme.typography.bodySmall,
