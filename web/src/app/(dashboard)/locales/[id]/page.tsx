@@ -13,6 +13,7 @@ import { TolvaInstalaciones } from "@/components/tolva/tolva-instalaciones";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRol } from "@/lib/auth/guards";
 import { ROLES_GESTION } from "@/lib/auth/roles";
+import { formatearDireccion } from "@/lib/locales/direccion";
 import { listarMunicipios, listarProvincias } from "@/lib/locales/geo-queries";
 import { obtenerLocal } from "@/lib/locales/queries";
 import { listarOperarios } from "@/lib/operarios/queries";
@@ -51,6 +52,11 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
   const tolvaInstalaciones = await obtenerTolvaInstalaciones(local.id);
   const operarios = await listarOperarios(activa.empresa.id);
   const [provincias, municipios] = await Promise.all([listarProvincias(), listarMunicipios()]);
+  // Resuelve código→nombre reutilizando la geo ya cargada para el formulario.
+  const direccionMostrada = formatearDireccion(local, {
+    municipio: municipios.find((m) => m.codigo === local.municipioCodigo)?.nombre ?? null,
+    provincia: provincias.find((p) => p.codigo === local.provinciaCodigo)?.nombre ?? null,
+  });
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -67,7 +73,7 @@ export default async function LocalDetallePage(props: LocalDetallePageProps) {
             >
               {local.nombre}
             </h1>
-            <p className="text-muted-foreground text-sm">{local.direccion ?? "—"}</p>
+            <p className="text-muted-foreground text-sm">{direccionMostrada ?? "—"}</p>
             <p className="text-muted-foreground text-xs">
               {t("detalle.actualizado", {
                 fecha: formatDate(local.updatedAt),
