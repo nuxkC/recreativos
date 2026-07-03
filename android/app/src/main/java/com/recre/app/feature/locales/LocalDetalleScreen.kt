@@ -223,9 +223,15 @@ private fun SyncStaleBanner(onSincronizar: () -> Unit) {
 @Composable
 private fun CabeceraLocal(detalle: LocalDetalle) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        if (!detalle.local.direccion.isNullOrBlank()) {
+        val direccion = formatearDireccionLocal(
+            detalle.local.calle,
+            detalle.local.codigoPostal,
+            detalle.local.comunidadAutonoma,
+            detalle.local.direccion,
+        )
+        if (!direccion.isNullOrBlank()) {
             Text(
-                text = detalle.local.direccion,
+                text = direccion,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

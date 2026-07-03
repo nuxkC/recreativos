@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.recre.app.R
 import com.recre.app.core.data.repository.EstadoAgenda
 import com.recre.app.core.data.repository.LocalResumen
+import com.recre.app.feature.locales.formatearDireccionLocal
 
 /**
  * Tarjeta de un local en la lista principal.
@@ -66,10 +67,16 @@ fun LocalCard(
                     // T-244: comparte el nombre con el título del detalle (no-op si no hay scopes).
                     modifier = Modifier.recreSharedBounds("local-nombre-${local.id}"),
                 )
-                if (!local.direccion.isNullOrBlank()) {
+                val direccion = formatearDireccionLocal(
+                    local.calle,
+                    local.codigoPostal,
+                    local.comunidadAutonoma,
+                    local.direccion,
+                )
+                if (!direccion.isNullOrBlank()) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = local.direccion,
+                        text = direccion,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
