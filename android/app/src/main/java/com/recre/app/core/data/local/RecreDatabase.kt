@@ -1,8 +1,11 @@
 package com.recre.app.core.data.local
 
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.recre.app.core.data.local.dao.AveriaPendienteDao
@@ -63,6 +66,10 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
  * Versión 10 (T-277): dirección estructurada del local (comunidad_autonoma,
  * provincia_codigo, municipio_codigo, calle, codigo_postal), puramente aditiva.
  *
+ * Versión 11 (T-277): retira `direccion` (texto libre) de `local` vía
+ * auto-migración @DeleteColumn; la dirección de display pasa a derivarse de los
+ * campos estructurados. Room recrea la tabla preservando datos y FKs.
+ *
  * Cuando se añadan colas para `cambio_placa` (T-61) o
  * `lectura_no_recaudada` (futuro), seguir este mismo patrón: subir
  * versión y añadir migration.
@@ -80,11 +87,18 @@ import com.recre.app.core.data.local.entity.SyncMetaEntity
         AveriaPendienteEntity::class,
         CuadreRecuentoEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 10, to = 11, spec = RecreDatabase.Migration10To11::class),
+    ],
 )
 @TypeConverters(InstantConverter::class)
 abstract class RecreDatabase : RoomDatabase() {
+    /** v11 (T-277): retira la columna `direccion` de texto libre de `local`. */
+    @DeleteColumn(tableName = "local", columnName = "direccion")
+    class Migration10To11 : AutoMigrationSpec
+
     abstract fun empresaParamsDao(): EmpresaParamsDao
     abstract fun localDao(): LocalDao
     abstract fun maquinaDao(): MaquinaDao

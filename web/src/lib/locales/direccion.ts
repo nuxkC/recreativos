@@ -18,12 +18,11 @@ export function tieneDireccionEstructurada(local: Local): boolean {
 }
 
 /**
- * Dirección de un local para mostrar en SOLO-LECTURA. Prioriza la dirección
- * estructurada cuando existe y cae al `direccion` de texto libre (transición)
- * si no. Degrada con elegancia: si se pasan los nombres resueltos de
- * provincia/municipio muestra "calle, CP municipio, provincia"; sin ellos usa la
- * comunidad autónoma (que ya es texto) → "calle, CP, comunidad". Devuelve null
- * si no hay nada que mostrar.
+ * Dirección de un local para mostrar en SOLO-LECTURA, DERIVADA de los campos
+ * estructurados (T-277; ya no existe el texto libre). Degrada con elegancia: si
+ * se pasan los nombres resueltos de provincia/municipio muestra "calle, CP
+ * municipio, provincia"; sin ellos usa la comunidad autónoma (que ya es texto)
+ * → "calle, CP, comunidad". Devuelve null si no hay nada que mostrar.
  */
 export function formatearDireccion(local: Local, nombres?: NombresGeo): string | null {
   const partes: string[] = [];
@@ -37,6 +36,5 @@ export function formatearDireccion(local: Local, nombres?: NombresGeo): string |
   const region = nombres?.provincia ?? local.comunidadAutonoma;
   if (region && region !== nombres?.municipio) partes.push(region);
 
-  if (partes.length > 0) return partes.join(", ");
-  return local.direccion ?? null;
+  return partes.length > 0 ? partes.join(", ") : null;
 }

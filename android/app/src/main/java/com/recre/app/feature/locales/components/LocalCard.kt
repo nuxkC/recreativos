@@ -71,7 +71,6 @@ fun LocalCard(
                     local.calle,
                     local.codigoPostal,
                     local.comunidadAutonoma,
-                    local.direccion,
                 )
                 if (!direccion.isNullOrBlank()) {
                     Spacer(Modifier.height(2.dp))

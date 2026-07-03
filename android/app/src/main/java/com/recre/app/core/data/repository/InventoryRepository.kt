@@ -168,7 +168,14 @@ class InventoryRepositoryImpl @Inject constructor(
         baselineReferenciaId = inst.baselineReferenciaId,
         localId = local.id,
         localNombre = local.nombre,
-        localDireccion = local.direccion,
+        // Dirección del ticket DERIVADA de los campos estructurados (T-277; ya no
+        // hay texto libre). Offline no se resuelven nombres INE de municipio/
+        // provincia, así que se compone con lo disponible: calle + CP + CCAA.
+        localDireccion = listOfNotNull(
+            local.calle?.takeIf { it.isNotBlank() },
+            local.codigoPostal?.takeIf { it.isNotBlank() },
+            local.comunidadAutonoma?.takeIf { it.isNotBlank() },
+        ).joinToString(", ").ifBlank { null },
         pendienteTolva = inst.pendienteTolva,
     )
 
@@ -182,7 +189,6 @@ class InventoryRepositoryImpl @Inject constructor(
     private fun LocalEntity.toResumen(maquinasActivas: Int): LocalResumen = LocalResumen(
         id = id,
         nombre = nombre,
-        direccion = direccion,
         calle = calle,
         codigoPostal = codigoPostal,
         comunidadAutonoma = comunidadAutonoma,

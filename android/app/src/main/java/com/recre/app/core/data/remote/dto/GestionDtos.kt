@@ -126,8 +126,6 @@ data class CrearLocalParams(
     val empresaId: String,
     @SerialName("p_nombre")
     val nombre: String,
-    @SerialName("p_direccion")
-    val direccion: String?,
     @SerialName("p_cif_o_nif")
     val cifONif: String?,
     @SerialName("p_titular_nombre")
@@ -156,8 +154,6 @@ data class ActualizarLocalParams(
     val id: String,
     @SerialName("p_nombre")
     val nombre: String,
-    @SerialName("p_direccion")
-    val direccion: String?,
     @SerialName("p_cif_o_nif")
     val cifONif: String?,
     @SerialName("p_titular_nombre")

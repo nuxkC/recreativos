@@ -7,7 +7,6 @@ function local(parcial: Partial<Local>): Local {
   return {
     id: "l1",
     nombre: "Bar Pepe",
-    direccion: null,
     comunidadAutonoma: null,
     provinciaCodigo: null,
     municipioCodigo: null,
@@ -29,7 +28,7 @@ function local(parcial: Partial<Local>): Local {
 
 describe("tieneDireccionEstructurada", () => {
   it("es false sin ningún campo estructurado", () => {
-    expect(tieneDireccionEstructurada(local({ direccion: "Calle Vieja 1" }))).toBe(false);
+    expect(tieneDireccionEstructurada(local({}))).toBe(false);
   });
   it("es true con cualquier campo estructurado", () => {
     expect(tieneDireccionEstructurada(local({ codigoPostal: "28001" }))).toBe(true);
@@ -38,10 +37,6 @@ describe("tieneDireccionEstructurada", () => {
 });
 
 describe("formatearDireccion", () => {
-  it("cae al texto libre si no hay estructura", () => {
-    expect(formatearDireccion(local({ direccion: "Calle Vieja 1" }))).toBe("Calle Vieja 1");
-  });
-
   it("devuelve null si no hay nada", () => {
     expect(formatearDireccion(local({}))).toBeNull();
   });

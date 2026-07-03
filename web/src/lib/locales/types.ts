@@ -19,7 +19,6 @@ export interface Local {
   id: string;
   empresaId: string;
   nombre: string;
-  direccion: string | null;
   /** Dirección estructurada (T-277). CCAA = lista de oro; códigos = INE. */
   comunidadAutonoma: string | null;
   provinciaCodigo: string | null;
@@ -47,7 +46,6 @@ export interface LocalRow {
   id: string;
   empresa_id: string;
   nombre: string;
-  direccion: string | null;
   comunidad_autonoma: string | null;
   provincia_codigo: string | null;
   municipio_codigo: string | null;
@@ -71,7 +69,6 @@ export function mapLocalRow(row: LocalRow): Local {
     id: row.id,
     empresaId: row.empresa_id,
     nombre: row.nombre,
-    direccion: row.direccion,
     comunidadAutonoma: row.comunidad_autonoma,
     provinciaCodigo: row.provincia_codigo,
     municipioCodigo: row.municipio_codigo,

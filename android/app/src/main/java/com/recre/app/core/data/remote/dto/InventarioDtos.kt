@@ -48,7 +48,6 @@ data class LocalDto(
     @SerialName("empresa_id")
     val empresaId: String,
     val nombre: String,
-    val direccion: String? = null,
     @SerialName("cif_o_nif")
     val cifONif: String? = null,
     @SerialName("titular_nombre")

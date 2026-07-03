@@ -30,7 +30,6 @@ import timber.log.Timber
 data class LocalFormUiState(
     val cargando: Boolean = false,
     val nombre: String = "",
-    val direccion: String = "",
     val cifONif: String = "",
     val titularNombre: String = "",
     val telefono: String = "",
@@ -86,7 +85,6 @@ class LocalFormViewModel @Inject constructor(
                         it.copy(
                             cargando = false,
                             nombre = entity.nombre,
-                            direccion = entity.direccion.orEmpty(),
                             cifONif = entity.cifONif.orEmpty(),
                             titularNombre = entity.titularNombre.orEmpty(),
                             telefono = entity.telefono.orEmpty(),
@@ -119,7 +117,6 @@ class LocalFormViewModel @Inject constructor(
     }
 
     fun onNombreChange(v: String) = _state.update { it.copy(nombre = v) }
-    fun onDireccionChange(v: String) = _state.update { it.copy(direccion = v) }
     fun onCifChange(v: String) = _state.update { it.copy(cifONif = v) }
     fun onTitularChange(v: String) = _state.update { it.copy(titularNombre = v) }
     fun onTelefonoChange(v: String) = _state.update { it.copy(telefono = v) }
@@ -185,7 +182,6 @@ class LocalFormViewModel @Inject constructor(
 
         val input = LocalInputData(
             nombre = s.nombre.trim(),
-            direccion = s.direccion.normalizarOpcional(),
             cifONif = s.cifONif.normalizarOpcional(),
             titularNombre = s.titularNombre.normalizarOpcional(),
             telefono = s.telefono.normalizarOpcional(),

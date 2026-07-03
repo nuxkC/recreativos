@@ -81,7 +81,7 @@ fun LocalesGestorScreen(
             if (q.isEmpty()) state.locales
             else state.locales.filter {
                 it.nombre.lowercase().contains(q) ||
-                    (it.direccion ?: "").lowercase().contains(q) ||
+                    (it.calle ?: "").lowercase().contains(q) ||
                     (it.titularNombre ?: "").lowercase().contains(q)
             }
         }
@@ -164,7 +164,6 @@ private fun LocalCard(
                     local.calle,
                     local.codigoPostal,
                     local.comunidadAutonoma,
-                    local.direccion,
                 )?.let {
                     Text(
                         it,

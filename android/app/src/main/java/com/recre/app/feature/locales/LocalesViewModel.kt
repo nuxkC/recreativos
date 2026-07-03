@@ -103,7 +103,7 @@ data class LocalesUiState(
             val needle = query.trim().lowercase()
             locales.filter { local ->
                 local.nombre.lowercase().contains(needle) ||
-                    local.direccion?.lowercase()?.contains(needle) == true
+                    local.calle?.lowercase()?.contains(needle) == true
             }
         }
 

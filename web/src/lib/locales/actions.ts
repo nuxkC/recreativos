@@ -44,7 +44,6 @@ function fieldErrorsFromZod(err: z.ZodError): Record<string, string[]> {
 function parseLocalForm(formData: FormData): Record<string, unknown> {
   return {
     nombre: formData.get("nombre") ?? "",
-    direccion: formData.get("direccion") ?? "",
     comunidadAutonoma: formData.get("comunidadAutonoma") ?? "",
     provinciaCodigo: formData.get("provinciaCodigo") ?? "",
     municipioCodigo: formData.get("municipioCodigo") ?? "",
@@ -83,7 +82,6 @@ export async function crearLocal(
   const { data, error } = await supabase.rpc("crear_local", {
     p_empresa_id: activa.empresa.id,
     p_nombre: parsed.data.nombre,
-    p_direccion: parsed.data.direccion,
     p_cif_o_nif: parsed.data.cifONif,
     p_titular_nombre: parsed.data.titularNombre,
     p_telefono: parsed.data.telefono,
@@ -139,7 +137,6 @@ export async function actualizarLocal(
   const { error } = await supabase.rpc("actualizar_local", {
     p_id: localId,
     p_nombre: parsed.data.nombre,
-    p_direccion: parsed.data.direccion,
     p_cif_o_nif: parsed.data.cifONif,
     p_titular_nombre: parsed.data.titularNombre,
     p_telefono: parsed.data.telefono,
