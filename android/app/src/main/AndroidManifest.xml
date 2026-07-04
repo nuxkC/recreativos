@@ -28,16 +28,20 @@
          lo solicita MainActivity. En versiones anteriores se concede solo. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- enableOnBackInvokedCallback: predictive back (Android 13+), gesto de
+         atrás con animación anticipada. Los BackHandler condicionales (p. ej.
+         confirmar descarte del conteo en Denominaciones) siguen interceptando. -->
     <application
         android:name=".RecreApp"
         android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Recre"
-      android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="true"
         tools:targetApi="34">
 
         <activity
