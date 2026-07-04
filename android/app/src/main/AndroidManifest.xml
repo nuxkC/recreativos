@@ -45,7 +45,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:configChanges="colorMode|density|fontScale|keyboard|keyboardHidden|layoutDirection|locale|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"
-            android:theme="@style/Theme.Recre">
+            android:theme="@style/Theme.Recre.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
