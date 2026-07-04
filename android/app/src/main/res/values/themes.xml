@@ -6,4 +6,12 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- Splash del sistema (core-splashscreen): icono de la app en vez del
+         spinner genérico. MainActivity lo retiene mientras la sesión se
+         resuelve y postSplashScreenTheme devuelve el tema real. -->
+    <style name="Theme.Recre.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Recre</item>
+    </style>
 </resources>

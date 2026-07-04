@@ -37,7 +37,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.recre.app.core.push.PushNotifier
+import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
 import com.recre.app.core.data.local.TamanoUi
 import com.recre.app.core.data.local.UiPreferences
@@ -110,8 +112,18 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var uiPreferences: UiPreferences
 
+    @Inject
+    lateinit var sessionRepository: SessionRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Retiene el splash del sistema (icono de marca) mientras la sesión se
+        // resuelve; sustituye al spinner genérico del primer frame. La ruta
+        // interna SPLASH queda como respaldo para transiciones posteriores.
+        splash.setKeepOnScreenCondition {
+            sessionRepository.state.value is SessionState.Loading
+        }
         enableEdgeToEdge()
         leerDeepLink(intent)
         setContent {
