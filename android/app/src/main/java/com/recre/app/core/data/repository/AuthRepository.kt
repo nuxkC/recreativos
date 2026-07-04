@@ -10,7 +10,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 
 /**
  * Operaciones de autenticación. La implementación concreta vive en `data/`
@@ -72,19 +72,11 @@ class SupabaseAuthRepository @Inject constructor(
 
     override fun observeIsLoggedIn(): Flow<Boolean> =
         supabase.auth.sessionStatus
-            .map { status ->
-                when (status) {
-                    is SessionStatus.Authenticated -> true
-                    // Un fallo al refrescar el token (p. ej. sin red al volver de
-                    // pantalla bloqueada) NO es un cierre de sesión: la sesión local
-                    // sigue válida y supabase reintenta. Tratarlo como logout sacaba
-                    // al técnico de su pantalla a Login/Locales.
-                    is SessionStatus.RefreshFailure -> true
-                    is SessionStatus.NotAuthenticated -> false
-                    // Solo al arranque, mientras se lee la sesión de disco.
-                    SessionStatus.Initializing -> false
-                }
-            }
+            // `Initializing` (null) no emite nada: hasta leer la sesión de disco
+            // no se sabe si hay usuario. Emitir `false` ahí provocaba en cada
+            // cold start un flash de Login que pisaba el back stack restaurado
+            // y borraba la empresa activa persistida.
+            .mapNotNull(::isLoggedInFromStatus)
             // Clave: sin esto, cada re-emisión de `Authenticated` (al reconectar el
             // realtime / refrescar el token en el resume) re-emitía `true`, lo que en
             // SessionRepository volvía a lanzar refreshMembresias() → estado Loading
@@ -94,4 +86,21 @@ class SupabaseAuthRepository @Inject constructor(
     override fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
     override fun currentUserEmail(): String? = supabase.auth.currentUserOrNull()?.email
+}
+
+/**
+ * Traduce el [SessionStatus] de supabase-kt a "¿hay sesión?".
+ * `null` = aún no se sabe (arranque: supabase sigue leyendo la sesión de
+ * disco); el caller no debe emitir nada para que el estado global de sesión
+ * permanezca en Loading en vez de fingir un logout.
+ */
+internal fun isLoggedInFromStatus(status: SessionStatus): Boolean? = when (status) {
+    is SessionStatus.Authenticated -> true
+    // Un fallo al refrescar el token (p. ej. sin red al volver de pantalla
+    // bloqueada) NO es un cierre de sesión: la sesión local sigue válida y
+    // supabase reintenta. Tratarlo como logout sacaba al técnico de su
+    // pantalla a Login/Locales.
+    is SessionStatus.RefreshFailure -> true
+    is SessionStatus.NotAuthenticated -> false
+    SessionStatus.Initializing -> null
 }
