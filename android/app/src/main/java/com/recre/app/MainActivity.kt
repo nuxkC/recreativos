@@ -65,6 +65,7 @@ import com.recre.app.feature.empresa.SinAccesoScreen
 import com.recre.app.feature.gestion.GestionScreen
 import com.recre.app.ui.components.LocalNavAnimatedVisibilityScope
 import com.recre.app.ui.components.LocalSharedTransitionScope
+import com.recre.app.ui.components.dropUnlessResumed
 import com.recre.app.ui.components.navigateTab
 import com.recre.app.feature.gestion.instalaciones.InstalacionFormScreen
 import com.recre.app.feature.gestion.instalaciones.InstalacionFormViewModel
@@ -235,38 +236,38 @@ private fun RecreApp(
                 val vm: LocalesViewModel = hiltViewModel()
                 LocalesScreen(
                     viewModel = vm,
-                    onLocalClick = { localId ->
+                    onLocalClick = dropUnlessResumed { localId ->
                         navController.navigate(Routes.localDetalle(localId))
                     },
-                    onAlertasClick = {
+                    onAlertasClick = dropUnlessResumed {
                         navController.navigate(Routes.ALERTAS)
                     },
-                    onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
-                    onCuadreClick = { navController.navigate(Routes.CUADRE) },
-                    onSelectTab = { dest -> navController.navigateTab(dest) },
+                    onIncidenciasClick = dropUnlessResumed { navController.navigate(Routes.INCIDENCIAS) },
+                    onCuadreClick = dropUnlessResumed { navController.navigate(Routes.CUADRE) },
+                    onSelectTab = dropUnlessResumed { dest -> navController.navigateTab(dest) },
                 )
             }
         }
         composable(Routes.CUADRE) {
-            CuadreScreen(onBack = { navController.popBackStack() })
+            CuadreScreen(onBack = dropUnlessResumed { navController.popBackStack() })
         }
         composable(Routes.IMPRESORA) {
-            ImpresoraScreen(onBack = { navController.popBackStack() })
+            ImpresoraScreen(onBack = dropUnlessResumed { navController.popBackStack() })
         }
         composable(Routes.AJUSTES) {
             AjustesScreen(
-                onSelectTab = { dest -> navController.navigateTab(dest) },
-                onImpresoraClick = { navController.navigate(Routes.IMPRESORA) },
-                onAlertasClick = { navController.navigate(Routes.ALERTAS) },
-                onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
+                onSelectTab = dropUnlessResumed { dest -> navController.navigateTab(dest) },
+                onImpresoraClick = dropUnlessResumed { navController.navigate(Routes.IMPRESORA) },
+                onAlertasClick = dropUnlessResumed { navController.navigate(Routes.ALERTAS) },
+                onIncidenciasClick = dropUnlessResumed { navController.navigate(Routes.INCIDENCIAS) },
             )
         }
         composable(Routes.HISTORICO) {
             HistoricoScreen(
-                onSelectTab = { dest -> navController.navigateTab(dest) },
-                onAlertasClick = { navController.navigate(Routes.ALERTAS) },
-                onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
-                onRecaudacionClick = { id ->
+                onSelectTab = dropUnlessResumed { dest -> navController.navigateTab(dest) },
+                onAlertasClick = dropUnlessResumed { navController.navigate(Routes.ALERTAS) },
+                onIncidenciasClick = dropUnlessResumed { navController.navigate(Routes.INCIDENCIAS) },
+                onRecaudacionClick = dropUnlessResumed { id ->
                     navController.navigate(Routes.historicoDetalle(id))
                 },
             )
@@ -279,7 +280,7 @@ private fun RecreApp(
                 },
             ),
         ) {
-            HistoricoDetalleScreen(onBack = { navController.popBackStack() })
+            HistoricoDetalleScreen(onBack = dropUnlessResumed { navController.popBackStack() })
         }
         composable(
             route = Routes.HISTORICO_LOCAL,
@@ -290,8 +291,8 @@ private fun RecreApp(
             ),
         ) {
             HistoricoContextoScreen(
-                onBack = { navController.popBackStack() },
-                onRecaudacionClick = { id ->
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onRecaudacionClick = dropUnlessResumed { id ->
                     navController.navigate(Routes.historicoDetalle(id))
                 },
             )
@@ -305,16 +306,16 @@ private fun RecreApp(
             ),
         ) {
             HistoricoContextoScreen(
-                onBack = { navController.popBackStack() },
-                onRecaudacionClick = { id ->
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onRecaudacionClick = dropUnlessResumed { id ->
                     navController.navigate(Routes.historicoDetalle(id))
                 },
             )
         }
         composable(Routes.ALERTAS) {
             AlertasScreen(
-                onBack = { navController.popBackStack() },
-                onAlertaClick = { alerta ->
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onAlertaClick = dropUnlessResumed { alerta ->
                     // Si la alerta tiene referencia a una recaudación,
                     // saltamos al detalle directamente para que el técnico
                     // vea cifras, motivo de anulación, etc.
@@ -327,13 +328,13 @@ private fun RecreApp(
         }
         composable(Routes.INCIDENCIAS) {
             IncidenciasScreen(
-                onBack = { navController.popBackStack() },
+                onBack = dropUnlessResumed { navController.popBackStack() },
                 // "Rehacer": reabrir el flujo para que el técnico recree el dato
                 // correcto (la fila rota, terminal, sigue en el panel para descartar).
-                onRehacerRecaudacion = { instalacionId ->
+                onRehacerRecaudacion = dropUnlessResumed { instalacionId ->
                     navController.navigate(Routes.recaudacion(instalacionId))
                 },
-                onRehacerAveria = { maquinaId ->
+                onRehacerAveria = dropUnlessResumed { maquinaId ->
                     navController.navigate(Routes.reportarAveria(maquinaId))
                 },
             )
@@ -353,23 +354,23 @@ private fun RecreApp(
             LocalDetalleScreen(
                 viewModel = vm,
                 localId = localId,
-                onBack = { navController.popBackStack() },
-                onRecaudarMaquina = { instalacionId ->
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onRecaudarMaquina = dropUnlessResumed { instalacionId ->
                     navController.navigate(Routes.recaudacion(instalacionId))
                 },
-                onCambioPlaca = { instalacionId ->
+                onCambioPlaca = dropUnlessResumed { instalacionId ->
                     navController.navigate(Routes.cambioPlaca(instalacionId))
                 },
-                onReportarAveria = { maquinaId ->
+                onReportarAveria = dropUnlessResumed { maquinaId ->
                     navController.navigate(Routes.reportarAveria(maquinaId))
                 },
-                onRecaudarTodas = { primeraInstalacionId ->
+                onRecaudarTodas = dropUnlessResumed { primeraInstalacionId ->
                     navController.navigate(
                         Routes.recaudacion(primeraInstalacionId, cadenaLocalId = localId),
                     )
                 },
-                onVerDeudas = { navController.navigate(Routes.localDeudas(localId)) },
-                onVerHistorico = { navController.navigate(Routes.historicoLocal(localId)) },
+                onVerDeudas = dropUnlessResumed { navController.navigate(Routes.localDeudas(localId)) },
+                onVerHistorico = dropUnlessResumed { navController.navigate(Routes.historicoLocal(localId)) },
             )
             }
         }
@@ -382,7 +383,7 @@ private fun RecreApp(
             CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
                 val localId = backStackEntry.arguments
                     ?.getString(DeudasLocalViewModel.ARG_LOCAL_ID).orEmpty()
-                DeudasLocalScreen(localId = localId, onBack = { navController.popBackStack() })
+                DeudasLocalScreen(localId = localId, onBack = dropUnlessResumed { navController.popBackStack() })
             }
         }
         composable(
@@ -396,8 +397,8 @@ private fun RecreApp(
             val vm: CambioPlacaViewModel = hiltViewModel()
             CambioPlacaScreen(
                 viewModel = vm,
-                onFinalizar = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
+                onFinalizar = dropUnlessResumed { navController.popBackStack() },
+                onBack = dropUnlessResumed { navController.popBackStack() },
             )
         }
         composable(
@@ -409,8 +410,8 @@ private fun RecreApp(
             ),
         ) {
             ReportarAveriaScreen(
-                onGuardado = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
+                onGuardado = dropUnlessResumed { navController.popBackStack() },
+                onBack = dropUnlessResumed { navController.popBackStack() },
             )
         }
         recaudacionGraph(navController)
@@ -442,16 +443,16 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
 ) {
     composable(Routes.GESTION) {
         GestionScreen(
-            onSelectTab = { dest -> navController.navigateTab(dest) },
-            onAlertasClick = { navController.navigate(Routes.ALERTAS) },
-            onIncidenciasClick = { navController.navigate(Routes.INCIDENCIAS) },
-            onLicenciasClick = { navController.navigate(Routes.GESTION_LICENCIAS) },
-            onMaquinasClick = { navController.navigate(Routes.GESTION_MAQUINAS) },
-            onLocalesClick = { navController.navigate(Routes.GESTION_LOCALES) },
-            onInstalacionesClick = {
+            onSelectTab = dropUnlessResumed { dest -> navController.navigateTab(dest) },
+            onAlertasClick = dropUnlessResumed { navController.navigate(Routes.ALERTAS) },
+            onIncidenciasClick = dropUnlessResumed { navController.navigate(Routes.INCIDENCIAS) },
+            onLicenciasClick = dropUnlessResumed { navController.navigate(Routes.GESTION_LICENCIAS) },
+            onMaquinasClick = dropUnlessResumed { navController.navigate(Routes.GESTION_MAQUINAS) },
+            onLocalesClick = dropUnlessResumed { navController.navigate(Routes.GESTION_LOCALES) },
+            onInstalacionesClick = dropUnlessResumed {
                 navController.navigate(Routes.GESTION_INSTALACIONES)
             },
-            onDeudasClick = { navController.navigate(Routes.GESTION_DEUDAS) },
+            onDeudasClick = dropUnlessResumed { navController.navigate(Routes.GESTION_DEUDAS) },
         )
     }
 
@@ -459,8 +460,8 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
     composable(Routes.GESTION_DEUDAS) {
         CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
             DeudasGestorScreen(
-                onBack = { navController.popBackStack() },
-                onLocalClick = { localId -> navController.navigate(Routes.localDeudas(localId)) },
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onLocalClick = dropUnlessResumed { localId -> navController.navigate(Routes.localDeudas(localId)) },
             )
         }
     }
@@ -468,17 +469,17 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
     // Licencias (T-66)
     composable(Routes.GESTION_LICENCIAS) {
         LicenciasGestorScreen(
-            onBack = { navController.popBackStack() },
-            onAlta = { navController.navigate(Routes.GESTION_LICENCIA_NUEVA) },
-            onEditar = { id ->
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onAlta = dropUnlessResumed { navController.navigate(Routes.GESTION_LICENCIA_NUEVA) },
+            onEditar = dropUnlessResumed { id ->
                 navController.navigate(Routes.gestionLicenciaEditar(id))
             },
         )
     }
     composable(Routes.GESTION_LICENCIA_NUEVA) {
         LicenciaFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_LICENCIAS, inclusive = false)
             },
         )
@@ -490,8 +491,8 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
         ),
     ) {
         LicenciaFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_LICENCIAS, inclusive = false)
             },
         )
@@ -500,15 +501,15 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
     // Máquinas (T-67)
     composable(Routes.GESTION_MAQUINAS) {
         MaquinasGestorScreen(
-            onBack = { navController.popBackStack() },
-            onAlta = { navController.navigate(Routes.GESTION_MAQUINA_NUEVA) },
-            onEditar = { id ->
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onAlta = dropUnlessResumed { navController.navigate(Routes.GESTION_MAQUINA_NUEVA) },
+            onEditar = dropUnlessResumed { id ->
                 navController.navigate(Routes.gestionMaquinaEditar(id))
             },
-            onVerAverias = { id ->
+            onVerAverias = dropUnlessResumed { id ->
                 navController.navigate(Routes.gestionMaquinaAverias(id))
             },
-            onVerHistorico = { id ->
+            onVerHistorico = dropUnlessResumed { id ->
                 navController.navigate(Routes.historicoMaquina(id))
             },
         )
@@ -519,12 +520,12 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
             navArgument(AveriasMaquinaViewModel.ARG_MAQUINA_ID) { type = NavType.StringType },
         ),
     ) {
-        AveriasMaquinaScreen(onBack = { navController.popBackStack() })
+        AveriasMaquinaScreen(onBack = dropUnlessResumed { navController.popBackStack() })
     }
     composable(Routes.GESTION_MAQUINA_NUEVA) {
         MaquinaFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_MAQUINAS, inclusive = false)
             },
         )
@@ -536,8 +537,8 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
         ),
     ) {
         MaquinaFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_MAQUINAS, inclusive = false)
             },
         )
@@ -546,20 +547,20 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
     // Locales (T-68)
     composable(Routes.GESTION_LOCALES) {
         LocalesGestorScreen(
-            onBack = { navController.popBackStack() },
-            onAlta = { navController.navigate(Routes.GESTION_LOCAL_NUEVO) },
-            onEditar = { id ->
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onAlta = dropUnlessResumed { navController.navigate(Routes.GESTION_LOCAL_NUEVO) },
+            onEditar = dropUnlessResumed { id ->
                 navController.navigate(Routes.gestionLocalEditar(id))
             },
-            onVerHistorico = { id ->
+            onVerHistorico = dropUnlessResumed { id ->
                 navController.navigate(Routes.historicoLocal(id))
             },
         )
     }
     composable(Routes.GESTION_LOCAL_NUEVO) {
         LocalFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_LOCALES, inclusive = false)
             },
         )
@@ -571,8 +572,8 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
         ),
     ) {
         LocalFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_LOCALES, inclusive = false)
             },
         )
@@ -581,17 +582,17 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
     // Instalaciones (T-69)
     composable(Routes.GESTION_INSTALACIONES) {
         InstalacionesGestorScreen(
-            onBack = { navController.popBackStack() },
-            onAlta = { navController.navigate(Routes.GESTION_INSTALACION_NUEVA) },
-            onEditar = { id ->
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onAlta = dropUnlessResumed { navController.navigate(Routes.GESTION_INSTALACION_NUEVA) },
+            onEditar = dropUnlessResumed { id ->
                 navController.navigate(Routes.gestionInstalacionEditar(id))
             },
         )
     }
     composable(Routes.GESTION_INSTALACION_NUEVA) {
         InstalacionFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_INSTALACIONES, inclusive = false)
             },
         )
@@ -605,8 +606,8 @@ private fun androidx.navigation.NavGraphBuilder.gestionRoutes(
         ),
     ) {
         InstalacionFormScreen(
-            onBack = { navController.popBackStack() },
-            onGuardado = {
+            onBack = dropUnlessResumed { navController.popBackStack() },
+            onGuardado = dropUnlessResumed {
                 navController.popBackStack(Routes.GESTION_INSTALACIONES, inclusive = false)
             },
         )
@@ -638,13 +639,13 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
             val flowVm = flowViewModel(navController, backStackEntry)
             ContadoresScreen(
                 viewModel = flowVm,
-                onContinuar = { navController.navigate(Routes.RECAUDACION_DENOMINACIONES_TOTAL) },
-                onLecturaNoRecaudada = {
+                onContinuar = dropUnlessResumed { navController.navigate(Routes.RECAUDACION_DENOMINACIONES_TOTAL) },
+                onLecturaNoRecaudada = dropUnlessResumed {
                     saltarOTerminarCadena(navController, flowVm)
                 },
-                onBack = { navController.popBackStack() },
+                onBack = dropUnlessResumed { navController.popBackStack() },
                 // (A) Ya está en contadores: basta con reiniciar la lectura.
-                onRehacer = { flowVm.rehacerLectura() },
+                onRehacer = dropUnlessResumed { flowVm.rehacerLectura() },
             )
         }
         composable(Routes.RECAUDACION_DENOMINACIONES_TOTAL) { backStackEntry ->
@@ -652,9 +653,9 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
             DenominacionesScreen(
                 viewModel = flowVm,
                 modo = ModoDenominaciones.Total,
-                onContinuar = { navController.navigate(Routes.RECAUDACION_DENOMINACIONES_LOCAL) },
-                onBack = { navController.popBackStack() },
-                onRehacer = {
+                onContinuar = dropUnlessResumed { navController.navigate(Routes.RECAUDACION_DENOMINACIONES_LOCAL) },
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onRehacer = dropUnlessResumed {
                     flowVm.rehacerLectura()
                     navController.popBackStack(Routes.RECAUDACION_CONTADORES, inclusive = false)
                 },
@@ -665,9 +666,9 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
             DenominacionesScreen(
                 viewModel = flowVm,
                 modo = ModoDenominaciones.Local,
-                onContinuar = { navController.navigate(Routes.RECAUDACION_CONFIRMACION) },
-                onBack = { navController.popBackStack() },
-                onRehacer = {
+                onContinuar = dropUnlessResumed { navController.navigate(Routes.RECAUDACION_CONFIRMACION) },
+                onBack = dropUnlessResumed { navController.popBackStack() },
+                onRehacer = dropUnlessResumed {
                     flowVm.rehacerLectura()
                     navController.popBackStack(Routes.RECAUDACION_CONTADORES, inclusive = false)
                 },
@@ -677,13 +678,13 @@ private fun androidx.navigation.NavGraphBuilder.recaudacionGraph(
             val flowVm = flowViewModel(navController, backStackEntry)
             ConfirmacionScreen(
                 viewModel = flowVm,
-                onFinalizar = {
+                onFinalizar = dropUnlessResumed {
                     saltarOTerminarCadena(navController, flowVm)
                 },
-                onBack = { navController.popBackStack() },
+                onBack = dropUnlessResumed { navController.popBackStack() },
                 // (A) Baseline cambió a mitad: reinicia la lectura y vuelve al
                 // paso de contadores (el ViewModel del graph sobrevive).
-                onRehacer = {
+                onRehacer = dropUnlessResumed {
                     flowVm.rehacerLectura()
                     navController.popBackStack(Routes.RECAUDACION_CONTADORES, inclusive = false)
                 },
