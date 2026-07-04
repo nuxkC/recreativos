@@ -37,6 +37,11 @@
     <string name="empresa_sin_acceso_titulo">Sin acceso</string>
     <string name="empresa_sin_acceso_descripcion">Tu cuenta aún no está activa en ninguna empresa. Pide al administrador que te invite o reactive tu acceso.</string>
 
+    <!-- Error de sesión (membresías no cargadas) -->
+    <string name="sesion_error_titulo">No se pudo cargar tu acceso</string>
+    <string name="sesion_error_descripcion">Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="sesion_error_reintentar">Reintentar</string>
+
     <!-- Roles -->
     <string name="rol_owner">Propietario</string>
     <string name="rol_admin">Administrador</string>

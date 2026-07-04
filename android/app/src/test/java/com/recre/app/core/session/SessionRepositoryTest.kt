@@ -2,10 +2,14 @@ package com.recre.app.core.session
 
 import com.recre.app.core.auth.Rol
 import com.recre.app.core.data.local.EmpresaPreferences
+import com.recre.app.core.data.local.MembresiasCache
 import com.recre.app.core.data.repository.AuthRepository
 import com.recre.app.core.data.repository.EmpresaRepository
+import com.recre.app.core.util.DomainError
 import com.recre.app.core.util.DomainResult
 import io.mockk.coEvery
+import io.mockk.coJustRun
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -52,6 +56,12 @@ class SessionRepositoryTest {
         }
     }
 
+    private val cache: MembresiasCache = mockk {
+        coEvery { leer() } returns null
+        coJustRun { guardar(any()) }
+        coJustRun { limpiar() }
+    }
+
     /** `sesion = null` simula el Initializing de supabase: no se emite nada. */
     private class FakeAuthRepository : AuthRepository {
         val sesion = MutableStateFlow<Boolean?>(null)
@@ -80,6 +90,7 @@ class SessionRepositoryTest {
         authRepository = auth,
         empresaRepository = empresas,
         empresaPreferences = prefs,
+        membresiasCache = cache,
         scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler)),
     )
 
@@ -177,5 +188,57 @@ class SessionRepositoryTest {
         // cacheada rechaza sin consultar el backend; con Loading consulta y
         // acepta la membresía válida.
         assertTrue(repo.seleccionarEmpresa("e1"))
+    }
+
+    @Test
+    fun `arranque sin red con cache usa la ultima lista conocida`() = runTest {
+        val auth = FakeAuthRepository()
+        val empresas = FakeEmpresaRepository().apply {
+            respuesta = DomainResult.Failure(DomainError.Network("sin red"))
+        }
+        coEvery { cache.leer() } returns listOf(membresia)
+        empresaActivaId.value = "e1"
+        val repo = crearRepo(auth, empresas)
+
+        auth.sesion.value = true
+        advanceUntilIdle()
+
+        // La app es offline-first: con sesión válida y cache de membresías el
+        // arranque sin cobertura debe llegar a Active, no a un spinner eterno.
+        assertTrue("estado: ${repo.state.value}", repo.state.value is SessionState.Active)
+    }
+
+    @Test
+    fun `fallo de membresias sin cache expone error reintentable`() = runTest {
+        val auth = FakeAuthRepository()
+        val empresas = FakeEmpresaRepository().apply {
+            respuesta = DomainResult.Failure(DomainError.Network("sin red"))
+        }
+        val repo = crearRepo(auth, empresas)
+
+        auth.sesion.value = true
+        advanceUntilIdle()
+
+        // Antes esto era Loading para siempre (splash sin salida ni mensaje).
+        assertTrue("estado: ${repo.state.value}", repo.state.value is SessionState.LoadError)
+    }
+
+    @Test
+    fun `el refresh persiste la cache y el logout la limpia`() = runTest {
+        val auth = FakeAuthRepository()
+        val empresas = FakeEmpresaRepository().apply {
+            respuesta = DomainResult.Success(listOf(membresia))
+        }
+        val repo = crearRepo(auth, empresas)
+
+        auth.sesion.value = true
+        advanceUntilIdle()
+        coVerify { cache.guardar(listOf(membresia)) }
+        assertTrue(repo.state.value !is SessionState.Loading)
+
+        // Otro usuario podría entrar después: su lista no debe heredarse.
+        auth.sesion.value = false
+        advanceUntilIdle()
+        coVerify { cache.limpiar() }
     }
 }

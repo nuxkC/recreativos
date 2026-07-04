@@ -1,6 +1,7 @@
 package com.recre.app.core.session
 
 import com.recre.app.core.data.local.EmpresaPreferences
+import com.recre.app.core.data.local.MembresiasCache
 import com.recre.app.core.data.repository.AuthRepository
 import com.recre.app.core.data.repository.EmpresaRepository
 import com.recre.app.core.util.DomainResult
@@ -37,6 +38,7 @@ class SessionRepository internal constructor(
     private val authRepository: AuthRepository,
     private val empresaRepository: EmpresaRepository,
     private val empresaPreferences: EmpresaPreferences,
+    private val membresiasCache: MembresiasCache,
     /**
      * Scope propio del singleton: vive todo el proceso. Solo los tests lo
      * inyectan (constructor internal) para volver determinista el orden de
@@ -50,10 +52,12 @@ class SessionRepository internal constructor(
         authRepository: AuthRepository,
         empresaRepository: EmpresaRepository,
         empresaPreferences: EmpresaPreferences,
+        membresiasCache: MembresiasCache,
     ) : this(
         authRepository,
         empresaRepository,
         empresaPreferences,
+        membresiasCache,
         CoroutineScope(SupervisorJob() + Dispatchers.IO),
     )
 
@@ -71,7 +75,10 @@ class SessionRepository internal constructor(
         when {
             !isLoggedIn -> SessionState.NotAuthenticated
             membresias is MembresiasResult.Loading -> SessionState.Loading
-            membresias is MembresiasResult.Failure -> SessionState.Loading
+            // Solo llega aquí sin cache de respaldo (refreshMembresias ya
+            // intentó el fallback): error visible y reintentable, no un
+            // Loading eterno.
+            membresias is MembresiasResult.Failure -> SessionState.LoadError(membresias.message)
             membresias is MembresiasResult.Success -> resolveActive(membresias.value, empresaActivaId)
             else -> SessionState.Loading
         }
@@ -96,6 +103,8 @@ class SessionRepository internal constructor(
                     // Loading → flash de SinAcceso (NoMemberships espurio).
                     membresiasState.value = MembresiasResult.Loading
                     empresaPreferences.setEmpresaActivaId(null)
+                    // El siguiente usuario no debe heredar la lista del anterior.
+                    membresiasCache.limpiar()
                 }
             }
         }
@@ -109,8 +118,21 @@ class SessionRepository internal constructor(
         membresiasState.value = MembresiasResult.Loading
         val result = empresaRepository.listarMembresiasActivas()
         membresiasState.value = when (result) {
-            is DomainResult.Success -> MembresiasResult.Success(result.value)
-            is DomainResult.Failure -> MembresiasResult.Failure(result.error.message)
+            is DomainResult.Success -> {
+                membresiasCache.guardar(result.value)
+                MembresiasResult.Success(result.value)
+            }
+            is DomainResult.Failure -> {
+                // Respaldo offline: con sesión válida, la última lista
+                // confirmada vale más que un error — sin red el técnico
+                // sigue trabajando contra Room.
+                val cacheadas = membresiasCache.leer()
+                if (cacheadas != null) {
+                    MembresiasResult.Success(cacheadas)
+                } else {
+                    MembresiasResult.Failure(result.error.message)
+                }
+            }
         }
         return result
     }

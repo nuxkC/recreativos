@@ -22,6 +22,13 @@ sealed interface SessionState {
     data object NoMemberships : SessionState
 
     /**
+     * Sesión válida pero las membresías no se pudieron cargar y no hay cache
+     * de respaldo (p. ej. primer login sin red). La UI ofrece reintentar;
+     * sin este estado el arranque se quedaba en un spinner sin salida.
+     */
+    data class LoadError(val message: String?) : SessionState
+
+    /**
      * Sesión iniciada con varias membresías y ninguna seleccionada todavía
      * (o la cookie persistida apunta a una que ya no es válida).
      */
