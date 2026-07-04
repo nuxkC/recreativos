@@ -33,17 +33,29 @@ import kotlinx.coroutines.launch
  *   o auto-selecciona si solo hay una.
  */
 @Singleton
-class SessionRepository @Inject constructor(
+class SessionRepository internal constructor(
     private val authRepository: AuthRepository,
     private val empresaRepository: EmpresaRepository,
     private val empresaPreferences: EmpresaPreferences,
+    /**
+     * Scope propio del singleton: vive todo el proceso. Solo los tests lo
+     * inyectan (constructor internal) para volver determinista el orden de
+     * las corrutinas; producción entra por el secundario @Inject con IO.
+     */
+    private val scope: CoroutineScope,
 ) {
 
-    /**
-     * Scope propio del singleton: vive todo el proceso. Lo creamos aquí
-     * (no se inyecta) para que la lógica de refresh sea autocontenida.
-     */
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Inject
+    constructor(
+        authRepository: AuthRepository,
+        empresaRepository: EmpresaRepository,
+        empresaPreferences: EmpresaPreferences,
+    ) : this(
+        authRepository,
+        empresaRepository,
+        empresaPreferences,
+        CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    )
 
     /**
      * Cache reactiva de membresías. Se actualiza tras cada refresh o
@@ -78,7 +90,11 @@ class SessionRepository @Inject constructor(
                 if (isLoggedIn) {
                     refreshMembresias()
                 } else {
-                    membresiasState.value = MembresiasResult.Success(emptyList())
+                    // Loading y no `Success(emptyList())`: si quedara la lista
+                    // vacía cacheada, el combine del próximo login podría
+                    // re-emitirla antes de que refreshMembresias() marcara
+                    // Loading → flash de SinAcceso (NoMemberships espurio).
+                    membresiasState.value = MembresiasResult.Loading
                     empresaPreferences.setEmpresaActivaId(null)
                 }
             }
