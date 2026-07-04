@@ -59,6 +59,7 @@ import com.recre.app.feature.cuadre.CuadreScreen
 import com.recre.app.feature.deudas.DeudasGestorScreen
 import com.recre.app.feature.deudas.DeudasLocalScreen
 import com.recre.app.feature.deudas.DeudasLocalViewModel
+import com.recre.app.feature.empresa.ErrorSesionScreen
 import com.recre.app.feature.empresa.SeleccionarEmpresaScreen
 import com.recre.app.feature.empresa.SeleccionarEmpresaViewModel
 import com.recre.app.feature.empresa.SinAccesoScreen
@@ -230,6 +231,9 @@ private fun RecreApp(
         }
         composable(Routes.SIN_ACCESO) {
             SinAccesoScreen()
+        }
+        composable(Routes.ERROR_SESION) {
+            ErrorSesionScreen()
         }
         composable(Routes.LOCALES) {
             CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
@@ -796,13 +800,15 @@ private fun navigateForState(
             val enPreAuthExplicito = current == Routes.SPLASH ||
                 current == Routes.LOGIN ||
                 current == Routes.SELECCIONAR_EMPRESA ||
-                current == Routes.SIN_ACCESO
+                current == Routes.SIN_ACCESO ||
+                current == Routes.ERROR_SESION
             if (yaNavegadoActivo && !enPreAuthExplicito) return true
             Routes.LOCALES
         }
         // Redirecciones de sesión reales: estas SÍ resetean la navegación.
         SessionState.NotAuthenticated -> Routes.LOGIN
         SessionState.NoMemberships -> Routes.SIN_ACCESO
+        is SessionState.LoadError -> Routes.ERROR_SESION
         is SessionState.NeedsEmpresaSelection -> Routes.SELECCIONAR_EMPRESA
     }
     if (current != target) {
@@ -819,6 +825,7 @@ private object Routes {
     const val LOGIN = "login"
     const val SELECCIONAR_EMPRESA = "seleccionarEmpresa"
     const val SIN_ACCESO = "sinAcceso"
+    const val ERROR_SESION = "errorSesion"
     const val LOCALES = "locales"
     const val CUADRE = "cuadre"
     const val LOCAL_DETALLE = "local/{${LocalDetalleViewModel.ARG_LOCAL_ID}}"
