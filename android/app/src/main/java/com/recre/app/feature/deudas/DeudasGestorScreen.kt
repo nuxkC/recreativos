@@ -88,6 +88,7 @@ fun DeudasGestorScreen(
                         OdometroText(
                             texto = eur(state.capitalTotal),
                             style = RecreType.importe,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
                 }
