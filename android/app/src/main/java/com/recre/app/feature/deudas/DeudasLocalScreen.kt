@@ -26,12 +26,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.theme.RecreShapes
+import com.recre.app.ui.theme.RecreType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -224,9 +225,10 @@ private fun SaldoCard(state: DeudasLocalUiState) {
                 text = stringResource(R.string.deudas_saldo_total),
                 style = MaterialTheme.typography.labelMedium,
             )
-            Text(
-                text = eur(state.saldoTotal),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            OdometroText(
+                texto = eur(state.saldoTotal),
+                style = RecreType.importe,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             Spacer(Modifier.height(8.dp))
             Text(
