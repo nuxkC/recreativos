@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.recre.app.R
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
+import com.recre.app.ui.theme.neonGlow
 
 // =====================================================================
 // PasoTopBar · chrome propio del flujo de recaudación (rediseño F1, P1+M1).
@@ -129,7 +130,8 @@ private fun PasosSegmentos(
     modifier: Modifier = Modifier,
 ) {
     val activo = MaterialTheme.colorScheme.primary
-    val inactivo = RecreColors.current.muted.copy(alpha = 0.3f)
+    val inactivo = RecreColors.current.surface2
+    val accentBright = RecreColors.current.accentBright
     Row(
         modifier = modifier.clearAndSetSemantics { this.contentDescription = contentDescription },
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -143,6 +145,15 @@ private fun PasosSegmentos(
                     Modifier
                         .height(6.dp)
                         .width(if (esActual) 22.dp else 8.dp)
+                        // El segmento activo se ilumina con el neón de acento (N1): halo
+                        // que fija la mirada en el paso en curso sin alterar el layout.
+                        .then(
+                            if (esActual) {
+                                Modifier.neonGlow(accentBright, radius = 8.dp, alpha = 0.5f)
+                            } else {
+                                Modifier
+                            },
+                        )
                         .clip(RoundedCornerShape(percent = 50))
                         .background(if (hecho) activo else inactivo),
             )

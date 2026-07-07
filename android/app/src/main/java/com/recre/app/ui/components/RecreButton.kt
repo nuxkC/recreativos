@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
+import com.recre.app.ui.theme.neonGlow
 
 // =====================================================================
 // Átomo "Botones" (C-01) — Design System "Confianza Industrial" (Fase 3).
@@ -86,6 +87,8 @@ private val IconSize = 20.dp
  * @param leadingIcon icono decorativo opcional (contentDescription = null).
  * @param fullWidth ancla el botón a todo el ancho (CTA de pantalla); por
  *        defecto `true` porque el PrimaryCTA suele ir sticky al fondo.
+ * @param glow halo neón cian detrás del botón (opt-in del re-skin neón); `false`
+ *        por defecto para no alterar ninguna llamada existente.
  */
 @Composable
 fun RecrePrimaryButton(
@@ -96,12 +99,20 @@ fun RecrePrimaryButton(
     loading: Boolean = false,
     leadingIcon: ImageVector? = null,
     fullWidth: Boolean = true,
+    glow: Boolean = false,
 ) {
+    // Glow opt-in: el halo se pinta detrás del botón sin ocupar layout (neonGlow).
+    val modifierConGlow =
+        if (glow) {
+            modifier.neonGlow(RecreColors.current.accentBright, radius = 20.dp, alpha = 0.3f)
+        } else {
+            modifier
+        }
     Button(
         onClick = onClick,
         enabled = enabled && !loading,
         modifier =
-            modifier
+            modifierConGlow
                 .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
                 .heightIn(min = CtaHeight)
                 .semantics { if (loading) stateDescription = "Cargando" },
@@ -342,6 +353,12 @@ private fun ButtonGallery() {
             text = "Guardar recaudación",
             onClick = {},
             leadingIcon = Icons.Filled.Add,
+        )
+        Spacer(Modifier.size(12.dp))
+        RecrePrimaryButton(
+            text = "Confirmar (con glow)",
+            onClick = {},
+            glow = true,
         )
         Spacer(Modifier.size(12.dp))
         RecrePrimaryButton(
