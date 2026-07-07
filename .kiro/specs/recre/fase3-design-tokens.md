@@ -3926,3 +3926,57 @@ M3 auto-deriva `secondaryContainer` = #D5EAEE/#1E4350, distinto del `secondary` 
 
 ## R5 · `border` (filete) vs `outline` (límite reforzado ≥3:1)
 `border` = outlineVariant (#E3E6EA) = filete 1px de bajo contraste (1.16:1 sobre surface-2 → invisible como "divisor reforzado"). Para separadores/bordes que deben **verse** (top de TotalsRow, borde de thumb activo, halo de badge neutro) usar `outline` (= `muted` #646B76): ≥4.96:1. Regla: filete decorativo→`border`; límite perceptible (WCAG 1.4.11)→`outline`.
+
+
+
+---
+
+## Anexo — Re-tinte «Neón de sala» (2026-07)
+
+> Iniciativa `feat/android-neon-n0`. Se re-tinta **solo el tema OSCURO** hacia un petróleo profundo (azul-verdoso) que sirve de lienzo al acento cian, y se añade el token `accentBright` (glow / estados activos). Ningún valor `*Light` existente cambia; el único añadido en light es `RecreAccentBrightLight`. Roles `primary`/`onPrimary`/`secondary` dark y todos los roles success/warning/danger/info (fills, containers, texts, chips) **no cambian**. HEX literales; ratios recalculados con WCAG (no a ojo).
+
+### Valores dark re-tintados (`Color.kt`)
+
+| Token | HEX viejo | HEX nuevo |
+| --- | --- | --- |
+| `RecreBackgroundDark` | `#0B0C0E` | `#0A1014` |
+| `RecreSurface1Dark` | `#131519` | `#111A21` |
+| `RecreSurface2Dark` | `#1B1E24` | `#182530` |
+| `RecreBorderDark` | `#262A31` | `#22323D` |
+| `RecreMutedDark` | `#9AA1AD` | `#8FA6B0` |
+| `RecreMutedStrongDark` | `#B6BCC6` | `#B8CBD4` |
+| `RecreOnSurfaceDark` | `#E7EAEE` | `#EAF3F6` |
+| `RecreStateNeutralBgDark` | `#1B1E24` | `#182530` |
+| `RecreStateNeutralBorderDark` | `#262A31` | `#22323D` |
+| `RecreStateNeutralFgDark` | `#E7EAEE` | `#EAF3F6` |
+| `RecreStateNeutralMutedDark` | `#9AA1AD` | `#8FA6B0` |
+| `RecreNeutralChipBgDark` | `#2B2E34` | `#22313C` |
+| `RecreNeutralChipFgDark` | `#B6BBC4` | `#B3C4CD` |
+
+### Containers altos dark (`Theme.kt`)
+
+| Slot M3 (dark) | HEX viejo | HEX nuevo |
+| --- | --- | --- |
+| `surfaceContainerHigh` | `#22262D` | `#1E2E3A` |
+| `surfaceContainerHighest` | `#2A2F37` | `#243542` |
+
+### Token nuevo `accentBright`
+
+| Token | HEX | Uso |
+| --- | --- | --- |
+| `RecreAccentBrightDark` | `#67E3F4` | cian vivo: glow, icono activo del dock, odómetro |
+| `RecreAccentBrightLight` | `#0E7490` | en light no hay neón: == `primary` |
+
+Acceso: `RecreColors.current.accentBright`. **Regla:** `accentBright` se reserva a *glow* y estados activos (dock, foco/pulso, cifra viva); en light no hay neón (colapsa a `primary`). No usarlo como color de texto de cuerpo ni como fill de rol semántico.
+
+### Contraste verificado (WCAG, script del plan)
+
+```
+onSurface/surface1     15.63  (>= 7   OK)
+muted/surface1          6.91  (>= 4.5 OK)
+mutedStrong/surface2    9.31  (>= 7   OK)
+neutralChipFg/Bg        7.44  (>= 7   OK)
+accentBright/surface1  11.62  (>= 4.5 OK)
+```
+
+Todos los pares superan su umbral; no hizo falta aclarar ningún fg.
