@@ -34,19 +34,20 @@ import com.recre.app.R
 import com.recre.app.feature.cuadre.domain.LineaCuadre
 import com.recre.app.feature.cuadre.domain.VeredictoCuadre
 import com.recre.app.ui.components.AppCard
-import com.recre.app.ui.components.CountUpText
 import com.recre.app.ui.components.FieldNum
 import com.recre.app.ui.components.IconAction
 import com.recre.app.ui.components.LottieIllustration
 import com.recre.app.ui.components.MoneyTextRole
-import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusChipSize
 import com.recre.app.ui.components.StatusRole
+import com.recre.app.ui.components.formatEur
 import com.recre.app.ui.components.formatearImporteEs
 import com.recre.app.ui.theme.RecreColors
+import com.recre.app.ui.theme.RecreType
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -181,7 +182,7 @@ private fun BloqueadoCard(reintentables: Int, fallidas: Int, onSubir: () -> Unit
 }
 
 /**
- * Estado listo: héroe "Deberías llevar" (CountUpText), veredicto (StatusChip) y
+ * Estado listo: héroe "Deberías llevar" (OdometroText), veredicto (StatusChip) y
  * la tabla por denominación con el conteo físico editable. Al cuadrar, remata con
  * la ilustración de éxito. Todas las cifras vienen del dominio (no se recalculan).
  */
@@ -204,9 +205,9 @@ private fun ListoContenido(
                         color = RecreColors.current.muted,
                     )
                     Spacer(Modifier.height(4.dp))
-                    CountUpText(
-                        importe = dif.totalEsperado.toPlainString(),
-                        size = MoneyTextSize.Hero,
+                    OdometroText(
+                        texto = formatEur(dif.totalEsperado),
+                        style = RecreType.importe,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
