@@ -29,6 +29,8 @@ import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.MoneyText
 import com.recre.app.ui.components.MoneyTextSize
 import com.recre.app.ui.components.RecreDottedDivider
+import com.recre.app.ui.theme.RecrePapelTicket
+import com.recre.app.ui.theme.RecrePapelTinta
 import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreTheme
 import com.recre.app.ui.theme.RecreType
@@ -58,7 +60,7 @@ fun TicketRecibo(
     fechaTexto: String,
     modifier: Modifier = Modifier,
 ) {
-    AppCard(modifier = modifier) {
+    PapelDelTicket(modifier = modifier) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Cabecera centrada (la "cabecera del papel").
             Column(
@@ -127,6 +129,30 @@ fun TicketRecibo(
             Spacer(Modifier.height(6.dp))
             FilaCifra(stringResource(R.string.historico_label_parte_local), recaudacion.parteLocal)
             FilaCifra(stringResource(R.string.historico_label_parte_empresa), recaudacion.parteEmpresa)
+        }
+    }
+}
+
+/**
+ * Envuelve el contenido del recibo en PAPEL FIJO. Fuerza el tema claro (para que
+ * TODO lo que lee M3 —incl. MoneyText, cuyo dígito resuelve a onSurface— siga
+ * siendo legible sobre el papel también en modo oscuro) y re-tinta surface→papel /
+ * onSurface→tinta con los dos tokens fijos del recibo. Así el ticket es papel claro
+ * sobre la sala oscura en ambos modos, sin tocar los átomos que pinta dentro.
+ */
+@Composable
+private fun PapelDelTicket(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    RecreTheme(darkTheme = false) {
+        val esquemaPapel =
+            MaterialTheme.colorScheme.copy(
+                surface = RecrePapelTicket,
+                onSurface = RecrePapelTinta,
+            )
+        MaterialTheme(colorScheme = esquemaPapel) {
+            AppCard(modifier = modifier, content = content)
         }
     }
 }

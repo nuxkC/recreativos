@@ -742,3 +742,26 @@ Run: `LC_ALL=es_ES.utf8 JAVA_HOME=/snap/android-studio/current/jbr ./gradlew :ap
 - **Cobertura del spec:** los 9 tramos del mockup → N2 (tramo 3), N3 (tramos 2/4/7-héroes), N4 (tramos 1/5/6/8/9 vía tokens + tasks 13-15), dock/keypad/pasos (transversales) → N1. El tramo 1 (acceso) solo necesita el wordmark (task 14): el resto es formulario estándar que hereda tokens.
 - **Sin placeholders:** cada task tiene código o comando concreto; las tasks de pantalla dan el snippet OBJETIVO + grep de localización (el «before» exacto se ve al abrir el fichero; las firmas consumidas están definidas en tasks anteriores).
 - **Consistencia de firmas:** `OdometroText(texto, modifier, style, color)` (Task 4) es lo que consumen 7/8/11/12; `neonGlow(color, radius, alpha)` (Task 3) es lo que consumen 5/6/9; `accentBright` (Task 2) es lo que consumen 4/5/6/14.
+
+---
+
+## Desviaciones N4 (barrido estático)
+
+Barrido ESTÁTICO (a nivel de código, sin dispositivo) de los tramos que ninguna task N4 tocó, previo al guardarraíl N5. Ámbito: Alertas, Incidencias, Gestión (hub/listas/formularios), Ajustes (2 pestañas), Impresora, Selección de empresa, Sin acceso, Error de sesión, Histórico (lista/contexto/detalle), Detalle de local, Escáner de contadores. Excluidos por adopción previa: `auth/LoginScreen.kt`, `historico/components/TicketRecibo.kt`, `ui/theme/Color.kt`, y los tramos recaudación/cuadre/deudas/locales-home.
+
+**Resultado: 0 infracciones de color y 0 de jerarquía. No se tocó código; el barrido es limpio.**
+
+Comprobaciones (todas sobre las pantallas del ámbito):
+
+- **Colores hex fuera de tokens (`Color(0x…)`):** cero. El único `Color(0x…)` de todo `feature/` es `recaudacion/components/SignaturePad.kt:42` (tramo excluido; irá a la allowlist congelada del guardarraíl N5, no es de mi ámbito). `grep '0x[0-9A-Fa-f]{6,8}'` en las carpetas del ámbito → `NONE_FOUND`.
+- **Colores con nombre (`Color.Gray`/`White`/`Black`/…):** cero. Ninguna superficie ni texto usa gris/blanco/negro hardcodeado.
+- **Fuente de color:** el 100 % del color sale de `MaterialTheme.colorScheme.*` (`surfaceVariant`, `secondaryContainer`, `errorContainer`, `tertiaryContainer`, `onSurface`, `onSurfaceVariant`, `primary`…). Por tanto el re-tinte N0 llega solo a todas estas pantallas; nada pelea con la paleta. (`alertas/AlertasScreen.kt:iconYColor` mapea cada `TipoAlerta` a un *container* del tema respetando semántica: conflicto→`errorContainer`, caducidad→`tertiaryContainer`, resto→`surfaceVariant`.)
+- **`fontSize` manual:** cero en todo el ámbito. Todos los títulos/rótulos usan roles semánticos de `MaterialTheme.typography` (`titleMedium`/`titleSmall` para rótulos de sección y de ítem de lista; `headlineSmall` para el título centrado de `empresa/SinAccesoScreen` y `empresa/ErrorSesionScreen`).
+
+Notas de jerarquía (aceptadas, NO son desviaciones):
+
+- Según `ui/theme/Type.kt`, Bricolage (display) solo lo llevan `headlineMedium` (H1), `titleLarge` (H2) y `displayHero`. Estas pantallas son de utilidad (ajustes, impresora, listas/formularios de gestión, error/sin-acceso), no tramos-héroe, así que usar `titleMedium`/`titleSmall`/`headlineSmall` para sus rótulos es coherente con la escala: quedan por debajo de los titulares héroe que N2/N3 sí llevaron a Bricolage. No requieren el display font.
+- `empresa/SinAccesoScreen` y `empresa/ErrorSesionScreen` titulan con `headlineSmall` (rol semántico, sin tamaño manual). El mockup no especifica estas pantallas de borde; su jerarquía actual es razonable. **Pendiente-QA-dispositivo (N5):** confirmar visualmente que el peso del titular casa con el resto en dark y light.
+- **Escáner de contadores** (`recaudacion/contadores/EscanerContadoresScreen.kt`, tramo recaudación excluido de edición): revisado de todos modos — no declara ningún color, solo roles `typography.*`. Limpio. **Pendiente-QA-dispositivo (N5):** el overlay de cámara se valida mejor en vivo.
+
+Pendiente para el QA humano de N5 (no bloquea el cierre de N4): pasada visual de estas pantallas contra el mockup en dark y light en dispositivo.

@@ -38,16 +38,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.ui.components.FieldText
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
+import com.recre.app.ui.theme.BricolageDisplay
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
 
 /**
@@ -181,11 +189,26 @@ private fun MarcaRecre() {
             }
         }
         Spacer(Modifier.height(20.dp))
+        // Wordmark «Neón de sala»: "recre·" es un logotipo tipográfico (marca), no
+        // una cadena traducible → literal en el código, sin pasar por strings.xml.
+        // El punto medio lleva el cian neón (accentBright) que da nombre al re-skin;
+        // el resto va en onSurface. contentDescription explícito para que TalkBack
+        // anuncie "Recre" sin leer el punto como signo de puntuación.
+        val wordmark =
+            buildAnnotatedString {
+                withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface)) {
+                    append("recre")
+                }
+                withStyle(SpanStyle(color = RecreColors.current.accentBright)) {
+                    append("·")
+                }
+            }
         Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+            text = wordmark,
+            fontFamily = BricolageDisplay,
+            fontWeight = FontWeight.W700,
+            fontSize = 44.sp,
+            modifier = Modifier.semantics { contentDescription = "Recre" },
         )
         Spacer(Modifier.height(6.dp))
         Text(
