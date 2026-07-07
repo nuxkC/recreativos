@@ -39,21 +39,23 @@ val RecreMutedStrongLight = Color(0xFF3F4651) // muted-strong: muted oscurecido 
 val RecrePrimaryDark = Color(0xFF2BC4DD) // [PALETA] primary (cian)
 val RecreOnPrimaryDark = Color(0xFF06212A) // [PALETA] on-primary (texto oscuro sobre cian)
 val RecreSecondaryDark = Color(0xFF16323A) // [PALETA] secondary
-val RecreBackgroundDark = Color(0xFF0B0C0E) // [PALETA] background
-val RecreSurface1Dark = Color(0xFF131519) // [PALETA] surface-1
-val RecreSurface2Dark = Color(0xFF1B1E24) // [PALETA] surface-2
+val RecreBackgroundDark = Color(0xFF0A1014) // [PALETA] background (petróleo profundo, neón N0)
+val RecreSurface1Dark = Color(0xFF111A21) // [PALETA] surface-1
+val RecreSurface2Dark = Color(0xFF182530) // [PALETA] surface-2
 val RecreSuccessDark = Color(0xFF34D399) // [PALETA] success
 val RecreWarningDark = Color(0xFFFBBF24) // [PALETA] warning
 val RecreDangerDark = Color(0xFFF87171) // [PALETA] danger
 val RecreInfoDark = Color(0xFF60A5FA) // [PALETA] info
-val RecreBorderDark = Color(0xFF262A31) // [PALETA] border / outlineVariant
-val RecreMutedDark = Color(0xFF9AA1AD) // [PALETA] muted
+val RecreBorderDark = Color(0xFF22323D) // [PALETA] border / outlineVariant
+val RecreMutedDark = Color(0xFF8FA6B0) // [PALETA] muted
 val RecreRingDark = Color(0xFF2BC4DD) // [PALETA] ring = primary
-val RecreMutedStrongDark = Color(0xFFB6BCC6) // muted-strong dark: muted aclarado ≥7:1 sobre surface-2
+val RecreAccentBrightDark = Color(0xFF67E3F4) // acento vivo: glow, icono activo del dock, odómetro
+val RecreAccentBrightLight = Color(0xFF0E7490) // en light no hay neón: primary
+val RecreMutedStrongDark = Color(0xFFB8CBD4) // muted-strong ≥7:1 sobre surface-2 (verificado abajo)
 
 // Foreground neutro (texto principal sobre surface)
 val RecreOnSurfaceLight = Color(0xFF11161B) // casi-negro frío, AA sobre surface-1
-val RecreOnSurfaceDark = Color(0xFFE7EAEE) // casi-blanco frío
+val RecreOnSurfaceDark = Color(0xFFEAF3F6) // casi-blanco frío (tinte petróleo)
 val RecreScrim = Color(0xFF000000)
 
 // ---------------------------------------------------------------------
@@ -117,10 +119,10 @@ val RecreStateNeutralBgLight = Color(0xFFF4F6F8) // == surface-2
 val RecreStateNeutralBorderLight = Color(0xFFE3E6EA) // == border
 val RecreStateNeutralFgLight = Color(0xFF11161B) // foreground (etiqueta)
 val RecreStateNeutralMutedLight = Color(0xFF646B76) // muted (metadato) · 5.38:1
-val RecreStateNeutralBgDark = Color(0xFF1B1E24) // == surface-2
-val RecreStateNeutralBorderDark = Color(0xFF262A31) // == border
-val RecreStateNeutralFgDark = Color(0xFFE7EAEE)
-val RecreStateNeutralMutedDark = Color(0xFF9AA1AD)
+val RecreStateNeutralBgDark = Color(0xFF182530) // == surface-2
+val RecreStateNeutralBorderDark = Color(0xFF22323D) // == border
+val RecreStateNeutralFgDark = Color(0xFFEAF3F6)
+val RecreStateNeutralMutedDark = Color(0xFF8FA6B0)
 
 // ---------------------------------------------------------------------
 // 3b) PARES OPACOS DE SOFT-CHIP (StatusChip · C-StatusChip). Precomputados
@@ -151,8 +153,8 @@ val RecreDangerChipBgDark = Color(0xFF3C2629)
 val RecreDangerChipFgDark = Color(0xFFFAA0A0) // 7.06:1
 val RecreInfoChipBgDark = Color(0xFF212F42)
 val RecreInfoChipFgDark = Color(0xFF8DBEFB)
-val RecreNeutralChipBgDark = Color(0xFF2B2E34)
-val RecreNeutralChipFgDark = Color(0xFFB6BBC4)
+val RecreNeutralChipBgDark = Color(0xFF22313C)
+val RecreNeutralChipFgDark = Color(0xFFB3C4CD)
 
 // ---------------------------------------------------------------------
 // 4) TOKENS SEMÁNTICOS DE DOMINIO (inyectados por CompositionLocal).
@@ -181,6 +183,7 @@ data class RecreSemanticColors(
     val muted: Color, // texto secundario
     val ring: Color, // foco = primary
     val mutedStrong: Color, // muted ≥7:1 sobre surface-2 (€/%/iconos informativos; el dígito va en foreground)
+    val accentBright: Color, // cian vivo para glow/estados activos (== primary en light)
     // -- ronda 2: variantes -text (texto pequeño / etiqueta soft-chip) --
     val successText: Color,
     val dangerText: Color,
@@ -228,6 +231,7 @@ private val LightSemanticColors =
         muted = RecreMutedLight,
         ring = RecreRingLight,
         mutedStrong = RecreMutedStrongLight,
+        accentBright = RecreAccentBrightLight,
         successText = RecreSuccessTextLight,
         dangerText = RecreDangerTextLight,
         warningText = RecreWarningTextLight,
@@ -272,6 +276,7 @@ private val DarkSemanticColors =
         muted = RecreMutedDark,
         ring = RecreRingDark,
         mutedStrong = RecreMutedStrongDark,
+        accentBright = RecreAccentBrightDark,
         successText = RecreSuccessTextDark,
         dangerText = RecreDangerTextDark,
         warningText = RecreWarningTextDark,
