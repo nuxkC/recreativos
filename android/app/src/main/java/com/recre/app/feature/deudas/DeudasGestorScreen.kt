@@ -26,10 +26,12 @@ import com.recre.app.R
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.EmptyState
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.formatEur
 import com.recre.app.ui.components.recreSharedBounds
 import com.recre.app.ui.theme.RecreShapes
+import com.recre.app.ui.theme.RecreType
 import java.math.BigDecimal
 
 /**
@@ -83,11 +85,9 @@ fun DeudasGestorScreen(
                             text = stringResource(R.string.deudas_gestor_capital),
                             style = MaterialTheme.typography.labelMedium,
                         )
-                        Text(
-                            text = eur(state.capitalTotal),
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                            ),
+                        OdometroText(
+                            texto = eur(state.capitalTotal),
+                            style = RecreType.importe,
                         )
                     }
                 }
