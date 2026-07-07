@@ -53,8 +53,10 @@ import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.SearchField
 import com.recre.app.ui.components.TopLevelDestination
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreMotion
 import com.recre.app.ui.theme.RecreShapes
+import com.recre.app.ui.theme.RecreType
 import java.time.Duration
 import java.time.Instant
 
@@ -220,14 +222,16 @@ private fun AgendaHero(pendientes: Int, modifier: Modifier = Modifier) {
             if (pendientes == 0) {
                 Text(
                     text = stringResource(R.string.agenda_hero_todo_al_dia),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = RecreType.displayHero,
+                    color = RecreColors.current.success,
                 )
             } else {
+                // Display Bricolage con el conteo en warning (neón N3): el héroe del
+                // home es agenda, no dinero — el importe grande vive en Mi caja.
                 Text(
                     text = pendientes.toString(),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    style = RecreType.displayHero,
+                    color = RecreColors.current.warning,
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(
