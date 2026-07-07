@@ -120,7 +120,6 @@ fun RecreBottomBar(
     ) {
         Row(
             modifier = Modifier.fillMaxSize().selectableGroup(),
-            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TopLevelDestination.entries.forEach { dest ->

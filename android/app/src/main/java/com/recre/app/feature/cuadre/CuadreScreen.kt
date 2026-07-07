@@ -37,7 +37,6 @@ import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.FieldNum
 import com.recre.app.ui.components.IconAction
 import com.recre.app.ui.components.LottieIllustration
-import com.recre.app.ui.components.MoneyTextRole
 import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.RecreTextButton

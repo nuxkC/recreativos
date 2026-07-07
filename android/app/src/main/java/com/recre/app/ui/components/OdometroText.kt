@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -52,7 +54,8 @@ fun columnasOdometro(texto: String): List<ColumnaOdometro> =
  * Cifra que rueda por dígito, como el contador mecánico de una máquina (firma
  * «Neón de sala»). Recibe el texto YA formateado (mismo formateador que MoneyText):
  * este componente no sabe de BigDecimal. Cada dígito anima con un retardo
- * escalonado (45ms/columna) para el efecto de rodillo. Accesibilidad: el Row
+ * escalonado (45ms/columna) para el efecto de rodillo. Sin `color` explícito
+ * hereda `LocalContentColor` (como un `Text` de M3). Accesibilidad: el Row
  * expone el texto completo como una sola descripción; las columnas no son focables.
  */
 @Composable
@@ -62,7 +65,7 @@ fun OdometroText(
     style: TextStyle = RecreType.importe,
     color: Color = Color.Unspecified,
 ) {
-    val colorFinal = if (color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else color
+    val colorFinal = if (color == Color.Unspecified) LocalContentColor.current else color
     Row(
         modifier =
             modifier.semantics { contentDescription = texto },
@@ -80,6 +83,7 @@ fun OdometroText(
                 is ColumnaOdometro.Digito ->
                     AnimatedContent(
                         targetState = columna.valor,
+                        modifier = Modifier.clipToBounds(), // ventana de odómetro: el dígito no pinta fuera mid-roll
                         transitionSpec = {
                             // Literal 500ms: Motion.kt no expone un token de énfasis que encaje.
                             // LocalRecreMotion/ExpressiveRecreMotion solo dan FiniteAnimationSpec
@@ -129,14 +133,18 @@ private fun OdometroTextPreviewDark() {
 
 @Composable
 private fun OdometroTextPreviewContent() {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(16.dp),
-    ) {
-        OdometroText("1.284,50 €")
-        OdometroText("99.999,99 €", style = RecreType.importeMedium)
-        // El param color acepta el cian de marca (accentBright) para la cifra protagonista.
-        OdometroText("840,00 €", color = RecreColors.current.accentBright)
-        OdometroText("—")
+    // Surface para que los OdometroText con color por defecto resuelvan
+    // LocalContentColor a onSurface (sin él quedaría el negro por defecto).
+    Surface {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(16.dp),
+        ) {
+            OdometroText("1.284,50 €")
+            OdometroText("99.999,99 €", style = RecreType.importeMedium)
+            // El param color acepta el cian de marca (accentBright) para la cifra protagonista.
+            OdometroText("840,00 €", color = RecreColors.current.accentBright)
+            OdometroText("—")
+        }
     }
 }

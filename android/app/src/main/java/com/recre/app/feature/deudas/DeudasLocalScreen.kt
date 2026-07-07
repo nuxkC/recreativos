@@ -228,7 +228,6 @@ private fun SaldoCard(state: DeudasLocalUiState) {
             OdometroText(
                 texto = eur(state.saldoTotal),
                 style = RecreType.importe,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             Spacer(Modifier.height(8.dp))
             Text(

@@ -38,8 +38,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -208,7 +208,7 @@ private fun MarcaRecre() {
             fontFamily = BricolageDisplay,
             fontWeight = FontWeight.W700,
             fontSize = 44.sp,
-            modifier = Modifier.semantics { contentDescription = "Recre" },
+            modifier = Modifier.clearAndSetSemantics { contentDescription = "Recre" },
         )
         Spacer(Modifier.height(6.dp))
         Text(
