@@ -34,6 +34,7 @@ val RecreBorderLight = Color(0xFFE3E6EA) // [PALETA] border / outlineVariant
 val RecreMutedLight = Color(0xFF646B76) // [PALETA] muted (texto secundario)
 val RecreRingLight = Color(0xFF0E7490) // [PALETA] ring = primary
 val RecreMutedStrongLight = Color(0xFF3F4651) // muted-strong: muted oscurecido ≥7:1 sobre surface-2 (€/%/descripción/chevron)
+val RecreAccentBrightLight = Color(0xFF0E7490) // en light no hay neón: primary
 
 // --- Dark
 val RecrePrimaryDark = Color(0xFF2BC4DD) // [PALETA] primary (cian)
@@ -50,8 +51,7 @@ val RecreBorderDark = Color(0xFF22323D) // [PALETA] border / outlineVariant
 val RecreMutedDark = Color(0xFF8FA6B0) // [PALETA] muted
 val RecreRingDark = Color(0xFF2BC4DD) // [PALETA] ring = primary
 val RecreAccentBrightDark = Color(0xFF67E3F4) // acento vivo: glow, icono activo del dock, odómetro
-val RecreAccentBrightLight = Color(0xFF0E7490) // en light no hay neón: primary
-val RecreMutedStrongDark = Color(0xFFB8CBD4) // muted-strong ≥7:1 sobre surface-2 (verificado abajo)
+val RecreMutedStrongDark = Color(0xFFB8CBD4) // muted-strong ≥7:1 sobre surface-2 (ratios verificados en el anexo del SSOT)
 
 // Foreground neutro (texto principal sobre surface)
 val RecreOnSurfaceLight = Color(0xFF11161B) // casi-negro frío, AA sobre surface-1
