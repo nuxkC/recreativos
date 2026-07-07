@@ -65,8 +65,10 @@ import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreType
+import com.recre.app.ui.theme.neonGlow
 
 /**
  * Paso final del flujo (T-56). La pantalla muestra el resumen + la firma y un
@@ -389,7 +391,14 @@ private fun EstadoAnim(fase: FaseGuardado, modifier: Modifier = Modifier) {
     val iterations = if (terminal) 1 else LottieConstants.IterateForever
     val progress by animateLottieCompositionAsState(composition, iterations = iterations)
 
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    // Halo de éxito (firma neón): solo ambienta el estado terminal bueno. No se
+    // añade anillo con borde porque la Lottie ya trae su propio artwork de check.
+    val haloExito = if (fase == FaseGuardado.EXITO) {
+        Modifier.neonGlow(RecreColors.current.success, radius = 28.dp, alpha = 0.3f)
+    } else {
+        Modifier
+    }
+    Box(modifier = modifier.then(haloExito), contentAlignment = Alignment.Center) {
         if (composition != null) {
             LottieAnimation(composition = composition, progress = { progress })
         } else {
