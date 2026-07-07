@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.calculo.DENOMINACIONES_PERMITIDAS
 import com.recre.app.core.calculo.importesIguales
-import com.recre.app.ui.components.CountUpText
+import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.successFlash
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
@@ -51,6 +51,7 @@ import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.formatEur
 import com.recre.app.ui.theme.RecreShapes
+import com.recre.app.ui.theme.RecreType
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontWeight
@@ -328,9 +329,9 @@ private fun ProgresoInfo(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        CountUpText(
-                            importe = total.setScale(2, RoundingMode.HALF_UP).toPlainString(),
-                            size = MoneyTextSize.Hero,
+                        OdometroText(
+                            texto = formatEur(total),
+                            style = RecreType.importeMedium,
                         )
                     }
                     if (objetivo != null && diferencia != null) {

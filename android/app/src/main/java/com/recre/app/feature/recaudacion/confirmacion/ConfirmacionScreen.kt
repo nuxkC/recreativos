@@ -59,13 +59,16 @@ import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.SignaturePad
-import com.recre.app.ui.components.CountUpText
-import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.PasoTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
+import com.recre.app.ui.theme.RecreType
+import com.recre.app.ui.theme.neonGlow
 
 /**
  * Paso final del flujo (T-56). La pantalla muestra el resumen + la firma y un
@@ -206,6 +209,7 @@ private fun FormularioBlock(
         loading = state.guardando,
         enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
             !state.guardado && !state.syncStale && !state.baselineCambiada,
+        glow = true,
         modifier = Modifier
             .fillMaxWidth()
             .testTag(RecaudacionTestTags.CONFIRMACION_GUARDAR),
@@ -387,7 +391,14 @@ private fun EstadoAnim(fase: FaseGuardado, modifier: Modifier = Modifier) {
     val iterations = if (terminal) 1 else LottieConstants.IterateForever
     val progress by animateLottieCompositionAsState(composition, iterations = iterations)
 
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    // Halo de éxito (firma neón): solo ambienta el estado terminal bueno. No se
+    // añade anillo con borde porque la Lottie ya trae su propio artwork de check.
+    val haloExito = if (fase == FaseGuardado.EXITO) {
+        Modifier.neonGlow(RecreColors.current.success, radius = 28.dp, alpha = 0.3f)
+    } else {
+        Modifier
+    }
+    Box(modifier = modifier.then(haloExito), contentAlignment = Alignment.Center) {
         if (composition != null) {
             LottieAnimation(composition = composition, progress = { progress })
         } else {
@@ -485,9 +496,11 @@ private fun NetoHero(neto: java.math.BigDecimal) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(4.dp))
-        CountUpText(
-            importe = neto.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
-            size = MoneyTextSize.Hero,
+        // Mismo String que pintaba CountUpText en su frame final (formatEur canónico);
+        // solo cambia la animación: count-up → rodillo de odómetro (firma neón).
+        OdometroText(
+            texto = formatEur(neto),
+            style = RecreType.importe,
         )
     }
 }
