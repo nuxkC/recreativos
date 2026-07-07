@@ -60,6 +60,22 @@ val GeistMono =
         geistMonoVariable(FontWeight.W700),
     )
 
+@OptIn(ExperimentalTextApi::class)
+private fun bricolageVariable(weight: FontWeight) =
+    Font(
+        R.font.bricolage_grotesque_variable,
+        weight = weight,
+        style = FontStyle.Normal,
+        variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
+    )
+
+/** Familia display «Neón de sala»: titulares y héroes. NUNCA para cuerpo ni cifras. */
+val BricolageDisplay =
+    FontFamily(
+        bricolageVariable(FontWeight.W600),
+        bricolageVariable(FontWeight.W700),
+    )
+
 /** Dígitos tabulares de Geist Mono ("tnum"): ancho fijo por glifo. */
 private const val tabularNums = "tnum"
 
@@ -121,6 +137,17 @@ object RecreType {
             fontFeatureSettings = tabularNums,
             lineHeightStyle = lineHeightTrim,
         )
+
+    /** Héroe display (conteo del home, titulares de tramo). Bricolage, NO cifras de dinero. */
+    val displayHero =
+        TextStyle(
+            fontFamily = BricolageDisplay,
+            fontWeight = FontWeight.W700,
+            fontSize = 34.sp,
+            lineHeight = 38.sp,
+            letterSpacing = (-0.02).em,
+            lineHeightStyle = lineHeightTrim,
+        )
 }
 
 /**
@@ -134,16 +161,16 @@ val Typography =
     Typography(
         headlineMedium =
             TextStyle(
-                fontFamily = GeistSans,
+                fontFamily = BricolageDisplay,
                 fontWeight = FontWeight.W700,
                 fontSize = 24.sp,
                 lineHeight = 30.sp,
-                letterSpacing = (-0.01).em,
+                letterSpacing = (-0.02).em,
                 lineHeightStyle = lineHeightTrim,
             ),
         titleLarge =
             TextStyle(
-                fontFamily = GeistSans,
+                fontFamily = BricolageDisplay,
                 fontWeight = FontWeight.W600,
                 fontSize = 20.sp,
                 lineHeight = 26.sp,
