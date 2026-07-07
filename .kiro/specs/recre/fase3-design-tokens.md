@@ -3980,3 +3980,23 @@ accentBright/surface1  11.62  (>= 4.5 OK)
 ```
 
 Todos los pares superan su umbral; no hizo falta aclarar ningún fg.
+
+### Papel del ticket térmico (N4) — fijo en ambos modos
+
+Iniciativa `feat/android-neon-n4`. El recibo del histórico (`TicketRecibo`) emula papel
+impreso: es papel **CLARO FIJO** sobre la sala oscura, **igual en light y dark** (no
+sigue el tema). Por eso son **constantes sueltas** en `Color.kt` — no pares Light/Dark,
+no entran en `RecreSemanticColors`.
+
+| Token | HEX | Uso |
+| --- | --- | --- |
+| `RecrePapelTicket` | `#F5F2EA` | fondo del papel del recibo (fijo, ambos modos) |
+| `RecrePapelTinta` | `#1C2326` | tinta/texto sobre el papel (fijo, ambos modos) |
+
+**Regla:** el papel es fijo, no se re-tinta con el tema. `TicketRecibo` fuerza el tema
+CLARO en su subárbol (`RecreTheme(darkTheme = false)`) y re-tinta `surface → RecrePapelTicket`
+y `onSurface → RecrePapelTinta`; así todo lo que lee M3 (incl. `MoneyText`, cuyo dígito es
+`onSurface`) queda legible sobre el papel también en modo oscuro. El sello/estado (banners
+anulada/conflicto) conserva su rol M3 (surfaceVariant / errorContainer) — no se inventa color.
+
+Contraste: `RecrePapelTinta` sobre `RecrePapelTicket` ≈ 14:1 (>= 7, sobrado).

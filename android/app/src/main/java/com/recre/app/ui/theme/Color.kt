@@ -58,6 +58,13 @@ val RecreOnSurfaceLight = Color(0xFF11161B) // casi-negro frío, AA sobre surfac
 val RecreOnSurfaceDark = Color(0xFFEAF3F6) // casi-blanco frío (tinte petróleo)
 val RecreScrim = Color(0xFF000000)
 
+// Papel del ticket térmico (re-skin Neón de sala · N4). El recibo del histórico
+// emula papel impreso, así que NO sigue el tema: es papel CLARO FIJO sobre la sala
+// oscura en AMBOS modos. Por eso son constantes sueltas (no pares Light/Dark, no
+// entran en RecreSemanticColors). Tinta sobre papel ≈ 14:1 (sobrado).
+val RecrePapelTicket = Color(0xFFF5F2EA) // papel térmico del ticket (fijo, ambos modos)
+val RecrePapelTinta = Color(0xFF1C2326) // tinta sobre el papel
+
 // ---------------------------------------------------------------------
 // 2) CONTAINERS DERIVADOS (rellenan slots M3; tinte/sombra del canónico)
 // ---------------------------------------------------------------------
