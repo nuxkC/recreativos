@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recre.app.ui.theme.GeistMono
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
 
 // Design System "Confianza Industrial" — atom C-KEYPAD-DENOM-AND (Fase 4 · T-232).
@@ -61,7 +62,7 @@ import com.recre.app.ui.theme.RecreTheme
 // gobernado por [hapticsEnabled] (ajuste in-app) además del ajuste del sistema.
 
 private const val KEY_HEIGHT_DP = 64 // objetivo thumb-zone; muy por encima de 48dp mínimo
-private val KEY_SHAPE = RoundedCornerShape(12.dp)
+private val KEY_SHAPE = RoundedCornerShape(16.dp) // re-skin neón: esquina más marcada
 
 // Dígito de la tecla: Geist Mono tabular, tamaño cómodo para la thumb-zone.
 private val KeypadDigitStyle =
@@ -102,6 +103,7 @@ fun Keypad(
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
+    val recreColors = RecreColors.current
     Column(
         modifier =
             modifier
@@ -126,8 +128,8 @@ fun Keypad(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KeypadKey(
                 onClick = onBackspace,
-                container = colors.surfaceContainer,
-                border = colors.outline,
+                container = recreColors.surface2, // re-skin neón: fondo surface-2
+                border = recreColors.border,
                 hapticsEnabled = hapticsEnabled,
                 contentDescription = backspaceContentDescription,
                 modifier = Modifier.weight(1f).testTag("keypad-backspace"),
@@ -171,10 +173,11 @@ private fun DigitKey(
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
+    val recreColors = RecreColors.current
     KeypadKey(
         onClick = { onDigit(digit) },
-        container = colors.surfaceContainer,
-        border = colors.outline, // ≥3:1; TalkBack anuncia el dígito por el Text
+        container = recreColors.surface2, // re-skin neón: fondo surface-2
+        border = recreColors.border, // ≥3:1; TalkBack anuncia el dígito por el Text
         hapticsEnabled = hapticsEnabled,
         contentDescription = null,
         modifier = modifier.testTag("keypad-$digit"),
