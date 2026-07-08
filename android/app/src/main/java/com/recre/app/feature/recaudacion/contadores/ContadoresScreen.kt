@@ -1,5 +1,11 @@
 package com.recre.app.feature.recaudacion.contadores
 
+import android.provider.Settings
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,11 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -28,9 +36,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
@@ -38,13 +51,17 @@ import com.recre.app.core.locks.LockState
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
-import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Banda
+import com.recre.app.ui.components.BandaTono
+import com.recre.app.ui.components.FilaHairline
 import com.recre.app.ui.components.Keypad
 import com.recre.app.ui.components.PasoTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
-import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.formatEur
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreType
 
@@ -52,8 +69,8 @@ import com.recre.app.ui.theme.RecreType
  * Paso 1 del flujo de recaudación (T-54).
  *
  * El técnico introduce los contadores actuales (entradas y salidas). El
- * ViewModel calcula las cifras en vivo con [calcularRecaudacion] y las
- * muestra en una tarjeta [CifrasResumenCard].
+ * ViewModel calcula las cifras en vivo y la pantalla muestra el desglose
+ * (créditos y bruto estimado) como filas hairline siempre visibles.
  *
  * En este PR (T-58/T-59) la pantalla añade:
  *  - Banner "Sincronización obligatoria" si `state.syncStale` (T-59).
@@ -149,34 +166,18 @@ fun ContadoresScreen(
                             baselineSalidas = maquina.baselineSalidas,
                         )
                         Spacer(Modifier.height(12.dp))
-                        // Escanear integrado como acción de la sección de lecturas,
-                        // no como botón suelto: título a la izquierda, cámara a la derecha.
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.recaudacion_contadores_intro),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            ContadorOcrBoton(
-                                label = stringResource(R.string.recaudacion_ocr_escanear_corto),
-                                testTag = RecaudacionTestTags.OCR_ESCANEAR,
-                                fullWidth = false,
-                                onEscanear = {
-                                    permisoCamaraDenegado = false
-                                    mostrarEscaner = true
-                                },
-                                onPermisoDenegado = { permisoCamaraDenegado = true },
-                            )
-                        }
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.recaudacion_ocr_ayuda),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        // Escanear como acción fantasma full-width (mockup N7): píldora
+                        // transparente con icono de cámara, entre la banda y las lecturas.
+                        // Conserva el manejo de permiso de cámara existente.
+                        ContadorOcrBoton(
+                            label = stringResource(R.string.recaudacion_ocr_escanear_corto),
+                            testTag = RecaudacionTestTags.OCR_ESCANEAR,
+                            fullWidth = true,
+                            onEscanear = {
+                                permisoCamaraDenegado = false
+                                mostrarEscaner = true
+                            },
+                            onPermisoDenegado = { permisoCamaraDenegado = true },
                         )
                         if (permisoCamaraDenegado) {
                             Spacer(Modifier.height(8.dp))
@@ -191,6 +192,7 @@ fun ContadoresScreen(
                             label = stringResource(R.string.recaudacion_label_contador_entradas),
                             valor = state.contadorEntradasInput,
                             activa = activeCampo == CampoContador.Entradas,
+                            baseline = maquina.baselineEntradas,
                             error = entradasError,
                             errorText = stringResource(
                                 R.string.recaudacion_error_contador_menor,
@@ -204,6 +206,7 @@ fun ContadoresScreen(
                             label = stringResource(R.string.recaudacion_label_contador_salidas),
                             valor = state.contadorSalidasInput,
                             activa = activeCampo == CampoContador.Salidas,
+                            baseline = maquina.baselineSalidas,
                             error = salidasError,
                             errorText = stringResource(
                                 R.string.recaudacion_error_contador_menor,
@@ -212,24 +215,41 @@ fun ContadoresScreen(
                             onActivar = { activeCampo = CampoContador.Salidas },
                             testTag = RecaudacionTestTags.CONTADOR_SALIDAS,
                         )
-                        if (cifras != null) {
-                            Spacer(Modifier.height(16.dp))
-                            CifrasResumenCard(
-                                cifras = cifras,
-                                recuperacion = state.recuperacion,
-                                modifier = Modifier
-                                    .testTag(RecaudacionTestTags.CIFRAS_RESUMEN)
-                                    .bringIntoViewRequester(cifrasRequester),
+                        // Desglose siempre visible como filas hairline (mockup N7): «—»
+                        // cuando aún no hay cifras. El bringIntoView se ancla al bloque.
+                        Spacer(Modifier.height(16.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag(RecaudacionTestTags.CIFRAS_RESUMEN)
+                                .bringIntoViewRequester(cifrasRequester),
+                        ) {
+                            FilaHairline(
+                                label = stringResource(R.string.recaudacion_label_creditos),
+                                value = cifras?.let { "+${it.creditos}" } ?: "—",
+                            )
+                            FilaHairline(
+                                label = stringResource(R.string.recaudacion_contadores_bruto_estimado),
+                                value = cifras?.let { formatEur(it.bruto.toPlainString()) } ?: "—",
+                                hairline = false,
+                                emphasis = true,
+                            )
+                        }
+                        // El aviso «lectura no recaudada» sigue siendo la señal clave:
+                        // se conserva como banda de deuda cuando el bruto no cubre la tasa.
+                        if (cifras != null && !cifras.procede) {
+                            Spacer(Modifier.height(12.dp))
+                            Banda(
+                                texto = buildAnnotatedString {
+                                    append(stringResource(R.string.recaudacion_no_procede_descripcion))
+                                },
+                                icon = Icons.Filled.Info,
+                                tono = BandaTono.DEUDA,
                             )
                         }
                         Spacer(Modifier.height(24.dp))
                         Acciones(
-                            cifrasOk = cifras != null && cifras.procede,
                             cifrasNoProcede = cifras != null && !cifras.procede,
-                            // Si el lock está ocupado por otro técnico, deshabilitamos
-                            // 'Continuar' hasta que el usuario lo fuerce desde el dialog.
-                            bloqueadoPorLock = lockOcupado,
-                            onContinuar = onContinuar,
                             onLecturaNoRecaudada = {
                                 viewModel.liberarLockAlSalir()
                                 onLecturaNoRecaudada()
@@ -259,15 +279,29 @@ fun ContadoresScreen(
                             }
                         },
                         onNext = {
-                            activeCampo =
-                                if (activeCampo == CampoContador.Entradas) {
-                                    CampoContador.Salidas
-                                } else {
-                                    CampoContador.Entradas
-                                }
+                            // En salidas con cifras que proceden, la tecla ok confirma y
+                            // avanza de paso; en el resto solo togglea el campo activo.
+                            if (activeCampo == CampoContador.Salidas && cifras != null && cifras.procede && !lockOcupado) {
+                                onContinuar()
+                            } else {
+                                activeCampo =
+                                    if (activeCampo == CampoContador.Entradas) {
+                                        CampoContador.Salidas
+                                    } else {
+                                        CampoContador.Entradas
+                                    }
+                            }
                         },
+                        // La tecla ok muestra «Continuar» solo cuando pulsarla confirma el
+                        // paso (salidas + cifras que proceden); si no, avanza al otro campo.
+                        okLabel =
+                            if (activeCampo == CampoContador.Salidas && cifras != null && cifras.procede) {
+                                stringResource(R.string.recaudacion_accion_continuar)
+                            } else {
+                                stringResource(R.string.recaudacion_keypad_siguiente)
+                            },
                         backspaceContentDescription = stringResource(R.string.recaudacion_keypad_borrar),
-                        nextContentDescription = stringResource(R.string.recaudacion_keypad_siguiente),
+                        nextContentDescription = stringResource(R.string.recaudacion_keypad_siguiente_campo),
                     )
                 }
             }
@@ -300,15 +334,18 @@ fun ContadoresScreen(
 
 @Composable
 private fun BaselineHint(baselineEntradas: Long, baselineSalidas: Long) {
-    Text(
-        text = stringResource(
-            R.string.recaudacion_contadores_baseline,
-            baselineEntradas.toString(),
-            baselineSalidas.toString(),
-        ),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    // Valores con separador de miles ES (punto), resaltados en negrita dentro de la banda.
+    val e = "%,d".format(baselineEntradas).replace(',', '.')
+    val s = "%,d".format(baselineSalidas).replace(',', '.')
+    val prefijoE = stringResource(R.string.recaudacion_contadores_ultima_lectura_entradas)
+    val prefijoS = stringResource(R.string.recaudacion_contadores_ultima_lectura_salidas)
+    val texto = buildAnnotatedString {
+        append("$prefijoE ")
+        withStyle(SpanStyle(fontWeight = FontWeight.W600)) { append(e) }
+        append(" · $prefijoS ")
+        withStyle(SpanStyle(fontWeight = FontWeight.W600)) { append(s) }
+    }
+    Banda(texto = texto, icon = Icons.Filled.Info)
 }
 
 @Composable
@@ -316,6 +353,7 @@ private fun CeldaContador(
     label: String,
     valor: String,
     activa: Boolean,
+    baseline: Long,
     error: Boolean,
     errorText: String,
     onActivar: () -> Unit,
@@ -338,14 +376,23 @@ private fun CeldaContador(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(4.dp))
-                // Lectura en grande (Geist Mono tabular). "—" si aún no hay dígitos.
-                Text(
-                    text = valor.ifBlank { "—" },
-                    style = RecreType.importeMedium,
-                    color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                )
+                // Lectura en grande (Geist Mono tabular) con cursor parpadeante en la
+                // celda activa; "—" si aún no hay dígitos.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = valor.ifBlank { "—" },
+                        style = RecreType.importeMedium,
+                        color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                    )
+                    if (activa) {
+                        CursorParpadeante()
+                    }
+                }
             }
         }
+        // Pista de delta cuando el valor teclado supera el baseline: solo presentación
+        // (valorActual − baseline), no es cálculo económico. Si hay error, gana el error.
+        val valorActual = valor.toLongOrNull()
         if (error) {
             Spacer(Modifier.height(4.dp))
             Text(
@@ -354,32 +401,81 @@ private fun CeldaContador(
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(start = 4.dp),
             )
+        } else if (valorActual != null && valorActual > baseline) {
+            Spacer(Modifier.height(4.dp))
+            val delta = "%,d".format(valorActual - baseline).replace(',', '.')
+            Text(
+                text = stringResource(R.string.recaudacion_contadores_delta, delta),
+                style = RecreType.eyebrow,
+                color = RecreColors.current.mutedStrong,
+                modifier = Modifier.padding(start = 4.dp),
+            )
         }
+    }
+}
+
+/**
+ * Cursor «|» del campo activo: parpadeo alpha 1→0 en `accentBright`. Con las
+ * animaciones del sistema desactivadas (reduced-motion) queda fijo y visible.
+ */
+@Composable
+private fun CursorParpadeante() {
+    val reducedMotion = rememberReducedMotion()
+    val alpha =
+        if (reducedMotion) {
+            1f
+        } else {
+            val transition = rememberInfiniteTransition(label = "cursor")
+            transition.animateFloat(
+                initialValue = 1f,
+                targetValue = 0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 600),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+                label = "cursor-alpha",
+            ).value
+        }
+    Text(
+        text = "|",
+        style = RecreType.importeMedium,
+        color = RecreColors.current.accentBright.copy(alpha = alpha),
+        modifier = Modifier.padding(start = 2.dp),
+    )
+}
+
+/**
+ * true cuando el usuario ha desactivado/reducido las animaciones del sistema
+ * (ANIMATOR_DURATION_SCALE == 0). Equivale a prefers-reduced-motion.
+ */
+@Composable
+private fun rememberReducedMotion(): Boolean {
+    val context = LocalContext.current
+    return remember {
+        val escala = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        )
+        escala == 0f
     }
 }
 
 @Composable
 private fun Acciones(
-    cifrasOk: Boolean,
     cifrasNoProcede: Boolean,
-    bloqueadoPorLock: Boolean,
-    onContinuar: () -> Unit,
     onLecturaNoRecaudada: () -> Unit,
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        if (cifrasNoProcede) {
-            RecreTonalButton(
+    // El «Continuar» vive ahora en la tecla ok del keypad; aquí solo queda la
+    // salida «lectura no recaudada» cuando el bruto no cubre la tasa.
+    if (cifrasNoProcede) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            RecreGhostButton(
                 text = stringResource(R.string.recaudacion_accion_lectura_no_recaudada),
                 onClick = onLecturaNoRecaudada,
                 fullWidth = true,
+                mini = true,
                 modifier = Modifier.testTag(RecaudacionTestTags.CONTADORES_LECTURA_NO_RECAUDADA),
-            )
-        } else {
-            RecrePrimaryButton(
-                text = stringResource(R.string.recaudacion_accion_continuar),
-                onClick = onContinuar,
-                enabled = cifrasOk && !bloqueadoPorLock,
-                modifier = Modifier.testTag(RecaudacionTestTags.CONTADORES_CONTINUAR),
             )
         }
     }

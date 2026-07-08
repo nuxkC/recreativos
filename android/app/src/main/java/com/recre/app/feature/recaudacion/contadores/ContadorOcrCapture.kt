@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.core.content.ContextCompat
-import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.RecreGhostButton
 
 /**
  * Botón que abre el escáner OCR de contadores **en vivo** (T-100).
@@ -22,8 +22,8 @@ import com.recre.app.ui.components.RecreTonalButton
  * ([EscanerContadoresOverlay]). Ya no se captura ninguna foto: el OCR analiza
  * los fotogramas de la cámara al vuelo.
  *
- * Rediseño (F4): botón de la librería (`RecreTonalButton`) en vez de
- * `OutlinedButton` de Material.
+ * Neón N7: acción fantasma mini (píldora transparente con icono de cámara), no
+ * gasta acento — es una ayuda opcional dentro del flujo de lecturas.
  */
 @Composable
 fun ContadorOcrBoton(
@@ -42,7 +42,7 @@ fun ContadorOcrBoton(
         if (concedido) onEscanear() else onPermisoDenegado()
     }
 
-    RecreTonalButton(
+    RecreGhostButton(
         text = label,
         onClick = {
             if (tienePermisoCamara(context)) {
@@ -53,6 +53,7 @@ fun ContadorOcrBoton(
         },
         leadingIcon = Icons.Filled.PhotoCamera,
         fullWidth = fullWidth,
+        mini = true,
         modifier = modifier.testTag(testTag),
     )
 }

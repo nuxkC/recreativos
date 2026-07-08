@@ -144,6 +144,10 @@
     <string name="recaudacion_label_contador_entradas">Contador entradas</string>
     <string name="recaudacion_label_contador_salidas">Contador salidas</string>
     <string name="recaudacion_contadores_baseline">Última lectura: entradas %1$s · salidas %2$s</string>
+    <string name="recaudacion_contadores_ultima_lectura_entradas">Última lectura · E</string>
+    <string name="recaudacion_contadores_ultima_lectura_salidas">S</string>
+    <string name="recaudacion_contadores_delta">+%1$s desde la última recogida</string>
+    <string name="recaudacion_contadores_bruto_estimado">Bruto estimado</string>
     <string name="recaudacion_error_contador_menor">El contador no puede ser menor que la última lectura (%1$d).</string>
 
     <!-- OCR de contadores en vivo (T-100, HU-14 fase 2) -->
@@ -188,6 +192,7 @@
     <string name="recaudacion_denominaciones_billetes">Billetes</string>
     <string name="recaudacion_denominaciones_monedas">Monedas</string>
     <string name="recaudacion_keypad_siguiente">Siguiente</string>
+    <string name="recaudacion_keypad_siguiente_campo">Siguiente campo</string>
     <string name="recaudacion_keypad_borrar">Borrar</string>
     <string name="recaudacion_keypad_siguiente_denominacion">Siguiente denominación</string>
     <string name="recaudacion_denominaciones_descartar_titulo">¿Descartar el conteo?</string>
