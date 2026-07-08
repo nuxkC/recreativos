@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTextButton
@@ -277,12 +278,14 @@ private fun EdicionInstalacionForm(
         enabled = !state.guardando && !state.cerrando && state.online,
         loading = state.guardando,
     )
-    RecreTonalButton(
+    RecreGhostButton(
         text = stringResource(R.string.gestion_instalacion_cerrar),
         onClick = viewModel::pedirCerrar,
         enabled = !state.cerrando && !state.guardando && state.online,
         loading = state.cerrando,
         fullWidth = true,
+        mini = true,
+        danger = true,
     )
 }
 

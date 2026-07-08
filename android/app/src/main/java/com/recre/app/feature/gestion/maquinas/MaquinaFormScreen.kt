@@ -18,9 +18,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
-import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.SnackbarEstado
 import com.recre.app.ui.components.mostrar
 import androidx.compose.runtime.Composable
@@ -150,7 +150,7 @@ private fun MaquinaAltaWizard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         if (paso > 0) {
-            RecreTonalButton(
+            RecreGhostButton(
                 text = stringResource(R.string.wizard_atras),
                 onClick = { paso-- },
                 enabled = !state.guardando,

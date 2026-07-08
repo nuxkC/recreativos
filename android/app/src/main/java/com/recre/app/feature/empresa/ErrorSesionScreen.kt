@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
-import com.recre.app.ui.components.RecreTextButton
 
 /**
  * Pantalla para [com.recre.app.core.session.SessionState.LoadError]: la
@@ -60,9 +60,10 @@ fun ErrorSesionScreen(
                 loading = reintentando,
             )
             Spacer(Modifier.height(8.dp))
-            RecreTextButton(
+            RecreGhostButton(
                 text = stringResource(R.string.auth_signout),
                 onClick = viewModel::cerrarSesion,
+                mini = true,
             )
         }
     }

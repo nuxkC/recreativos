@@ -1,5 +1,6 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -87,8 +89,9 @@ private val IconSize = 20.dp
  * @param leadingIcon icono decorativo opcional (contentDescription = null).
  * @param fullWidth ancla el botón a todo el ancho (CTA de pantalla); por
  *        defecto `true` porque el PrimaryCTA suele ir sticky al fondo.
- * @param glow halo neón cian detrás del botón (opt-in del re-skin neón); `false`
- *        por defecto para no alterar ninguna llamada existente.
+ * @param glow halo neón cian tras el botón. En el mockup TODO CTA sólido brilla
+ *        (S1): on por defecto; se apaga solo dentro de diálogos o superficies ya
+ *        acentuadas.
  */
 @Composable
 fun RecrePrimaryButton(
@@ -99,7 +102,7 @@ fun RecrePrimaryButton(
     loading: Boolean = false,
     leadingIcon: ImageVector? = null,
     fullWidth: Boolean = true,
-    glow: Boolean = false,
+    glow: Boolean = true,
 ) {
     // Glow opt-in: el halo se pinta detrás del botón sin ocupar layout (neonGlow).
     val modifierConGlow =
@@ -288,6 +291,51 @@ fun RecreDestructiveButton(
                     Text(cancelLabel)
                 }
             },
+        )
+    }
+}
+
+/**
+ * (5) Fantasma — `.cta.fantasma` del mockup (S1): píldora transparente con borde
+ * 1px `border` y contenido onSurface; NO gasta acento. [danger] la vuelve
+ * `.peligrosa` (borde y texto danger) para acciones arriesgadas no destructivas
+ * inmediatas (p. ej. «Cerrar instalación», que ya confirma con diálogo aguas
+ * arriba). [mini] compacta la altura para acciones de pie de pantalla.
+ */
+@Composable
+fun RecreGhostButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    leadingIcon: ImageVector? = null,
+    fullWidth: Boolean = false,
+    mini: Boolean = false,
+    danger: Boolean = false,
+) {
+    val recreColors = RecreColors.current
+    val contentColor =
+        if (danger) recreColors.danger else MaterialTheme.colorScheme.onSurface
+    val borderColor =
+        if (danger) recreColors.danger.copy(alpha = 0.55f) else recreColors.border
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled && !loading,
+        modifier =
+            modifier
+                .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
+                .heightIn(min = if (mini) 40.dp else ActionHeight)
+                .semantics { if (loading) stateDescription = "Cargando" },
+        border = BorderStroke(1.dp, borderColor),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
+        contentPadding = PaddingValues(horizontal = if (mini) 14.dp else 16.dp),
+    ) {
+        RecreButtonContent(
+            text = text,
+            loading = loading,
+            leadingIcon = leadingIcon,
+            spinnerColor = contentColor,
         )
     }
 }

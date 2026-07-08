@@ -30,8 +30,8 @@ import com.recre.app.R
 import com.recre.app.core.auth.Rol
 import com.recre.app.core.session.Membresia
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreSnackbarHost
-import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.RecreTopBar
 
 @Composable
@@ -124,11 +124,12 @@ private fun ContenidoSeleccion(
             }
         }
         Spacer(Modifier.height(12.dp))
-        RecreTonalButton(
+        RecreGhostButton(
             text = stringResource(R.string.auth_signout),
             onClick = onCerrarSesion,
             enabled = seleccionando == null,
             fullWidth = true,
+            mini = true,
             modifier = Modifier.fillMaxWidth(),
         )
     }
