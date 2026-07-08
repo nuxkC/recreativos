@@ -148,6 +148,22 @@ object RecreType {
             letterSpacing = (-0.02).em,
             lineHeightStyle = lineHeightTrim,
         )
+
+    /**
+     * Eyebrow «Neón de sala» (S4): etiqueta mono MAYÚSCULAS con tracking ancho.
+     * Es EL título de sección, el label de campo y el subtítulo de cabecera del
+     * mockup (CSS: Geist Mono ~10px, +0.18em, --texto-3). El uppercase lo aplica
+     * el átomo Eyebrow, no el estilo.
+     */
+    val eyebrow =
+        TextStyle(
+            fontFamily = GeistMono,
+            fontWeight = FontWeight.W600,
+            fontSize = 11.sp,
+            lineHeight = 14.sp,
+            letterSpacing = 0.18.em,
+            lineHeightStyle = lineHeightTrim,
+        )
 }
 
 /**
