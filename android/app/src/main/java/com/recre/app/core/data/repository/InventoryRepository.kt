@@ -1,5 +1,7 @@
 package com.recre.app.core.data.repository
 
+import com.recre.app.core.data.local.dao.CreditoLocalDao
+import com.recre.app.core.data.local.dao.EmpresaParamsDao
 import com.recre.app.core.data.local.dao.InstalacionDao
 import com.recre.app.core.data.local.dao.LicenciaDao
 import com.recre.app.core.data.local.dao.LocalDao
@@ -10,6 +12,8 @@ import com.recre.app.core.data.local.entity.LocalEntity
 import com.recre.app.core.data.local.entity.MaquinaEntity
 import com.recre.app.core.session.SessionRepository
 import com.recre.app.core.session.SessionState
+import java.math.BigDecimal
+import java.math.RoundingMode
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,6 +62,8 @@ class InventoryRepositoryImpl @Inject constructor(
     private val maquinaDao: MaquinaDao,
     private val licenciaDao: LicenciaDao,
     private val instalacionDao: InstalacionDao,
+    private val creditoLocalDao: CreditoLocalDao,
+    private val empresaParamsDao: EmpresaParamsDao,
     private val sessionRepository: SessionRepository,
 ) : InventoryRepository {
 
@@ -81,7 +87,10 @@ class InventoryRepositoryImpl @Inject constructor(
             if (empresaId == null) {
                 flowOf(null)
             } else {
-                combine(
+                // Combine interno (4 flujos): construye el detalle base y arrastra el
+                // % de recuperación PROPIO del local (null si hereda el de empresa),
+                // porque el modelo de detalle ya no expone la entidad cruda.
+                val detalleFlow = combine(
                     localDao.observe(localId),
                     instalacionDao.observarActivasPorLocal(empresaId, localId),
                     maquinaDao.observarPorEmpresa(empresaId),
@@ -90,8 +99,28 @@ class InventoryRepositoryImpl @Inject constructor(
                     if (local == null || local.empresaId != empresaId) {
                         null
                     } else {
-                        construirDetalle(local, instalaciones, maquinas, licencias)
+                        construirDetalle(local, instalaciones, maquinas, licencias) to
+                            local.porcentajeRecuperacion
                     }
+                }
+                // Combine externo: añade la deuda viva (Σ saldos de deudas ABIERTAS,
+                // BigDecimal money-safe) y el % efectivo (local ?: empresa). Todo
+                // offline desde Room; sin red.
+                combine(
+                    detalleFlow,
+                    creditoLocalDao.observarAbiertosPorLocal(localId),
+                    empresaParamsDao.observe(empresaId),
+                ) { detalleConPorcentaje, creditosAbiertos, empresaParams ->
+                    val (detalle, porcentajeLocal) = detalleConPorcentaje
+                        ?: return@combine null
+                    val deudaViva = creditosAbiertos
+                        .fold(BigDecimal.ZERO) { acc, credito -> acc + BigDecimal(credito.saldo) }
+                        .setScale(2, RoundingMode.HALF_UP)
+                    val porcentajeRetencion = porcentajeLocal ?: empresaParams?.porcentajeRecuperacion
+                    detalle.copy(
+                        deudaViva = deudaViva,
+                        porcentajeRetencion = porcentajeRetencion,
+                    )
                 }
             }
         }

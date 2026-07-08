@@ -1,5 +1,6 @@
 package com.recre.app.core.data.repository
 
+import java.math.BigDecimal
 import java.time.Instant
 
 /**
@@ -118,4 +119,14 @@ data class MaquinaConInstalacion(
 data class LocalDetalle(
     val local: LocalResumen,
     val maquinas: List<MaquinaConInstalacion>,
+    /**
+     * Deuda viva del local: Σ de saldos de las deudas ABIERTAS (BigDecimal,
+     * nunca Double). Derivada offline desde la cache de `credito_local` (N8).
+     */
+    val deudaViva: BigDecimal = BigDecimal.ZERO,
+    /**
+     * % de retención efectivo aplicado al recaudar: el del local si lo tiene
+     * fijado, en su defecto el de la empresa. `null` cuando aún no hay params.
+     */
+    val porcentajeRetencion: Int? = null,
 )
