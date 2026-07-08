@@ -11,7 +11,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -34,6 +33,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.recre.app.ui.theme.PillShape
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
 
@@ -132,14 +132,15 @@ fun SearchField(
                 }
             }
         },
-        shape = RoundedCornerShape(12.dp), // campo, no pill 50
+        // Píldora (S3, mockup .search: radio 999, fondo --sup1, borde --linea).
+        shape = PillShape,
         colors =
             OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colors.ring, // = primary
+                focusedBorderColor = colors.ring,
                 unfocusedBorderColor = colors.border,
-                focusedContainerColor = colors.surface2,
-                unfocusedContainerColor = colors.surface2,
-                disabledContainerColor = colors.surface2,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
                 cursorColor = colors.ring,
             ),
         modifier =
