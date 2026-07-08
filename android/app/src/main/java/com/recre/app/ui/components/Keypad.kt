@@ -73,6 +73,14 @@ private val KeypadDigitStyle =
         fontFeatureSettings = "tnum", // tabular: el ancho no baila entre dígitos
     )
 
+// Etiqueta de la tecla ok cuando lleva texto (Siguiente/Continuar): mono, ceñida.
+private val KeypadOkLabelStyle =
+    TextStyle(
+        fontFamily = GeistMono,
+        fontSize = 13.sp,
+        fontWeight = FontWeight(600),
+    )
+
 /**
  * Teclado numérico in-app 3×4 anclado al fondo (R5 del sistema de denominaciones).
  *
@@ -84,8 +92,9 @@ private val KeypadDigitStyle =
  *
  * @param onDigit dígito 0-9 pulsado (la pantalla lo concatena a la fila activa).
  * @param onBackspace borra el último dígito de la fila activa.
- * @param onNext salta a la siguiente denominación (siempre habilitado: mover el
- *   foco no depende de que cuadre — el gate de cuadre vive en el CTA "Continuar").
+ * @param onNext acción de la tecla ok (siempre habilitada). Según cómo la cablee la
+ *   pantalla: saltar a la siguiente denominación mientras quedan, o avanzar de paso
+ *   cuando [okLabel] = «Continuar». Mover el foco no depende de que cuadre.
  * @param backspaceContentDescription descripción del backspace ("Borrar"). i18n.
  * @param nextContentDescription descripción de Siguiente ("Siguiente denominación"). i18n.
  * @param hapticsEnabled ajuste in-app de haptics; si false (o el sistema lo tiene
@@ -99,6 +108,9 @@ fun Keypad(
     onNext: () -> Unit,
     backspaceContentDescription: String,
     nextContentDescription: String,
+    /** Texto de la tecla ok (D.3-3): «Siguiente» mientras quedan; «Continuar» cuando
+     *  avanza de paso. null = icono «→» (compat). La acción es siempre [onNext]. */
+    okLabel: String? = null,
     hapticsEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
@@ -154,11 +166,20 @@ fun Keypad(
                 contentDescription = nextContentDescription,
                 modifier = Modifier.weight(1f).testTag("keypad-next"),
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null, // el contentDescription va en la tecla
-                    tint = colors.onPrimary,
-                )
+                if (okLabel != null) {
+                    Text(
+                        text = okLabel,
+                        color = colors.onPrimary,
+                        style = KeypadOkLabelStyle,
+                        maxLines = 1,
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = colors.onPrimary,
+                    )
+                }
             }
         }
     }
