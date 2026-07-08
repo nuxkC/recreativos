@@ -143,7 +143,6 @@
 
     <string name="recaudacion_label_contador_entradas">Contador entradas</string>
     <string name="recaudacion_label_contador_salidas">Contador salidas</string>
-    <string name="recaudacion_contadores_baseline">Última lectura: entradas %1$s · salidas %2$s</string>
     <string name="recaudacion_contadores_ultima_lectura_entradas">Última lectura · E</string>
     <string name="recaudacion_contadores_ultima_lectura_salidas">S</string>
     <string name="recaudacion_contadores_delta">+%1$s desde la última recogida</string>
@@ -181,11 +180,9 @@
 
     <string name="recaudacion_denominaciones_total_titulo">Desglose del total</string>
     <string name="recaudacion_denominaciones_local_titulo">Desglose de la parte del local</string>
-    <string name="recaudacion_denominaciones_objetivo">Objetivo: %1$s</string>
     <string name="recaudacion_denominaciones_objetivo_sticky">Objetivo · %1$s</string>
     <string name="recaudacion_denominaciones_banda_deuda">Se retiene el %1$d %%. El local se lleva %2$s de %3$s.</string>
     <string name="recaudacion_label_cantidad">Cantidad</string>
-    <string name="recaudacion_denominaciones_total">Total</string>
     <string name="recaudacion_denominaciones_diferencia">Diferencia</string>
     <!-- Keypad de denominaciones (T-232) -->
     <string name="recaudacion_denominaciones_cuadra">Cuadra</string>
@@ -203,7 +200,6 @@
 
     <!-- Recuperación de deuda durante la recaudación (T-215) -->
     <string name="recaudacion_recuperacion_titulo">Recuperación de deuda</string>
-    <string name="recaudacion_recuperacion_compacta_sub">Se retiene de la parte del local para saldar su deuda.</string>
     <string name="recaudacion_recuperacion_retenido">Retenido de la parte del local</string>
     <string name="recaudacion_recuperacion_entregado">Se entrega al local</string>
     <string name="recaudacion_recuperacion_imputacion">Imputación (orden de pago)</string>
@@ -216,7 +212,6 @@
     <string name="recaudacion_local_nada">No hay parte para el local en esta recaudación.</string>
 
     <string name="recaudacion_firma_titulo">Firma del local</string>
-    <string name="recaudacion_firma_descripcion">Pide al titular del local que firme con el dedo en el recuadro.</string>
     <string name="recaudacion_firma_ayuda">Firma el titular, con el dedo.</string>
     <string name="recaudacion_firma_limpiar">Limpiar firma</string>
     <string name="recaudacion_accion_guardar">Guardar e imprimir</string>

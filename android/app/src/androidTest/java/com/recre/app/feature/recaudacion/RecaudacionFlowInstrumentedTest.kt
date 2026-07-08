@@ -7,15 +7,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextInput
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.recre.app.R
@@ -59,8 +56,12 @@ import org.junit.runner.RunWith
  * Cubren los criterios de la HU-7 que dependen de la UI:
  *  - Navegación contadores → denominaciones (total) → denominaciones
  *    (local) → confirmación.
- *  - "Continuar" en denominaciones solo se habilita cuando la suma exacta
- *    coincide con el objetivo (bruto / parte local).
+ *  - El avance vive en la tecla ok del keypad (D.3-3, neón N7): en
+ *    denominaciones solo navega al paso siguiente cuando la suma exacta
+ *    coincide con el objetivo (bruto / parte local); si no cuadra, la tecla
+ *    ok salta a la siguiente denominación y NO cambia de pantalla. El gate se
+ *    verifica por navegación (aparece / no aparece el título del paso
+ *    siguiente), no por `enabled`, porque la tecla ok está siempre habilitada.
  *  - Bruto < tasa: se oculta "Continuar" y se ofrece "Saltar a la
  *    siguiente" sin pedir denominaciones.
  *
@@ -254,37 +255,43 @@ class RecaudacionFlowInstrumentedTest {
         valor.forEach { c -> composeRule.onNodeWithTag("keypad-$c").performClick() }
     }
 
+    /**
+     * Teclea el contador [testTag] (entradas o salidas) con el keypad in-app
+     * (neón N7): la celda es tappable, no un TextField, así que el IME del
+     * sistema jamás aparece. Activa la celda y pulsa los dígitos uno a uno.
+     */
+    private fun tecleaContador(testTag: String, valor: String) {
+        composeRule.onNodeWithTag(testTag).performScrollTo().performClick()
+        valor.forEach { c -> composeRule.onNodeWithTag("keypad-$c").performClick() }
+    }
+
     @Test
     fun flujoCompleto_contadores_denominaciones_confirmacion() {
         val viewModel = crearViewModel(maquinaQueProcede())
         composeRule.setContent { FlujoTestHost(viewModel) }
         esperarContadores()
 
-        // Paso 1 — contadores: 100 créditos => bruto 20,00 €, procede.
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADOR_ENTRADAS).performTextInput("100")
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADOR_SALIDAS).performTextInput("0")
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADORES_CONTINUAR)
-            .performScrollTo()
-            .assertIsEnabled()
-            .performClick()
+        // Paso 1 — contadores: 100 créditos => bruto 20,00 €, procede. Se teclean
+        // por el keypad in-app; la tecla ok avanza al estar en salidas con cifras
+        // válidas (D.3-3), ya no hay botón "Continuar".
+        tecleaContador(RecaudacionTestTags.CONTADOR_ENTRADAS, "100")
+        tecleaContador(RecaudacionTestTags.CONTADOR_SALIDAS, "0")
+        composeRule.onNodeWithTag("keypad-next").performClick()
 
-        // Paso 2 — denominaciones del total (objetivo 20,00 €): 0,20 € × 100.
+        // Paso 2 — denominaciones del total (objetivo 20,00 €): 0,20 € × 100. Al
+        // cuadrar, la tecla ok navega al paso local.
         composeRule.waitForIdle()
         composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_total_titulo))
             .assertIsDisplayed()
         tecleaCantidad("0.20", "100")
-        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR)
-            .assertIsEnabled()
-            .performClick()
+        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).performClick()
 
         // Paso 3 — denominaciones de la parte local (objetivo 10,00 €): 0,20 € × 50.
         composeRule.waitForIdle()
         composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_local_titulo))
             .assertIsDisplayed()
         tecleaCantidad("0.20", "50")
-        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR)
-            .assertIsEnabled()
-            .performClick()
+        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).performClick()
 
         // Paso 4 — confirmación.
         composeRule.waitForIdle()
@@ -292,29 +299,42 @@ class RecaudacionFlowInstrumentedTest {
     }
 
     @Test
-    fun denominaciones_continuarSoloSeHabilitaConSumaExacta() {
+    fun denominaciones_okSoloAvanzaConSumaExacta() {
         val viewModel = crearViewModel(maquinaQueProcede())
         composeRule.setContent { FlujoTestHost(viewModel) }
         esperarContadores()
 
-        // Avanza a denominaciones del total (objetivo 20,00 €).
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADOR_ENTRADAS).performTextInput("100")
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADOR_SALIDAS).performTextInput("0")
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADORES_CONTINUAR)
-            .performScrollTo()
-            .performClick()
+        // Avanza a denominaciones del total (objetivo 20,00 €) con la tecla ok.
+        tecleaContador(RecaudacionTestTags.CONTADOR_ENTRADAS, "100")
+        tecleaContador(RecaudacionTestTags.CONTADOR_SALIDAS, "0")
+        composeRule.onNodeWithTag("keypad-next").performClick()
         composeRule.waitForIdle()
+        composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_total_titulo))
+            .assertIsDisplayed()
 
-        // Sin desglose: la diferencia no es 0 → "Continuar" deshabilitado.
-        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).assertIsNotEnabled()
+        // El gate ya NO se comprueba por `enabled` (la tecla ok está siempre
+        // habilitada): se comprueba por NAVEGACIÓN. Sin cuadrar, pulsar la tecla
+        // ok salta a la siguiente denominación y NO cambia de pantalla.
 
-        // Suma insuficiente (0,20 € × 50 = 10,00 €) → sigue deshabilitado.
+        // Sin desglose (diferencia ≠ 0): la tecla ok no navega al paso local.
+        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_local_titulo))
+            .assertDoesNotExist()
+
+        // Suma insuficiente (0,20 € × 50 = 10,00 €) → sigue sin navegar.
         tecleaCantidad("0.20", "50")
-        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).assertIsNotEnabled()
+        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_local_titulo))
+            .assertDoesNotExist()
 
-        // Suma exacta (0,20 € × 100 = 20,00 €) → habilitado.
+        // Suma exacta (0,20 € × 100 = 20,00 €) → la tecla ok navega al paso local.
         tecleaCantidad("0.20", "100")
-        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).assertIsEnabled()
+        composeRule.onNodeWithTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(textoDe(R.string.recaudacion_denominaciones_local_titulo))
+            .assertIsDisplayed()
     }
 
     @Test
@@ -324,8 +344,8 @@ class RecaudacionFlowInstrumentedTest {
         esperarContadores()
 
         // 100 créditos => bruto 20,00 € < tasa total (≥ 200,00 €): no procede.
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADOR_ENTRADAS).performTextInput("100")
-        composeRule.onNodeWithTag(RecaudacionTestTags.CONTADOR_SALIDAS).performTextInput("0")
+        tecleaContador(RecaudacionTestTags.CONTADOR_ENTRADAS, "100")
+        tecleaContador(RecaudacionTestTags.CONTADOR_SALIDAS, "0")
         composeRule.waitForIdle()
 
         // Se ofrece "Saltar a la siguiente" y NO el botón de "Continuar".
