@@ -1,14 +1,25 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Visibility
@@ -20,25 +31,24 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -53,16 +63,19 @@ import androidx.compose.ui.unit.dp
 import com.recre.app.ui.theme.GeistMono
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
+import com.recre.app.ui.theme.neonGlow
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-// Design System "Confianza Industrial" — atom C-FIELDNUM family (Fase 3).
-// SSOT: .kiro/specs/recre/fase3-component-specs.md.
+// Design System "Neón de sala" — familia de campos `.campo` (S7).
+// SSOT: .kiro/specs/recre/fase3-component-specs.md + mockup S7.
 //
 // Familia de campos que captura datos con el TECLADO DEL SISTEMA (nunca un
-// keypad in-app salvo denominaciones, que es T-231). Sobre OutlinedTextField M3:
+// keypad in-app salvo denominaciones, que es T-231). El marco `.campo`
+// (CampoFrame) pone la etiqueta eyebrow DENTRO, el valor debajo, borde 1px y
+// anillo de foco cian; el mensaje de error/ayuda vive FUERA (debajo).
 //  - FieldNum: entero (KeyboardType.Number) o decimal (KeyboardType.Decimal),
 //    valor Geist Mono tabular, sufijo €/% en `muted-strong` (≥7:1, NO muted).
 //  - FieldText: texto/email/password (toggle ojo con hit-area ≥48dp vía IconButton).
@@ -75,10 +88,9 @@ import java.time.format.DateTimeFormatter
 // Float. La sanitización es puramente léxica (dígitos + un único separador
 // decimal coma es-ES), sin parsear a number; el dominio lo eleva a BigDecimal.
 //
-// Tokens reales del stack: surface-2 = `surface2`, borde reposo = `border`,
-// foco = `ring`, error = `danger`, €/%/iconos informativos = `mutedStrong`
-// (añadido a Color.kt para paridad con la web; muted no llega a ~7:1 sobre
-// surface-2). Cifra en `GeistMono` tabular (tnum).
+// Tokens reales del stack: surface = fondo del marco, borde reposo = `border`,
+// foco = primary + halo `accentBright`, error = `danger`, €/%/iconos
+// informativos = `mutedStrong`. Cifra en `GeistMono` tabular (tnum).
 
 /**
  * Sanitiza una entrada numérica de forma puramente léxica (money-safe): conserva
@@ -102,31 +114,87 @@ private fun String.sanitizeNumeric(isDecimal: Boolean): String {
     return sb.toString()
 }
 
-/** Colores del control unificados por rol: surface-2, border, ring, danger. */
+/**
+ * Marco `.campo` del mockup (S7): caja surface radio 16 con borde 1px, label
+ * eyebrow DENTRO (arriba), valor debajo. Foco = borde primary + halo cian
+ * translúcido (anillo del mockup, dibujado con neonGlow porque minSdk 26 no
+ * tiene sombras de color). Error = borde danger. El mensaje de error/ayuda vive
+ * FUERA del marco (debajo), como `.err`/`.ayuda` del mockup — lo pinta el campo.
+ */
 @Composable
-private fun recreFieldColors(): TextFieldColors {
+private fun CampoFrame(
+    label: String,
+    focused: Boolean,
+    isError: Boolean,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
+) {
     val c = RecreColors.current
-    return OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = c.ring, // = primary petróleo
-        unfocusedBorderColor = c.border,
-        errorBorderColor = c.danger,
-        focusedContainerColor = c.surface2,
-        unfocusedContainerColor = c.surface2,
-        disabledContainerColor = c.surface2,
-        errorContainerColor = c.surface2,
-        focusedLabelColor = c.ring,
-        errorLabelColor = c.danger,
-        cursorColor = c.ring,
-    )
+    val shape = RoundedCornerShape(16.dp)
+    val borderColor =
+        when {
+            isError -> c.danger
+            focused -> MaterialTheme.colorScheme.primary
+            else -> c.border
+        }
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .then(
+                    if (focused && !isError) {
+                        Modifier.neonGlow(c.accentBright, radius = 5.dp, alpha = 0.30f)
+                    } else {
+                        Modifier
+                    },
+                )
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, borderColor, shape)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .alpha(if (enabled) 1f else 0.5f)
+                // El lector anuncia label + valor como un solo campo.
+                .semantics(mergeDescendants = true) {},
+    ) {
+        Eyebrow(label)
+        Spacer(Modifier.height(2.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) { content() }
+    }
+}
+
+/** Mensaje bajo el marco: error danger (aria-live) o ayuda muted-strong. */
+@Composable
+private fun CampoMensaje(isError: Boolean, errorText: String?, description: String?) {
+    val c = RecreColors.current
+    when {
+        isError && errorText != null ->
+            Text(
+                errorText,
+                color = c.danger,
+                style = MaterialTheme.typography.labelMedium,
+                modifier =
+                    Modifier
+                        .padding(start = 4.dp, top = 4.dp)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        description != null ->
+            Text(
+                description,
+                color = c.mutedStrong,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+            )
+    }
 }
 
 /**
  * Campo numérico (entero o decimal/importe) con teclado del sistema correcto.
  *
- * El estado nunca es solo-color: el error añade icono CircleAlert + texto en el
- * supportingText (no solo el borde danger). El read-only se distingue del
- * disabled (read-only no se atenúa y sigue enfocable). El sufijo €/% va en
- * `muted-strong` y el dígito en foreground, en Geist Mono tabular.
+ * El estado nunca es solo-color: el error añade icono CircleAlert + texto bajo el
+ * marco (no solo el borde danger). El read-only se distingue del disabled
+ * (read-only no se atenúa y sigue enfocable). El sufijo €/% va en `muted-strong`
+ * y el dígito en foreground, en Geist Mono tabular.
  *
  * @param value valor como String (money-safe; el dominio lo eleva a BigDecimal).
  * @param onValueChange recibe el String ya sanitizado léxicamente.
@@ -135,7 +203,7 @@ private fun recreFieldColors(): TextFieldColors {
  * @param suffix "€"/"%" en muted-strong; null = sin sufijo.
  * @param placeholder texto fantasma (muted); no porta información única.
  * @param description ayuda en muted-strong (se lee al sol); null = sin ayuda.
- * @param isError / errorText estado de error inline (borde+label+mensaje danger).
+ * @param isError / errorText estado de error inline (borde+mensaje danger).
  * @param enabled false ⇒ disabled (atenuado, sin foco/teclado).
  * @param readOnly true ⇒ read-only (visual = default, enfocable, sin teclado).
  * @param isLoading true ⇒ spinner en el adorno (aria-busy).
@@ -160,77 +228,66 @@ fun FieldNum(
     modifier: Modifier = Modifier,
 ) {
     val colors = RecreColors.current
-    OutlinedTextField(
-        value = value,
-        onValueChange = { onValueChange(it.sanitizeNumeric(isDecimal)) },
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-        singleLine = true,
-        enabled = enabled,
-        readOnly = readOnly,
-        isError = isError,
-        textStyle =
-            MaterialTheme.typography.bodyLarge.copy(
-                fontFamily = GeistMono,
-                fontFeatureSettings = "tnum", // tabular
-            ),
-        keyboardOptions =
-            KeyboardOptions(
-                keyboardType = if (isDecimal) KeyboardType.Decimal else KeyboardType.Number,
-                imeAction = imeAction,
-            ),
-        trailingIcon =
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        CampoFrame(label = label, focused = focused, isError = isError, enabled = enabled) {
+            BasicTextField(
+                value = value,
+                onValueChange = { onValueChange(it.sanitizeNumeric(isDecimal)) },
+                enabled = enabled,
+                readOnly = readOnly,
+                singleLine = true,
+                interactionSource = interaction,
+                textStyle =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontFamily = GeistMono,
+                        fontFeatureSettings = "tnum", // tabular
+                    ),
+                cursorBrush = SolidColor(colors.ring),
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = if (isDecimal) KeyboardType.Decimal else KeyboardType.Number,
+                        imeAction = imeAction,
+                    ),
+                decorationBox = { inner ->
+                    Box {
+                        if (value.isEmpty() && placeholder != null) {
+                            Text(
+                                placeholder,
+                                color = colors.muted,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                        inner()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            )
             when {
                 isLoading -> {
-                    {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp).semantics { },
-                            strokeWidth = 2.dp,
-                            color = colors.mutedStrong,
-                        )
-                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp).semantics { },
+                        strokeWidth = 2.dp,
+                        color = colors.mutedStrong,
+                    )
                 }
                 suffix != null -> {
-                    { Text(suffix, color = colors.mutedStrong) } // €/% ≥7:1, no muted
+                    Text(suffix, color = colors.mutedStrong) // €/% ≥7:1, no muted
                 }
                 isError -> {
-                    {
-                        Icon(
-                            imageVector = Icons.Outlined.ErrorOutline,
-                            contentDescription = null,
-                            tint = colors.danger,
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.ErrorOutline,
+                        contentDescription = null,
+                        tint = colors.danger,
+                    )
                 }
-                else -> null
-            },
-        supportingText =
-            when {
-                isError && errorText != null -> {
-                    {
-                        Text(
-                            errorText,
-                            color = colors.danger,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        )
-                    }
-                }
-                description != null -> {
-                    {
-                        Text(
-                            description,
-                            color = colors.mutedStrong, // ayuda legible al sol
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
-                else -> null
-            },
-        shape = RoundedCornerShape(12.dp),
-        colors = recreFieldColors(),
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-    )
+            }
+        }
+        CampoMensaje(isError = isError, errorText = errorText, description = description)
+    }
 }
 
 /**
@@ -267,73 +324,70 @@ fun FieldText(
     val colors = RecreColors.current
     var revealed by remember { mutableStateOf(false) }
     val hidden = isPassword && !revealed
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-        singleLine = singleLine,
-        minLines = minLines,
-        enabled = enabled,
-        readOnly = readOnly,
-        isError = isError,
-        visualTransformation =
-            if (hidden) PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions =
-            KeyboardOptions(
-                keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
-                imeAction = imeAction,
-            ),
-        trailingIcon =
-            when {
-                isPassword -> {
-                    {
-                        // Hit-area ≥48dp vía IconButton; el glifo queda a 20dp.
-                        IconButton(onClick = { revealed = !revealed }) {
-                            Icon(
-                                imageVector =
-                                    if (revealed) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription =
-                                    if (revealed) "Ocultar contraseña" else "Mostrar contraseña",
-                                tint = colors.mutedStrong,
-                                modifier = Modifier.size(20.dp),
+    Column(modifier = modifier.fillMaxWidth()) {
+        CampoFrame(label = label, focused = focused, isError = isError, enabled = enabled) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                enabled = enabled,
+                readOnly = readOnly,
+                singleLine = singleLine,
+                minLines = minLines,
+                interactionSource = interaction,
+                textStyle =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                cursorBrush = SolidColor(colors.ring),
+                visualTransformation =
+                    if (hidden) PasswordVisualTransformation() else VisualTransformation.None,
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
+                        imeAction = imeAction,
+                    ),
+                decorationBox = { inner ->
+                    Box {
+                        if (value.isEmpty() && placeholder != null) {
+                            Text(
+                                placeholder,
+                                color = colors.muted,
+                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
+                        inner()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            )
+            when {
+                isPassword -> {
+                    // Hit-area ≥48dp vía IconButton; el glifo queda a 20dp.
+                    IconButton(onClick = { revealed = !revealed }) {
+                        Icon(
+                            imageVector =
+                                if (revealed) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription =
+                                if (revealed) "Ocultar contraseña" else "Mostrar contraseña",
+                            tint = colors.mutedStrong,
+                            modifier = Modifier.size(20.dp),
+                        )
                     }
                 }
                 isError -> {
-                    {
-                        Icon(
-                            imageVector = Icons.Outlined.ErrorOutline,
-                            contentDescription = null,
-                            tint = colors.danger,
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.ErrorOutline,
+                        contentDescription = null,
+                        tint = colors.danger,
+                    )
                 }
-                else -> null
-            },
-        supportingText =
-            when {
-                isError && errorText != null -> {
-                    {
-                        Text(
-                            errorText,
-                            color = colors.danger,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        )
-                    }
-                }
-                description != null -> {
-                    { Text(description, color = colors.mutedStrong, style = MaterialTheme.typography.labelMedium) }
-                }
-                else -> null
-            },
-        shape = RoundedCornerShape(12.dp),
-        colors = recreFieldColors(),
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-    )
+            }
+        }
+        CampoMensaje(isError = isError, errorText = errorText, description = description)
+    }
 }
 
 /**
@@ -362,43 +416,36 @@ fun <T> FieldSelect(
 ) {
     val colors = RecreColors.current
     var expanded by remember { mutableStateOf(false) }
+    val texto = value?.let(optionLabel).orEmpty()
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { if (enabled) expanded = it },
         modifier = modifier,
     ) {
-        OutlinedTextField(
-            value = value?.let(optionLabel).orEmpty(),
-            onValueChange = {},
-            readOnly = true, // se elige en el menú, no se teclea
-            enabled = enabled,
-            isError = isError,
-            label = { Text(label) },
-            placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-            singleLine = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            supportingText =
-                if (isError && errorText != null) {
-                    {
-                        Text(
-                            errorText,
-                            color = colors.danger,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        )
-                    }
-                } else {
-                    null
-                },
-            shape = RoundedCornerShape(12.dp),
-            colors = recreFieldColors(),
-            modifier =
-                Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled)
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp),
-        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            CampoFrame(
+                label = label,
+                focused = expanded,
+                isError = isError,
+                enabled = enabled,
+                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled),
+            ) {
+                Text(
+                    text = texto.ifEmpty { placeholder.orEmpty() },
+                    color =
+                        if (texto.isEmpty()) colors.muted else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = colors.mutedStrong,
+                )
+            }
+            CampoMensaje(isError = isError, errorText = errorText, description = null)
+        }
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { opt ->
                 val selected = opt == value
@@ -481,48 +528,30 @@ fun FieldDate(
             runCatching { LocalDate.parse(value) }.getOrNull()?.format(DATE_DISPLAY_FORMAT).orEmpty()
         }
 
-    Box(modifier = modifier.semantics(mergeDescendants = true) {}) {
-        OutlinedTextField(
-            value = display,
-            onValueChange = {},
-            readOnly = true,
-            enabled = enabled,
+    Column(modifier = modifier.fillMaxWidth()) {
+        CampoFrame(
+            label = label,
+            focused = showDialog,
             isError = isError,
-            singleLine = true,
-            label = { Text(label) },
-            placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = null, // el control se anuncia por label + valor
-                    tint = colors.mutedStrong,
-                )
-            },
-            supportingText =
-                if (isError && errorText != null) {
-                    {
-                        Text(
-                            text = errorText,
-                            color = colors.danger,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        )
-                    }
-                } else {
-                    null
-                },
-            shape = RoundedCornerShape(12.dp),
-            colors = recreFieldColors(),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        )
-        // El OutlinedTextField read-only no recibe el toque; esta capa transparente
-        // lo cubre y abre el calendario. role=Button para que TalkBack lo anuncie.
-        Box(
-            Modifier
-                .matchParentSize()
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(enabled = enabled, role = Role.Button) { showDialog = true },
-        )
+            enabled = enabled,
+            // El marco read-only no recibe foco de IME; el clic abre el calendario.
+            modifier =
+                Modifier.clickable(enabled = enabled, role = Role.Button) { showDialog = true },
+        ) {
+            Text(
+                text = display.ifEmpty { placeholder.orEmpty() },
+                color =
+                    if (display.isEmpty()) colors.muted else MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = Icons.Filled.DateRange,
+                contentDescription = null, // el control se anuncia por label + valor
+                tint = colors.mutedStrong,
+            )
+        }
+        CampoMensaje(isError = isError, errorText = errorText, description = null)
     }
 
     if (showDialog) {
@@ -588,6 +617,8 @@ fun ComboboxCcaa(
     val colors = RecreColors.current
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
     val filtered =
         remember(query, options) {
             if (query.isBlank()) options else options.filter { it.contains(query, ignoreCase = true) }
@@ -598,22 +629,45 @@ fun ComboboxCcaa(
         onExpandedChange = { if (enabled) expanded = it },
         modifier = modifier,
     ) {
-        OutlinedTextField(
-            value = if (expanded) query else value,
-            onValueChange = { query = it },
+        CampoFrame(
+            label = label,
+            focused = expanded || focused,
+            isError = false,
             enabled = enabled,
-            singleLine = true,
-            label = { Text(label) },
-            placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = RoundedCornerShape(12.dp),
-            colors = recreFieldColors(),
-            modifier =
-                Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryEditable, enabled)
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp),
-        )
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, enabled),
+        ) {
+            BasicTextField(
+                value = if (expanded) query else value,
+                onValueChange = { query = it },
+                enabled = enabled,
+                singleLine = true,
+                interactionSource = interaction,
+                textStyle =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                cursorBrush = SolidColor(colors.ring),
+                decorationBox = { inner ->
+                    Box {
+                        val actual = if (expanded) query else value
+                        if (actual.isEmpty() && placeholder != null) {
+                            Text(
+                                placeholder,
+                                color = colors.muted,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                        inner()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                tint = colors.mutedStrong,
+            )
+        }
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             if (filtered.isEmpty()) {
                 DropdownMenuItem(
@@ -686,6 +740,8 @@ fun FieldAutocomplete(
     val colors = RecreColors.current
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
     val queryTrim = query.trim()
     val filtered =
         remember(queryTrim, options) {
@@ -702,22 +758,45 @@ fun FieldAutocomplete(
         onExpandedChange = { if (enabled) expanded = it },
         modifier = modifier,
     ) {
-        OutlinedTextField(
-            value = if (expanded) query else value,
-            onValueChange = { query = it },
+        CampoFrame(
+            label = label,
+            focused = expanded || focused,
+            isError = false,
             enabled = enabled,
-            singleLine = true,
-            label = { Text(label) },
-            placeholder = placeholder?.let { { Text(it, color = colors.muted) } },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = RoundedCornerShape(12.dp),
-            colors = recreFieldColors(),
-            modifier =
-                Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryEditable, enabled)
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp),
-        )
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, enabled),
+        ) {
+            BasicTextField(
+                value = if (expanded) query else value,
+                onValueChange = { query = it },
+                enabled = enabled,
+                singleLine = true,
+                interactionSource = interaction,
+                textStyle =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                cursorBrush = SolidColor(colors.ring),
+                decorationBox = { inner ->
+                    Box {
+                        val actual = if (expanded) query else value
+                        if (actual.isEmpty() && placeholder != null) {
+                            Text(
+                                placeholder,
+                                color = colors.muted,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                        inner()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                tint = colors.mutedStrong,
+            )
+        }
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             filtered.forEach { opt ->
                 val selected = opt == value
