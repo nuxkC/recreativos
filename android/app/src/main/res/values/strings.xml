@@ -182,6 +182,8 @@
     <string name="recaudacion_denominaciones_total_titulo">Desglose del total</string>
     <string name="recaudacion_denominaciones_local_titulo">Desglose de la parte del local</string>
     <string name="recaudacion_denominaciones_objetivo">Objetivo: %1$s</string>
+    <string name="recaudacion_denominaciones_objetivo_sticky">Objetivo · %1$s</string>
+    <string name="recaudacion_denominaciones_banda_deuda">Se retiene el %1$d %%. El local se lleva %2$s de %3$s.</string>
     <string name="recaudacion_label_cantidad">Cantidad</string>
     <string name="recaudacion_denominaciones_total">Total</string>
     <string name="recaudacion_denominaciones_diferencia">Diferencia</string>

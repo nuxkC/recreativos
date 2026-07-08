@@ -1,18 +1,24 @@
 package com.recre.app.feature.recaudacion.denominaciones
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -21,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,55 +37,56 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.calculo.DENOMINACIONES_PERMITIDAS
+import com.recre.app.core.calculo.DenominacionItem
 import com.recre.app.core.calculo.importesIguales
-import com.recre.app.ui.components.OdometroText
-import com.recre.app.ui.components.successFlash
 import com.recre.app.feature.recaudacion.RecaudacionFlowViewModel
 import com.recre.app.feature.recaudacion.RecaudacionTestTags
 import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
+import com.recre.app.ui.components.Banda
+import com.recre.app.ui.components.BandaTono
 import com.recre.app.ui.components.Keypad
 import com.recre.app.ui.components.LottieIllustration
-import com.recre.app.ui.components.MoneyText
-import com.recre.app.ui.components.MoneyTextSize
+import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.PasoTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.formatEur
-import com.recre.app.ui.theme.RecreShapes
+import com.recre.app.ui.components.successFlash
 import com.recre.app.ui.theme.RecreType
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-// Pantalla de extracto de denominaciones (T-55 · rediseño T-232, F2).
+// Pantalla de extracto de denominaciones (T-55 · rediseño T-232, F2 · neón N7).
 // SSOT del componente: .kiro/specs/recre/fase3-component-specs.md
 // (§ Sistema keypad de denominaciones · C-KEYPAD-DENOM-AND).
 //
-// 5 regiones de arriba a abajo: (R1) TopBar con confirmación de descarte; (R2,
-// solo Local) RecuperacionResumenCard fija solo-lectura; (R3) lista de
-// denominaciones agrupada Billetes/Monedas con celda readonly dirigida por el
-// keypad y auto-scroll a la fila activa; (R4) bloque de progreso STICKY
-// (Objetivo/Total/estado + CTA) que nunca queda tapado; (R5) átomo Keypad
-// anclado abajo. El cálculo económico definitivo es SSOT servidor: aquí solo se
-// capturan cantidades enteras y se valida suma == objetivo (importesIguales).
+// Regiones de arriba a abajo: (R1) TopBar con confirmación de descarte; (R2, solo
+// Local) Banda de deuda con el texto de retención; (R3) LISTA vertical de
+// denominaciones (billetes arriba, monedas abajo) con fila readonly dirigida por
+// el keypad y auto-scroll a la fila activa; (R4) TotalSticky (odómetro + objetivo
+// + chip estado) ENCIMA del keypad; (R5) átomo Keypad anclado abajo, que lleva el
+// avance en la tecla ok (D.3-3). El cálculo económico definitivo es SSOT servidor:
+// aquí solo se capturan cantidades enteras y se valida suma == objetivo.
 //
 // Reutilizada en dos modos: Total (objetivo = bruto) y Local (objetivo =
 // pagado_local = parte_local − recuperado). La reordenación de imputación de
 // deuda ya NO se edita aquí (R2 es solo lectura): se movió a un paso previo.
 //
-// Adaptación al stack: la celda de cantidad es un Box tappable (no un TextField),
-// de modo que el IME del sistema JAMÁS puede aparecer (anti-patrón nº1 del spec);
-// el keypad in-app es la única entrada. El resaltado de fila activa
-// (secondaryContainer + anillo primary) hace de cursor.
+// Adaptación al stack: la fila de cantidad es un destino tappable (no un
+// TextField), de modo que el IME del sistema JAMÁS puede aparecer (anti-patrón
+// nº1 del spec); el keypad in-app es la única entrada. El resaltado de fila activa
+// (borde primary de AppCard) hace de cursor.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,9 +123,13 @@ fun DenominacionesScreen(
     val huboRecuperacion = (state.recuperacion?.recuperadoTotal?.signum() ?: 0) > 0
     val hayPiezas = map.values.any { it > 0 }
 
+    // Orden del mockup: billetes arriba (50,20,10,5), luego monedas (2€…10c). Es
+    // DENOMINACIONES_PERMITIDAS (ascendente) invertida.
+    val orden = remember { DENOMINACIONES_PERMITIDAS.map { it.toPlainString() }.reversed() }
+
     // Estado de UI local: fila activa (la dirige el keypad) y diálogo de descarte.
     var activeKey by rememberSaveable(modo) {
-        mutableStateOf(DENOMINACIONES_PERMITIDAS.firstOrNull()?.toPlainString())
+        mutableStateOf(orden.firstOrNull())
     }
     var showDiscard by remember { mutableStateOf(false) }
 
@@ -150,14 +162,15 @@ fun DenominacionesScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // (R2) Recuperación: banner COMPACTO fijo. La card completa (con el
-            // detalle por deuda) desbordaba este Column sin scroll y empujaba la
-            // rejilla + keypad fuera de pantalla; el desglose íntegro se ve en
-            // Confirmación. Aquí basta recordar cuánto se retiene de la parte local.
+            // (R2) Recuperación: banda de deuda con el texto de retención. El
+            // desglose íntegro por deuda se ve en Confirmación; aquí basta recordar
+            // cuánto se retiene de la parte local y cuánto se lleva el local.
             val plan = state.recuperacion
             if (modo == ModoDenominaciones.Local && plan != null && plan.recuperadoTotal.signum() > 0) {
-                RecuperacionBannerCompacto(
-                    recuperadoTotal = plan.recuperadoTotal,
+                BandaDeuda(
+                    porcentaje = state.porcentajeRecuperacion,
+                    pagadoLocal = plan.pagadoLocal,
+                    parteLocal = cifras?.parteLocal ?: plan.pagadoLocal,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
@@ -169,36 +182,47 @@ fun DenominacionesScreen(
                     modifier = Modifier.weight(1f),
                 )
             } else {
-                // (R4) Objetivo/Total ARRIBA: deja la mitad inferior (rejilla + CTA +
-                // keypad) para el pulgar, mejorando el alcance de las denominaciones.
-                ProgresoInfo(
-                    objetivo = target,
-                    total = totalActual,
-                    diferencia = diferencia,
-                    cuadra = cuadra,
-                )
-                // (R3) Rejilla 3×3 sin scroll: monedas arriba, billetes abajo en orden
-                // ascendente. La tarjeta seleccionada (borde petróleo) dirige el keypad.
-                RejillaDenominaciones(
+                // (R3) Lista vertical de denominaciones; la fila seleccionada (borde
+                // petróleo) dirige el keypad. Auto-scroll a la fila activa.
+                ListaDenominaciones(
+                    orden = orden,
                     cantidades = map,
                     activeKey = activeKey,
                     onSelect = { activeKey = it },
                     modifier =
                         Modifier
                             .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .fillMaxWidth(),
+                )
+                // (R4) TotalSticky: odómetro + objetivo + chip estado, ENCIMA del keypad.
+                TotalSticky(
+                    objetivo = target,
+                    total = totalActual,
+                    diferencia = diferencia,
+                    cuadra = cuadra,
                 )
             }
 
-            // CTA Continuar STICKY en la thumb-zone, sobre el keypad.
-            ContinuarBar(
-                puedeContinuar = cuadra || nadaQueEntregar,
-                onContinuar = onContinuar,
-            )
-
-            // (R5) Keypad anclado abajo (oculto si no hay nada que contar).
-            if (!nadaQueEntregar) {
+            if (nadaQueEntregar) {
+                // Sin piezas no hay keypad donde poner el «ok»: un único CTA al pie.
+                Surface(color = MaterialTheme.colorScheme.surface) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+                        RecrePrimaryButton(
+                            text = stringResource(R.string.recaudacion_accion_continuar),
+                            onClick = onContinuar,
+                            fullWidth = true,
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                                    .testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
+                        )
+                    }
+                }
+            } else {
+                // (R5) Keypad anclado abajo. El avance vive en la tecla ok (D.3-3):
+                // «Continuar» cuando cuadra (o no hay nada que entregar) → onContinuar;
+                // si no, «Siguiente denominación» → salta a la siguiente fila.
                 Keypad(
                     onDigit = { d ->
                         activeKey?.let { k ->
@@ -211,10 +235,23 @@ fun DenominacionesScreen(
                     onBackspace = {
                         activeKey?.let { k -> cambiarCantidad(k, (map[k] ?: 0) / 10) }
                     },
-                    onNext = { activeKey = siguienteDenominacion(activeKey) },
+                    onNext = {
+                        if (cuadra || nadaQueEntregar) {
+                            onContinuar()
+                        } else {
+                            activeKey = siguienteDenominacion(activeKey, orden)
+                        }
+                    },
+                    okLabel =
+                        if (cuadra || nadaQueEntregar) {
+                            stringResource(R.string.recaudacion_accion_continuar)
+                        } else {
+                            stringResource(R.string.recaudacion_keypad_siguiente_denominacion)
+                        },
                     backspaceContentDescription = stringResource(R.string.recaudacion_keypad_borrar),
                     nextContentDescription =
                         stringResource(R.string.recaudacion_keypad_siguiente_denominacion),
+                    modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
                 )
             }
         }
@@ -245,50 +282,51 @@ fun DenominacionesScreen(
 }
 
 /**
- * (R3) Rejilla 3×3 de denominaciones, en orden ascendente (monedas arriba, billetes
- * abajo). Sin scroll: las filas se reparten el alto disponible (weight) para que las 9
- * tarjetas entren siempre. La tarjeta seleccionada dirige el keypad.
+ * (R3) Lista vertical de denominaciones en el orden del mockup (billetes arriba,
+ * monedas abajo). Cada fila es una [DenominacionCard] con el subtotal formateado;
+ * la fila seleccionada dirige el keypad. Auto-scroll a la fila activa al cambiarla.
  */
 @Composable
-private fun RejillaDenominaciones(
+private fun ListaDenominaciones(
+    orden: List<String>,
     cantidades: Map<String, Int>,
     activeKey: String?,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    val listState = rememberLazyListState()
+    LaunchedEffect(activeKey) {
+        val i = orden.indexOf(activeKey)
+        if (i >= 0) listState.animateScrollToItem(i)
+    }
+    LazyColumn(
+        state = listState,
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        DENOMINACIONES_PERMITIDAS.chunked(3).forEach { fila ->
-            Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                fila.forEach { den ->
-                    val key = den.toPlainString()
-                    DenominacionCard(
-                        etiqueta = etiquetaFacialDenominacion(key),
-                        cantidad = cantidades[key] ?: 0,
-                        selected = key == activeKey,
-                        onSelect = { onSelect(key) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
+        items(orden, key = { it }) { key ->
+            val cantidad = cantidades[key] ?: 0
+            val subtotal =
+                formatEur(DenominacionItem(BigDecimal(key), cantidad).subtotal.toPlainString())
+            DenominacionCard(
+                key = key,
+                cantidad = cantidad,
+                subtotal = subtotal,
+                selected = key == activeKey,
+                onSelect = { onSelect(key) },
+            )
         }
     }
 }
 
 /**
- * (R4) Info de progreso ARRIBA: Objetivo + Total (héroe) + estado
- * (Cuadra/Faltan/Sobran con icono+texto+color). Flash verde al cuadrar. Va
- * encima de la rejilla, separada por un divisor inferior; el CTA se separó a
- * [ContinuarBar] (abajo, en la thumb-zone).
+ * (R4) Total-sticky ENCIMA del keypad: odómetro del total + «Objetivo · X €» a la
+ * izquierda, chip de estado a la derecha. Flash verde al cuadrar. Separado del
+ * keypad por un divisor superior.
  */
 @Composable
-private fun ProgresoInfo(
+private fun TotalSticky(
     objetivo: BigDecimal?,
     total: BigDecimal,
     diferencia: BigDecimal?,
@@ -296,73 +334,37 @@ private fun ProgresoInfo(
 ) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Column(
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+            Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
                         .successFlash(trigger = if (cuadra) true else null)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (objetivo != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                Column {
+                    OdometroText(
+                        texto = formatEur(total),
+                        style = RecreType.importeMedium,
+                    )
+                    if (objetivo != null) {
                         Text(
-                            text = stringResource(R.string.recaudacion_denominaciones_objetivo, ""),
-                            style = MaterialTheme.typography.labelMedium,
+                            text =
+                                stringResource(
+                                    R.string.recaudacion_denominaciones_objetivo_sticky,
+                                    formatEur(objetivo),
+                                ),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        MoneyText(amount = objetivo, size = MoneyTextSize.Medium)
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.recaudacion_denominaciones_total),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        OdometroText(
-                            texto = formatEur(total),
-                            style = RecreType.importeMedium,
-                        )
-                    }
-                    if (objetivo != null && diferencia != null) {
-                        EstadoChip(diferencia = diferencia, cuadra = cuadra)
-                    }
+                if (objetivo != null && diferencia != null) {
+                    EstadoChip(diferencia = diferencia, cuadra = cuadra)
                 }
             }
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
-        }
-    }
-}
-
-/** CTA Continuar sticky en la thumb-zone, separado del contenido por un divisor. */
-@Composable
-private fun ContinuarBar(
-    puedeContinuar: Boolean,
-    onContinuar: () -> Unit,
-) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
-            RecrePrimaryButton(
-                text = stringResource(R.string.recaudacion_accion_continuar),
-                onClick = onContinuar,
-                enabled = puedeContinuar,
-                fullWidth = true,
-                modifier =
-                    Modifier
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .testTag(RecaudacionTestTags.DENOMINACIONES_CONTINUAR),
-            )
         }
     }
 }
@@ -404,7 +406,7 @@ private fun NadaQueEntregar(
     }
 }
 
-/** Chip de estado del cuadre: ✓ Cuadra (success) o ⚠ Faltan/Sobran X € (danger). */
+/** Chip de estado del cuadre: ✓ Cuadra (success) o ⚠ Faltan/Sobran X € (warning, ámbar — no rojo). */
 @Composable
 private fun EstadoChip(diferencia: BigDecimal, cuadra: Boolean) {
     if (cuadra) {
@@ -419,7 +421,7 @@ private fun EstadoChip(diferencia: BigDecimal, cuadra: Boolean) {
         val faltan = diferencia.signum() > 0
         val importe = formatEur(diferencia.abs().toPlainString())
         StatusChip(
-            role = StatusRole.DANGER,
+            role = StatusRole.WARNING,
             label =
                 stringResource(
                     if (faltan) {
@@ -429,65 +431,61 @@ private fun EstadoChip(diferencia: BigDecimal, cuadra: Boolean) {
                     },
                     importe,
                 ),
-            icon = Icons.Outlined.Warning,
+            icon = if (faltan) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward,
             modifier = Modifier.testTag(RecaudacionTestTags.DENOMINACIONES_DIFERENCIA),
         )
     }
 }
 
-/** Siguiente denominación (clamp en la última); null-safe sobre la activa. */
-private fun siguienteDenominacion(activa: String?): String? {
-    val claves = DENOMINACIONES_PERMITIDAS.map { it.toPlainString() }
-    val i = claves.indexOf(activa)
+/** Siguiente denominación en el orden dado (clamp en la última); null-safe sobre la activa. */
+private fun siguienteDenominacion(activa: String?, orden: List<String>): String? {
+    val i = orden.indexOf(activa)
     return when {
-        i < 0 -> claves.firstOrNull()
-        i >= claves.lastIndex -> claves.lastOrNull()
-        else -> claves[i + 1]
+        i < 0 -> orden.firstOrNull()
+        i >= orden.lastIndex -> orden.lastOrNull()
+        else -> orden[i + 1]
     }
 }
 
 /**
- * (R2) Banner compacto de recuperación de deuda para la pantalla de
- * denominaciones (sin scroll). Solo recuerda cuánto se retiene de la parte del
- * local; el reparto por deuda se ve en Confirmación. Ocupa ~64dp en vez de los
- * ~220dp de [com.recre.app.feature.recaudacion.components.RecuperacionResumenCard],
- * de modo que la rejilla y el keypad caben en pantalla.
+ * (R2) Banda de deuda (D.3-2): recuerda cuánto se retiene de la parte del local
+ * para saldar su deuda. Texto rico con las cifras en negrita. El reparto por deuda
+ * se ve en Confirmación; esta banda sustituye al banner compacto anterior.
  */
 @Composable
-private fun RecuperacionBannerCompacto(
-    recuperadoTotal: BigDecimal,
+private fun BandaDeuda(
+    porcentaje: Int,
+    pagadoLocal: BigDecimal,
+    parteLocal: BigDecimal,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        shape = RecreShapes.medium,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.recaudacion_recuperacion_titulo),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = stringResource(R.string.recaudacion_recuperacion_compacta_sub),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+    val pagadoStr = formatEur(pagadoLocal)
+    val parteStr = formatEur(parteLocal)
+    val plantilla =
+        stringResource(R.string.recaudacion_denominaciones_banda_deuda, porcentaje, pagadoStr, parteStr)
+    // Resalta en negrita las cifras (pagado/parte) dentro del texto plano.
+    val texto =
+        buildAnnotatedString {
+            var resto = plantilla
+            for (cifra in listOf(pagadoStr, parteStr)) {
+                val idx = resto.indexOf(cifra)
+                if (idx < 0) {
+                    append(resto)
+                    resto = ""
+                    break
+                }
+                append(resto.substring(0, idx))
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(cifra) }
+                resto = resto.substring(idx + cifra.length)
             }
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = "− " + formatEur(recuperadoTotal.toPlainString()),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            if (resto.isNotEmpty()) append(resto)
         }
-    }
+    Banda(
+        texto = texto,
+        icon = Icons.Filled.Warning,
+        tono = BandaTono.DEUDA,
+        modifier = modifier,
+    )
 }
 
 enum class ModoDenominaciones {
