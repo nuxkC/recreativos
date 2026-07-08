@@ -293,9 +293,11 @@ fun ContadoresScreen(
                             }
                         },
                         // La tecla ok muestra «Continuar» solo cuando pulsarla confirma el
-                        // paso (salidas + cifras que proceden); si no, avanza al otro campo.
+                        // paso (salidas + cifras que proceden y sin lock ajeno); si no, avanza
+                        // al otro campo. La condición coincide con la de `onNext` para que la
+                        // etiqueta nunca prometa un avance que el gate va a bloquear.
                         okLabel =
-                            if (activeCampo == CampoContador.Salidas && cifras != null && cifras.procede) {
+                            if (activeCampo == CampoContador.Salidas && cifras != null && cifras.procede && !lockOcupado) {
                                 stringResource(R.string.recaudacion_accion_continuar)
                             } else {
                                 stringResource(R.string.recaudacion_keypad_siguiente)
