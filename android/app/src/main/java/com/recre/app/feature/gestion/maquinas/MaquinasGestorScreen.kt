@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -71,6 +72,11 @@ fun MaquinasGestorScreen(
 
     GestionListaScaffold(
         titulo = stringResource(R.string.gestion_maquinas_titulo),
+        subtitulo = pluralStringResource(
+            R.plurals.gestion_maquinas_conteo,
+            state.maquinas.size,
+            state.maquinas.size,
+        ),
         buscarPlaceholder = stringResource(R.string.gestion_buscar),
         busqueda = state.busqueda,
         onBusquedaChange = viewModel::onBusquedaChange,

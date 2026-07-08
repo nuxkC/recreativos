@@ -22,17 +22,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.HeroSection
 import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
-import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -214,35 +213,30 @@ fun DeudasLocalScreen(
 
 @Composable
 private fun SaldoCard(state: DeudasLocalUiState) {
-    Surface(
+    // S11: saldo desnudo sobre el fondo (sin Surface acentuado). El desglose
+    // Tolva/Préstamos/N deudas va en una sola Text bajo la cifra protagonista.
+    val desglose =
+        stringResource(R.string.deudas_saldo_tolva, eur(state.saldoTolva)) +
+            "\n" +
+            stringResource(R.string.deudas_saldo_prestamo, eur(state.saldoPrestamo)) +
+            "\n" +
+            stringResource(R.string.deudas_num_deudas, state.creditos.size)
+    HeroSection(
+        eyebrow = stringResource(R.string.deudas_saldo_total),
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        shape = RecreShapes.large,
+        sub = {
+            Text(
+                text = desglose,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        },
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.deudas_saldo_total),
-                style = MaterialTheme.typography.labelMedium,
-            )
-            OdometroText(
-                texto = eur(state.saldoTotal),
-                style = RecreType.importe,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.deudas_saldo_tolva, eur(state.saldoTolva)),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = stringResource(R.string.deudas_saldo_prestamo, eur(state.saldoPrestamo)),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = stringResource(R.string.deudas_num_deudas, state.creditos.size),
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
+        OdometroText(
+            texto = eur(state.saldoTotal),
+            style = RecreType.importe,
+        )
     }
 }
 

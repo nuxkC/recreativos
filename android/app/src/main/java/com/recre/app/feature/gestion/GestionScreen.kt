@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -31,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.feature.gestion.components.OfflineBanner
 import com.recre.app.ui.components.EntidadRow
+import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
@@ -142,13 +142,7 @@ private fun EntradaRow(
         titulo = titulo,
         subtitulo = subtitulo,
         onClick = onClick,
-        leading = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        },
+        leading = { Pip(icon) },
     )
 }
 

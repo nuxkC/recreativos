@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTopBar
@@ -450,11 +451,7 @@ private fun ItemRow(
         modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        Pip(icon)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = primary, style = MaterialTheme.typography.bodyLarge)

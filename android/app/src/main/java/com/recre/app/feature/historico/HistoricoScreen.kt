@@ -19,7 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,9 +53,11 @@ import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.SearchField
+import com.recre.app.ui.components.StatusChip
+import com.recre.app.ui.components.StatusChipSize
+import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.TopLevelDestination
 import com.recre.app.core.data.repository.RecaudacionHistorica
-import com.recre.app.ui.theme.PillShape
 import com.recre.app.ui.theme.RecreMotion
 import com.recre.app.ui.theme.RecreShapes
 import java.time.ZoneId
@@ -204,7 +209,20 @@ private fun HistoricoCard(
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                     )
-                    EstadoBadge(recaudacion = recaudacion)
+                    val (rol, icono, textoRes) = when {
+                        recaudacion.conflictoPendiente ->
+                            Triple(StatusRole.WARNING, Icons.Filled.Warning, R.string.historico_badge_conflicto)
+                        recaudacion.estado == EstadoHistorico.Anulada ->
+                            Triple(StatusRole.DANGER, Icons.Filled.Block, R.string.historico_badge_anulada)
+                        else ->
+                            Triple(StatusRole.SUCCESS, Icons.Filled.CheckCircle, R.string.historico_badge_firme)
+                    }
+                    StatusChip(
+                        role = rol,
+                        label = stringResource(textoRes),
+                        icon = icono,
+                        size = StatusChipSize.SM,
+                    )
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -258,37 +276,6 @@ private fun HistoricoCard(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Composable
-private fun EstadoBadge(recaudacion: RecaudacionHistorica) {
-    val (textRes, container, onContainer) = when {
-        recaudacion.conflictoPendiente -> Triple(
-            R.string.historico_badge_conflicto,
-            MaterialTheme.colorScheme.errorContainer,
-            MaterialTheme.colorScheme.onErrorContainer,
-        )
-
-        recaudacion.estado == EstadoHistorico.Anulada -> Triple(
-            R.string.historico_badge_anulada,
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        else -> Triple(
-            R.string.historico_badge_firme,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-    }
-    Surface(color = container, shape = PillShape) {
-        Text(
-            text = stringResource(textRes),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = onContainer,
-        )
     }
 }
 

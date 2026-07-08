@@ -46,7 +46,9 @@ import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.EmptyState
 import com.recre.app.ui.components.FilterChipModel
 import com.recre.app.ui.components.FilterChipRow
+import com.recre.app.ui.components.HeroSection
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.RecreTopBar
@@ -214,34 +216,31 @@ fun LocalesScreen(
  *  un conteo de locales (entero), no dinero → no usa MoneyText. */
 @Composable
 private fun AgendaHero(pendientes: Int, modifier: Modifier = Modifier) {
-    AppCard(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (pendientes == 0) {
-                Text(
-                    text = stringResource(R.string.agenda_hero_todo_al_dia),
-                    style = RecreType.displayHero,
-                    color = RecreColors.current.success,
-                )
-            } else {
-                // Display Bricolage con el conteo en warning (neón N3): el héroe del
-                // home es agenda, no dinero — el importe grande vive en Mi caja.
-                Text(
-                    text = pendientes.toString(),
-                    style = RecreType.displayHero,
-                    color = RecreColors.current.warning,
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = pluralStringResource(
-                        id = R.plurals.agenda_hero_pendientes,
-                        count = pendientes,
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
+    HeroSection(
+        eyebrow = stringResource(R.string.agenda_hero_eyebrow),
+        modifier = modifier,
+        sub = {
+            Text(
+                text = pluralStringResource(R.plurals.agenda_hero_sub, pendientes, pendientes),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+    ) {
+        if (pendientes == 0) {
+            Text(
+                text = stringResource(R.string.agenda_hero_todo_al_dia),
+                style = RecreType.displayHero,
+                color = RecreColors.current.success,
+            )
+        } else {
+            // Display Bricolage con el conteo en warning (neón N3): el héroe del
+            // home es agenda, no dinero — el importe grande vive en Mi caja.
+            Text(
+                text = pendientes.toString(),
+                style = RecreType.displayHero,
+                color = RecreColors.current.warning,
+            )
         }
     }
 }
@@ -258,11 +257,7 @@ private fun CuadreAccesoCard(onClick: () -> Unit, modifier: Modifier = Modifier)
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = Icons.Filled.AccountBalanceWallet,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
+            Pip(Icons.Filled.AccountBalanceWallet)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(

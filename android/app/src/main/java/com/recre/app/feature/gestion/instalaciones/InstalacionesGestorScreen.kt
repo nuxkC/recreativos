@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,6 +57,11 @@ fun InstalacionesGestorScreen(
 
     GestionListaScaffold(
         titulo = stringResource(R.string.gestion_instalaciones_titulo),
+        subtitulo = pluralStringResource(
+            R.plurals.gestion_instalaciones_conteo,
+            state.instalaciones.size,
+            state.instalaciones.size,
+        ),
         buscarPlaceholder = stringResource(R.string.gestion_buscar),
         busqueda = state.busqueda,
         onBusquedaChange = viewModel::onBusquedaChange,

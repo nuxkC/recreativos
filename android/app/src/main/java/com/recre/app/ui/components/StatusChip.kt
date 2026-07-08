@@ -40,8 +40,11 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import com.recre.app.ui.theme.GeistMono
 import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreTheme
 
@@ -130,10 +133,20 @@ fun StatusChip(
         }
     val style =
         when (size) {
-            // No tabular: el label es texto de estado, no cifra.
-            StatusChipSize.SM -> MaterialTheme.typography.labelSmall
-            StatusChipSize.MD -> MaterialTheme.typography.labelMedium
-            StatusChipSize.LG -> MaterialTheme.typography.labelLarge
+            // S10 (mockup .estado): label mono uppercase con tracking; el icono se
+            // conserva por decisión D.3-4 (estado nunca solo por color).
+            StatusChipSize.SM ->
+                MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = GeistMono, fontWeight = FontWeight.W600, letterSpacing = 0.08.em,
+                )
+            StatusChipSize.MD ->
+                MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = GeistMono, fontWeight = FontWeight.W600, letterSpacing = 0.08.em,
+                )
+            StatusChipSize.LG ->
+                MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = GeistMono, fontWeight = FontWeight.W600, letterSpacing = 0.08.em,
+                )
         }
 
     // Animaciones SIEMPRE con guard reducedMotion: el estado sigue 100% legible sin movimiento.
@@ -211,7 +224,7 @@ fun StatusChip(
         )
         // Label: peso del rol-fg, una línea, sin truncar (los estados son cortos).
         Text(
-            text = label,
+            text = label.uppercase(),
             style = style,
             color = c.fg,
             maxLines = 1,

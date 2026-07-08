@@ -35,6 +35,7 @@ import com.recre.app.feature.cuadre.domain.LineaCuadre
 import com.recre.app.feature.cuadre.domain.VeredictoCuadre
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.FieldNum
+import com.recre.app.ui.components.HeroSection
 import com.recre.app.ui.components.IconAction
 import com.recre.app.ui.components.LottieIllustration
 import com.recre.app.ui.components.OdometroText
@@ -196,19 +197,11 @@ private fun ListoContenido(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            AppCard {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = stringResource(R.string.cuadre_deberias_llevar),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = RecreColors.current.muted,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OdometroText(
-                        texto = formatEur(dif.totalEsperado),
-                        style = RecreType.importe,
-                    )
-                    Spacer(Modifier.height(2.dp))
+            // S11: el héroe («Deberías llevar» + importe + «de N recaudaciones»)
+            // sale de la card y va desnudo sobre el fondo, con eyebrow.
+            HeroSection(
+                eyebrow = stringResource(R.string.cuadre_deberias_llevar),
+                sub = {
                     Text(
                         text = stringResource(
                             R.string.cuadre_de_n_recaudaciones,
@@ -217,7 +210,17 @@ private fun ListoContenido(
                         style = MaterialTheme.typography.bodyMedium,
                         color = RecreColors.current.muted,
                     )
-                    Spacer(Modifier.height(12.dp))
+                },
+            ) {
+                OdometroText(
+                    texto = formatEur(dif.totalEsperado),
+                    style = RecreType.importe,
+                )
+            }
+        }
+        item {
+            AppCard {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = stringResource(
                             R.string.cuadre_llevas,

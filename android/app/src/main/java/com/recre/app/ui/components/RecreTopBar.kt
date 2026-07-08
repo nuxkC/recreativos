@@ -1,7 +1,9 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -11,11 +13,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.recre.app.R
 import com.recre.app.ui.theme.RecreColors
+import com.recre.app.ui.theme.RecreType
 
 // =====================================================================
 // Chrome de app (P1) — Design System "Confianza Industrial".
@@ -51,9 +56,11 @@ private fun TopBarTitle(titulo: String, subtitulo: String?, tituloModifier: Modi
             modifier = tituloModifier,
         )
         if (subtitulo != null) {
+            // S9: el contexto de la cabecera va en eyebrow mono uppercase
+            // («KONG · A1B123 — BAR GIPUZKOA», «12 REGISTRADAS»), como el mockup.
             Text(
-                text = subtitulo,
-                style = MaterialTheme.typography.labelMedium,
+                text = subtitulo.uppercase(),
+                style = RecreType.eyebrow,
                 color = RecreColors.current.muted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -103,12 +110,17 @@ fun RecreDetailTopBar(
         modifier = modifier,
         title = { TopBarTitle(titulo = titulo, subtitulo = subtitulo, tituloModifier = tituloModifier) },
         navigationIcon = {
-            IconAction(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.action_back),
-                onClick = onBack,
-                enabled = backEnabled,
-            )
+            Box(
+                modifier = Modifier.size(48.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                IconActionTile(
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                    onClick = onBack,
+                    enabled = backEnabled,
+                )
+            }
         },
         actions = actions,
         colors = recreTopBarColors(),

@@ -46,7 +46,7 @@ import com.recre.app.ui.theme.RecreTheme
 // SSOT: .kiro/specs/recre/fase3-component-specs.md.
 // Familia de contenedores de superficie:
 //   · AppCard      contenedor base de elevación-por-borde (surface-1 + border
-//                  1px en light / luminancia en dark; radio 12; SIN sombra:
+//                  1px en light / luminancia en dark; radio 16; SIN sombra:
 //                  las sombras se reservan a overlays — dialog/dropdown/popover).
 //   · EntidadRow   fila de lista genérica (leading + centro vertical + trailing)
 //                  usada en los hubs de Gestión (CRUD); tapeable, ≥56dp.
@@ -62,7 +62,9 @@ import com.recre.app.ui.theme.RecreTheme
 //     MoneyText desde BigDecimal); aquí jamás se toca Double/Float.
 // =====================================================================
 
-private val CardShape = RoundedCornerShape(12.dp)
+// Radio 16 (S2, mockup: .item/.fila-nav/.deuda-card usan 16-18; los controles
+// siguen en 12 vía RecreShapes.small). Sube solo el contenedor de superficie.
+private val CardShape = RoundedCornerShape(16.dp)
 
 // -------------------------------------------------------------------------
 // AppCard — contenedor base de superficie (elevación por borde, sin sombra).
@@ -70,7 +72,7 @@ private val CardShape = RoundedCornerShape(12.dp)
 
 /**
  * Contenedor base de superficie. Variante no-clickable (decorativa o de detalle):
- * surface-1 + border 1px, radio 12, elevación 0 (la profundidad la da el borde,
+ * surface-1 + border 1px, radio 16, elevación 0 (la profundidad la da el borde,
  * no la sombra). Para una superficie clickable usa [AppCard] con [onClick].
  *
  * @param selected marca la tarjeta como activa: fondo secondary + borde primary

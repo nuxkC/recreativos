@@ -186,11 +186,18 @@ fun RecreTopBarActions(
             CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.fillMaxSize())
         }
     } else {
-        IconAction(
-            icon = Icons.Filled.Refresh,
-            contentDescription = stringResource(R.string.sync_force),
-            onClick = viewModel::forzarSync,
-        )
+        // S6: el botón de sync del chrome pasa a tile `.icono-btn`, envuelto en un
+        // Box de 48dp para conservar el target táctil (el tile es 38dp).
+        Box(
+            modifier = Modifier.size(48.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            IconActionTile(
+                icon = Icons.Filled.Refresh,
+                contentDescription = stringResource(R.string.sync_force),
+                onClick = viewModel::forzarSync,
+            )
+        }
     }
 
     NotificationBadge(
