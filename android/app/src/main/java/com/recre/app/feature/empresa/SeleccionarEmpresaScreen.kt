@@ -133,7 +133,6 @@ private fun ContenidoSeleccion(
             enabled = seleccionando == null,
             fullWidth = true,
             mini = true,
-            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
