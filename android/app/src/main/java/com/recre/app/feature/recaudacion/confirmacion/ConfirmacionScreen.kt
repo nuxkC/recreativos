@@ -1,5 +1,7 @@
 package com.recre.app.feature.recaudacion.confirmacion
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,9 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -307,7 +311,11 @@ private fun GuardadoModal(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             EstadoAnim(fase = fase, modifier = Modifier.size(128.dp))
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // N7: las 3 fases del proceso, cada una con su pip de estado.
+            ListaFases(fase = fase)
+            Spacer(Modifier.height(16.dp))
 
             when (fase) {
                 FaseGuardado.GUARDANDO -> EstadoTexto(
@@ -341,10 +349,12 @@ private fun GuardadoModal(
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(Modifier.height(24.dp))
+                    // CTA mini centrada: cierre suave, no vuelve a competir con el
+                    // héroe de la pantalla (la firma ya se guardó).
                     RecrePrimaryButton(
                         text = stringResource(R.string.recaudacion_post_guardado_continuar),
                         onClick = onContinuar,
-                        modifier = Modifier.fillMaxWidth(),
+                        fullWidth = false,
                     )
                 }
 
@@ -375,6 +385,89 @@ private fun GuardadoModal(
                 }
             }
         }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Lista de fases con pips de estado (N7)
+// -----------------------------------------------------------------------------
+
+/** Estado de una fila de fase dentro del modal de guardado. */
+private enum class EstadoFila { HECHA, EN_CURSO, PENDIENTE, ERROR }
+
+/**
+ * Las 3 fases del guardado (registrar · subir · imprimir) con su pip. El estado
+ * de cada fila se deriva de la [FaseGuardado] actual; en `ERROR_IMPRESION` la
+ * tercera fila queda en error (el bloque de reintentar lo pinta el modal).
+ */
+@Composable
+private fun ListaFases(fase: FaseGuardado) {
+    val (e1, e2, e3) = when (fase) {
+        FaseGuardado.GUARDANDO -> Triple(EstadoFila.EN_CURSO, EstadoFila.PENDIENTE, EstadoFila.PENDIENTE)
+        FaseGuardado.SUBIENDO -> Triple(EstadoFila.HECHA, EstadoFila.EN_CURSO, EstadoFila.PENDIENTE)
+        FaseGuardado.IMPRIMIENDO -> Triple(EstadoFila.HECHA, EstadoFila.HECHA, EstadoFila.EN_CURSO)
+        FaseGuardado.EXITO -> Triple(EstadoFila.HECHA, EstadoFila.HECHA, EstadoFila.HECHA)
+        FaseGuardado.ERROR_IMPRESION -> Triple(EstadoFila.HECHA, EstadoFila.HECHA, EstadoFila.ERROR)
+    }
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FaseFila(estado = e1, texto = stringResource(R.string.recaudacion_fase_registrando))
+        FaseFila(estado = e2, texto = stringResource(R.string.recaudacion_fase_subiendo))
+        FaseFila(estado = e3, texto = stringResource(R.string.recaudacion_fase_imprimiendo))
+    }
+}
+
+/** Fila «pip + texto» de una fase. El pip comunica el estado también por forma. */
+@Composable
+private fun FaseFila(estado: EstadoFila, texto: String) {
+    val colors = RecreColors.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(modifier = Modifier.size(16.dp), contentAlignment = Alignment.Center) {
+            when (estado) {
+                EstadoFila.HECHA -> Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = colors.successText,
+                    modifier = Modifier.size(16.dp),
+                )
+
+                EstadoFila.EN_CURSO -> CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = colors.accentBright,
+                )
+
+                EstadoFila.PENDIENTE -> Box(
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .border(1.5.dp, colors.muted, CircleShape),
+                )
+
+                EstadoFila.ERROR -> Icon(
+                    imageVector = Icons.Filled.ErrorOutline,
+                    contentDescription = null,
+                    tint = colors.dangerText,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+        val textoColor = when (estado) {
+            EstadoFila.PENDIENTE -> colors.muted
+            EstadoFila.ERROR -> colors.dangerText
+            else -> MaterialTheme.colorScheme.onSurface
+        }
+        Text(
+            text = texto,
+            style = MaterialTheme.typography.bodyMedium,
+            color = textoColor,
+        )
     }
 }
 

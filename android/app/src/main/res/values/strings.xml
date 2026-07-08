@@ -278,6 +278,10 @@
     <string name="recaudacion_guardado_subiendo_sub">Casi listo, enviando la recaudación.</string>
     <string name="recaudacion_guardado_imprimiendo_sub">Enviando el ticket a la impresora.</string>
     <string name="recaudacion_guardado_error_nota">La recaudación ya está guardada. Reintenta la impresión o continúa.</string>
+    <!-- Lista de fases del modal de guardado (N7): labels cortas por fila. -->
+    <string name="recaudacion_fase_registrando">Registrando la recaudación</string>
+    <string name="recaudacion_fase_subiendo">Subida al servidor</string>
+    <string name="recaudacion_fase_imprimiendo">Envío del ticket</string>
 
     <!-- Lock optimista (T-58) -->
     <string name="recaudacion_lock_titulo">Otro técnico está recaudando</string>
