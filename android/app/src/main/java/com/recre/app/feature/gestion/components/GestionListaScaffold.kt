@@ -36,6 +36,7 @@ import com.recre.app.ui.theme.neonGlow
 @Composable
 fun GestionListaScaffold(
     titulo: String,
+    subtitulo: String? = null,
     buscarPlaceholder: String,
     busqueda: String,
     onBusquedaChange: (String) -> Unit,
@@ -47,7 +48,7 @@ fun GestionListaScaffold(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
-        topBar = { RecreDetailTopBar(titulo = titulo, onBack = onBack) },
+        topBar = { RecreDetailTopBar(titulo = titulo, subtitulo = subtitulo, onBack = onBack) },
         floatingActionButton = {
             // S8: FAB acento pleno con halo neón (mockup .fab). La forma ya sale
             // del theme (CornerLarge = 20dp). Offline se atenúa, como antes.

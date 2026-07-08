@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.recre.app.R
 import com.recre.app.ui.theme.RecreColors
+import com.recre.app.ui.theme.RecreType
 
 // =====================================================================
 // Chrome de app (P1) — Design System "Confianza Industrial".
@@ -55,9 +56,11 @@ private fun TopBarTitle(titulo: String, subtitulo: String?, tituloModifier: Modi
             modifier = tituloModifier,
         )
         if (subtitulo != null) {
+            // S9: el contexto de la cabecera va en eyebrow mono uppercase
+            // («KONG · A1B123 — BAR GIPUZKOA», «12 REGISTRADAS»), como el mockup.
             Text(
-                text = subtitulo,
-                style = MaterialTheme.typography.labelMedium,
+                text = subtitulo.uppercase(),
+                style = RecreType.eyebrow,
                 color = RecreColors.current.muted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

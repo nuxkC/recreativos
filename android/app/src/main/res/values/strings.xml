@@ -469,6 +469,22 @@
     <string name="gestion_acciones">Acciones</string>
     <string name="gestion_alta">Nuevo</string>
     <string name="gestion_buscar">Buscar</string>
+    <plurals name="gestion_licencias_conteo">
+        <item quantity="one">%d registrada</item>
+        <item quantity="other">%d registradas</item>
+    </plurals>
+    <plurals name="gestion_maquinas_conteo">
+        <item quantity="one">%d en parque</item>
+        <item quantity="other">%d en parque</item>
+    </plurals>
+    <plurals name="gestion_locales_conteo">
+        <item quantity="one">%d registrado</item>
+        <item quantity="other">%d registrados</item>
+    </plurals>
+    <plurals name="gestion_instalaciones_conteo">
+        <item quantity="one">%d activa</item>
+        <item quantity="other">%d activas</item>
+    </plurals>
     <string name="gestion_busqueda_vacia">Sin coincidencias para la búsqueda.</string>
     <string name="gestion_busqueda_vacia_desc">Prueba con otro término de búsqueda.</string>
     <string name="gestion_lista_vacia_desc">Pulsa + para añadir el primero.</string>
