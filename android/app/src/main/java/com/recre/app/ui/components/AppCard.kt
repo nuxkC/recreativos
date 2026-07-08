@@ -62,7 +62,9 @@ import com.recre.app.ui.theme.RecreTheme
 //     MoneyText desde BigDecimal); aquí jamás se toca Double/Float.
 // =====================================================================
 
-private val CardShape = RoundedCornerShape(12.dp)
+// Radio 16 (S2, mockup: .item/.fila-nav/.deuda-card usan 16-18; los controles
+// siguen en 12 vía RecreShapes.small). Sube solo el contenedor de superficie.
+private val CardShape = RoundedCornerShape(16.dp)
 
 // -------------------------------------------------------------------------
 // AppCard — contenedor base de superficie (elevación por borde, sin sombra).
