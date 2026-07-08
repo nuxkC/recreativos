@@ -1,6 +1,5 @@
 package com.recre.app.feature.recaudacion.confirmacion
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +61,7 @@ import com.recre.app.feature.recaudacion.components.SignaturePad
 import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.PasoTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
@@ -110,6 +110,12 @@ fun ConfirmacionScreen(
                 },
                 backEnabled = !state.guardando && !state.imprimiendo,
             )
+        },
+        bottomBar = {
+            // N7: el CTA sale del scroll y se ancla al pie (con la nota offline).
+            if (state.cifras != null) {
+                CtaGuardar(state = state, onGuardar = viewModel::onGuardar)
+            }
         },
     ) { padding ->
         Column(
@@ -170,31 +176,30 @@ private fun FormularioBlock(
     }
 
     Spacer(Modifier.height(16.dp))
-    Text(
-        text = stringResource(R.string.recaudacion_firma_titulo),
-        style = MaterialTheme.typography.titleSmall,
-    )
+    // N7: el título de la firma pasa a eyebrow mono + una línea de ayuda muted.
+    Eyebrow(stringResource(R.string.recaudacion_firma_titulo))
     Spacer(Modifier.height(4.dp))
     Text(
-        text = stringResource(R.string.recaudacion_firma_descripcion),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        text = stringResource(R.string.recaudacion_firma_ayuda),
+        style = MaterialTheme.typography.labelSmall,
+        color = RecreColors.current.muted,
     )
     Spacer(Modifier.height(8.dp))
-    SignaturePad(
-        strokes = state.firmaStrokes,
-        onStrokeAppend = viewModel::onFirmaStrokeAppend,
-        modifier = Modifier.clip(RecreShapes.medium),
-    )
-    Spacer(Modifier.height(8.dp))
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
-    ) {
-        RecreTextButton(
+    // "Limpiar" superpuesto en la esquina inferior derecha del propio recuadro.
+    Box {
+        SignaturePad(
+            strokes = state.firmaStrokes,
+            onStrokeAppend = viewModel::onFirmaStrokeAppend,
+            modifier = Modifier.clip(RecreShapes.medium),
+        )
+        RecreGhostButton(
             text = stringResource(R.string.recaudacion_firma_limpiar),
             onClick = viewModel::onFirmaLimpiar,
             enabled = state.firmaStrokes.isNotEmpty() && !state.guardando,
+            mini = true,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp),
         )
     }
 
@@ -202,27 +207,45 @@ private fun FormularioBlock(
         Spacer(Modifier.height(16.dp))
         BaselineCambiadaAviso(onRehacer = onRehacer)
     }
+}
 
-    Spacer(Modifier.height(24.dp))
-    RecrePrimaryButton(
-        text = stringResource(R.string.recaudacion_accion_guardar),
-        onClick = viewModel::onGuardar,
-        loading = state.guardando,
-        enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
-            !state.guardado && !state.syncStale && !state.baselineCambiada,
-        glow = true,
+/**
+ * CTA anclado al pie: "Guardar e imprimir" con glow full-width + la nota de
+ * persistencia offline. Vive en el `bottomBar` (fuera del scroll) para que el
+ * técnico siempre lo tenga a mano al terminar la firma.
+ */
+@Composable
+private fun CtaGuardar(
+    state: RecaudacionFlowState,
+    onGuardar: () -> Unit,
+) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag(RecaudacionTestTags.CONFIRMACION_GUARDAR),
-    )
-    Spacer(Modifier.height(8.dp))
-    Text(
-        text = stringResource(R.string.recaudacion_persistencia_offline),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth(),
-    )
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp, bottom = 16.dp)
+            .navigationBarsPadding(),
+    ) {
+        RecrePrimaryButton(
+            text = stringResource(R.string.recaudacion_accion_guardar),
+            onClick = onGuardar,
+            loading = state.guardando,
+            enabled = state.firmaStrokes.isNotEmpty() && !state.guardando &&
+                !state.guardado && !state.syncStale && !state.baselineCambiada,
+            glow = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(RecaudacionTestTags.CONFIRMACION_GUARDAR),
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.recaudacion_persistencia_offline),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
 }
 
 // -----------------------------------------------------------------------------

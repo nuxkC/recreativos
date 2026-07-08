@@ -217,6 +217,7 @@
 
     <string name="recaudacion_firma_titulo">Firma del local</string>
     <string name="recaudacion_firma_descripcion">Pide al titular del local que firme con el dedo en el recuadro.</string>
+    <string name="recaudacion_firma_ayuda">Firma el titular, con el dedo.</string>
     <string name="recaudacion_firma_limpiar">Limpiar firma</string>
     <string name="recaudacion_accion_guardar">Guardar e imprimir</string>
     <string name="recaudacion_accion_guardando">Guardando…</string>
