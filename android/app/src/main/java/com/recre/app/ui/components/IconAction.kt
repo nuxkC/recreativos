@@ -1,7 +1,9 @@
 package com.recre.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,6 +15,8 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -170,6 +174,44 @@ fun IconAction(
         enabled = enabled,
         modifier = modifier,
     )
+}
+
+/**
+ * IconActionTile (S6, mockup `.icono-btn`): acción de icono del chrome superior
+ * dentro de un tile 38dp radio 14 con fondo surface y borde 1px — a diferencia
+ * de [IconAction] (glifo pelado para datos de contacto), este es el botón de
+ * cabecera (back, campana, incidencias). El badge lo superpone el llamador
+ * (NotificationBadge), no este átomo.
+ */
+@Composable
+fun IconActionTile(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+) {
+    val colors = RecreColors.current
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, colors.border),
+        modifier =
+            modifier
+                .size(38.dp)
+                .semantics { role = Role.Button },
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = if (enabled) colors.muted else colors.muted.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
 }
 
 // ---------------------------------------------------------------------
