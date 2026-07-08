@@ -143,7 +143,10 @@
 
     <string name="recaudacion_label_contador_entradas">Contador entradas</string>
     <string name="recaudacion_label_contador_salidas">Contador salidas</string>
-    <string name="recaudacion_contadores_baseline">Última lectura: entradas %1$s · salidas %2$s</string>
+    <string name="recaudacion_contadores_ultima_lectura_entradas">Última lectura · E</string>
+    <string name="recaudacion_contadores_ultima_lectura_salidas">S</string>
+    <string name="recaudacion_contadores_delta">+%1$s desde la última recogida</string>
+    <string name="recaudacion_contadores_bruto_estimado">Bruto estimado</string>
     <string name="recaudacion_error_contador_menor">El contador no puede ser menor que la última lectura (%1$d).</string>
 
     <!-- OCR de contadores en vivo (T-100, HU-14 fase 2) -->
@@ -177,9 +180,9 @@
 
     <string name="recaudacion_denominaciones_total_titulo">Desglose del total</string>
     <string name="recaudacion_denominaciones_local_titulo">Desglose de la parte del local</string>
-    <string name="recaudacion_denominaciones_objetivo">Objetivo: %1$s</string>
+    <string name="recaudacion_denominaciones_objetivo_sticky">Objetivo · %1$s</string>
+    <string name="recaudacion_denominaciones_banda_deuda">Se retiene el %1$d %%. El local se lleva %2$s de %3$s.</string>
     <string name="recaudacion_label_cantidad">Cantidad</string>
-    <string name="recaudacion_denominaciones_total">Total</string>
     <string name="recaudacion_denominaciones_diferencia">Diferencia</string>
     <!-- Keypad de denominaciones (T-232) -->
     <string name="recaudacion_denominaciones_cuadra">Cuadra</string>
@@ -188,6 +191,7 @@
     <string name="recaudacion_denominaciones_billetes">Billetes</string>
     <string name="recaudacion_denominaciones_monedas">Monedas</string>
     <string name="recaudacion_keypad_siguiente">Siguiente</string>
+    <string name="recaudacion_keypad_siguiente_campo">Siguiente campo</string>
     <string name="recaudacion_keypad_borrar">Borrar</string>
     <string name="recaudacion_keypad_siguiente_denominacion">Siguiente denominación</string>
     <string name="recaudacion_denominaciones_descartar_titulo">¿Descartar el conteo?</string>
@@ -196,7 +200,6 @@
 
     <!-- Recuperación de deuda durante la recaudación (T-215) -->
     <string name="recaudacion_recuperacion_titulo">Recuperación de deuda</string>
-    <string name="recaudacion_recuperacion_compacta_sub">Se retiene de la parte del local para saldar su deuda.</string>
     <string name="recaudacion_recuperacion_retenido">Retenido de la parte del local</string>
     <string name="recaudacion_recuperacion_entregado">Se entrega al local</string>
     <string name="recaudacion_recuperacion_imputacion">Imputación (orden de pago)</string>
@@ -209,7 +212,7 @@
     <string name="recaudacion_local_nada">No hay parte para el local en esta recaudación.</string>
 
     <string name="recaudacion_firma_titulo">Firma del local</string>
-    <string name="recaudacion_firma_descripcion">Pide al titular del local que firme con el dedo en el recuadro.</string>
+    <string name="recaudacion_firma_ayuda">Firma el titular, con el dedo.</string>
     <string name="recaudacion_firma_limpiar">Limpiar firma</string>
     <string name="recaudacion_accion_guardar">Guardar e imprimir</string>
     <string name="recaudacion_accion_guardando">Guardando…</string>
@@ -270,6 +273,10 @@
     <string name="recaudacion_guardado_subiendo_sub">Casi listo, enviando la recaudación.</string>
     <string name="recaudacion_guardado_imprimiendo_sub">Enviando el ticket a la impresora.</string>
     <string name="recaudacion_guardado_error_nota">La recaudación ya está guardada. Reintenta la impresión o continúa.</string>
+    <!-- Lista de fases del modal de guardado (N7): labels cortas por fila. -->
+    <string name="recaudacion_fase_registrando">Registrando la recaudación</string>
+    <string name="recaudacion_fase_subiendo">Subida al servidor</string>
+    <string name="recaudacion_fase_imprimiendo">Envío del ticket</string>
 
     <!-- Lock optimista (T-58) -->
     <string name="recaudacion_lock_titulo">Otro técnico está recaudando</string>
