@@ -12,11 +12,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,12 +25,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.EmptyState
+import com.recre.app.ui.components.HeroSection
 import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.formatEur
 import com.recre.app.ui.components.recreSharedBounds
-import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreType
 import java.math.BigDecimal
 
@@ -74,22 +74,25 @@ fun DeudasGestorScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item("capital") {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RecreShapes.large,
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                // S11: héroe capital desnudo sobre el fondo (sin Surface acentuado).
+                HeroSection(
+                    eyebrow = stringResource(R.string.deudas_gestor_capital),
+                    sub = {
                         Text(
-                            text = stringResource(R.string.deudas_gestor_capital),
-                            style = MaterialTheme.typography.labelMedium,
+                            text = pluralStringResource(
+                                R.plurals.deudas_gestor_hero_sub,
+                                state.locales.size,
+                                state.locales.size,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        OdometroText(
-                            texto = eur(state.capitalTotal),
-                            style = RecreType.importe,
-                        )
-                    }
+                    },
+                ) {
+                    OdometroText(
+                        texto = eur(state.capitalTotal),
+                        style = RecreType.importe,
+                    )
                 }
             }
 

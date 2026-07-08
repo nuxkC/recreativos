@@ -59,6 +59,7 @@ import com.recre.app.feature.recaudacion.components.BaselineCambiadaDialog
 import com.recre.app.feature.recaudacion.components.CifrasResumenCard
 import com.recre.app.feature.recaudacion.components.RecuperacionResumenCard
 import com.recre.app.feature.recaudacion.components.SignaturePad
+import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.PasoTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
@@ -490,11 +491,8 @@ private fun NetoHero(neto: java.math.BigDecimal) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = stringResource(R.string.recaudacion_label_neto),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // S11: el rótulo del neto pasa a eyebrow mono uppercase (héroe desnudo).
+        Eyebrow(stringResource(R.string.recaudacion_label_neto))
         Spacer(Modifier.height(4.dp))
         // Mismo String que pintaba CountUpText en su frame final (formatEur canónico);
         // solo cambia la animación: count-up → rodillo de odómetro (firma neón).

@@ -76,9 +76,10 @@
 
     <!-- Agenda de recaudación (Planificación P3c) -->
     <string name="agenda_hero_todo_al_dia">Todo al día</string>
-    <plurals name="agenda_hero_pendientes">
-        <item quantity="one">local por recaudar</item>
-        <item quantity="other">locales por recaudar</item>
+    <string name="agenda_hero_eyebrow">Tu ruta</string>
+    <plurals name="agenda_hero_sub">
+        <item quantity="one">%d local por recaudar</item>
+        <item quantity="other">%d locales por recaudar</item>
     </plurals>
     <string name="agenda_filtro_pendientes">Pendientes</string>
     <string name="agenda_filtro_al_dia">Al día</string>
@@ -633,6 +634,10 @@
     <!-- Índice de la sección Deudas en gestión (T-219) -->
     <string name="deudas_gestor_titulo">Deudas</string>
     <string name="deudas_gestor_capital">Capital en la calle</string>
+    <plurals name="deudas_gestor_hero_sub">
+        <item quantity="one">%d local con saldo vivo</item>
+        <item quantity="other">%d locales con saldo vivo</item>
+    </plurals>
     <string name="deudas_gestor_vacio">No hay locales.</string>
     <string name="deudas_gestor_vacio_desc">Cuando un local tenga deuda pendiente, aparecerá en esta lista.</string>
     <string name="deudas_gestor_desglose">Tolva %1$s · Préstamos %2$s · %3$d deuda(s)</string>
