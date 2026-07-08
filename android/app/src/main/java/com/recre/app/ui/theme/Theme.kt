@@ -1,6 +1,5 @@
 package com.recre.app.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -87,9 +86,15 @@ private val DarkColorScheme =
         scrim = RecreScrim,
     )
 
+/**
+ * Tema de la app. DECISIÓN D.3-1 del re-skin «Neón de sala» (2026-07-08): la app
+ * va SIEMPRE en dark — el mockup solo define paleta oscura y la identidad neón
+ * vive en ella. El parámetro se conserva únicamente para que los @Preview light
+ * históricos sigan compilando; ningún caller de producción debe pasarlo.
+ */
 @Composable
 fun RecreTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
