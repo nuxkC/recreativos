@@ -23,7 +23,10 @@ data class AlertasUiState(
     val cargando: Boolean = false,
     val alertas: List<Alerta> = emptyList(),
     val error: AlertasErrorCode? = null,
-)
+) {
+    /** Nº de alertas sin leer; alimenta el contador de la pantalla (N8). */
+    val sinLeer: Int get() = alertas.count { !it.leida }
+}
 
 enum class AlertasErrorCode { Network, Auth, Unknown }
 
@@ -47,20 +50,29 @@ class AlertasViewModel @Inject constructor(
     fun refrescar() = cargar()
 
     /**
-     * Marca como leída en local + dispara la mutación remota. Si el
-     * backend falla, restauramos el estado para que el técnico no
-     * pierda la alerta.
+     * Marca como leída en local + dispara la mutación remota. La alerta NO
+     * se borra: se deja `leida=true` (atenuada) dentro de la ventana de
+     * leídas recientes. Si el backend falla, revertimos a `leida=false`
+     * para que el técnico no pierda la señal (N8 D.3-5).
      */
     fun marcarLeida(alertaId: String) {
-        val previas = _state.value.alertas
         _state.update { current ->
-            current.copy(alertas = current.alertas.filterNot { it.id == alertaId })
+            current.copy(
+                alertas = current.alertas.map {
+                    if (it.id == alertaId) it.copy(leida = true) else it
+                },
+            )
         }
         viewModelScope.launch {
             val result = repository.marcarLeida(alertaId)
             if (result is DomainResult.Failure) {
-                _state.update {
-                    it.copy(alertas = previas, error = mapError(result.error))
+                _state.update { current ->
+                    current.copy(
+                        alertas = current.alertas.map {
+                            if (it.id == alertaId) it.copy(leida = false) else it
+                        },
+                        error = mapError(result.error),
+                    )
                 }
             }
         }
@@ -68,7 +80,9 @@ class AlertasViewModel @Inject constructor(
 
     fun marcarTodasLeidas() {
         val previas = _state.value.alertas
-        _state.update { it.copy(alertas = emptyList()) }
+        _state.update { current ->
+            current.copy(alertas = current.alertas.map { it.copy(leida = true) })
+        }
         viewModelScope.launch {
             val result = repository.marcarTodasLeidas()
             if (result is DomainResult.Failure) {
