@@ -47,6 +47,7 @@ import com.recre.app.ui.components.EmptyState
 import com.recre.app.ui.components.FilterChipModel
 import com.recre.app.ui.components.FilterChipRow
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.components.RecreTopBar
@@ -258,11 +259,7 @@ private fun CuadreAccesoCard(onClick: () -> Unit, modifier: Modifier = Modifier)
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = Icons.Filled.AccountBalanceWallet,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
+            Pip(Icons.Filled.AccountBalanceWallet)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(

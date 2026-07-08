@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,6 +32,7 @@ import com.recre.app.R
 import com.recre.app.core.auth.Rol
 import com.recre.app.core.session.Membresia
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTopBar
@@ -151,6 +154,8 @@ private fun MembresiaCard(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Pip(Icons.Filled.Storefront)
+            Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = membresia.empresa.nombre,
