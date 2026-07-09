@@ -26,11 +26,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.FieldNum
 import com.recre.app.ui.components.FieldText
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
-import com.recre.app.ui.components.RecreTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -171,13 +173,16 @@ fun ReportarAveriaScreen(
                         )
                     }
                     if (state.afectaTolva) {
-                        FieldText(
+                        // Importe (dinero) en Geist Mono tabular vía FieldNum: teclado
+                        // decimal + cifra tabular. La validación la conserva el VM
+                        // (importeTolvaNormalizado); FieldNum solo sanea léxicamente.
+                        FieldNum(
                             value = state.importeTolva,
                             onValueChange = viewModel::onImporteTolva,
                             label = stringResource(R.string.averia_campo_importe_tolva),
+                            isDecimal = true,
                             isError = state.importeTolva.isNotBlank() &&
                                 state.importeTolvaNormalizado == null,
-                            keyboardType = KeyboardType.Decimal,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -204,10 +209,14 @@ fun ReportarAveriaScreen(
                 onClick = viewModel::onGuardar,
                 enabled = state.canGuardar,
             )
+            // Nota offline al pie: pequeña y centrada (se guarda y se sube al
+            // recuperar la red). Reutiliza el string existente.
             Text(
                 text = stringResource(R.string.averia_reportar_offline_ayuda),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
         }
@@ -282,7 +291,9 @@ private fun RecambiosEditor(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
-            RecreTonalButton(
+            // «Añadir recambio» como enlace-acento (ghost mini con icono Add), no
+            // botón tonal: acción secundaria de bajo peso dentro de la tarjeta.
+            RecreGhostButton(
                 text = stringResource(R.string.averia_recambio_anadir),
                 onClick = {
                     if (onAdd(pieza, cantidad)) {
@@ -291,8 +302,7 @@ private fun RecambiosEditor(
                     }
                 },
                 leadingIcon = Icons.Default.Add,
-                fullWidth = true,
-                modifier = Modifier.fillMaxWidth(),
+                mini = true,
             )
         }
     }
