@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -17,10 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.ui.components.Banda
+import com.recre.app.ui.components.BandaTono
+import com.recre.app.ui.components.FieldNum
 import com.recre.app.ui.components.FieldText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.RecrePrimaryButton
@@ -84,6 +89,15 @@ fun CambioPlacaScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
+            // Banda informativa de cabecera: el cambio de placa reinicia el
+            // contador base; la serie histórica de recaudaciones se conserva.
+            Banda(
+                texto = AnnotatedString(stringResource(R.string.cambio_placa_banda_info)),
+                icon = Icons.Filled.Info,
+                tono = BandaTono.INFO,
+            )
+            Spacer(Modifier.height(16.dp))
+
             Text(
                 text = stringResource(R.string.cambio_placa_descripcion),
                 style = MaterialTheme.typography.bodySmall,
@@ -100,21 +114,23 @@ fun CambioPlacaScreen(
             )
             Spacer(Modifier.height(8.dp))
 
-            FieldText(
+            // Contadores enteros en Geist Mono tabular (FieldNum, isDecimal = false):
+            // teclado numérico + cifra tabular; la validación la conserva el VM.
+            FieldNum(
                 value = state.contadorEntradasInput,
                 onValueChange = viewModel::onContadorEntradasChange,
                 label = stringResource(R.string.cambio_placa_label_entradas_nueva),
                 description = stringResource(R.string.cambio_placa_hint_contadores),
-                keyboardType = KeyboardType.Number,
+                isDecimal = false,
                 enabled = !state.guardando,
             )
             Spacer(Modifier.height(8.dp))
 
-            FieldText(
+            FieldNum(
                 value = state.contadorSalidasInput,
                 onValueChange = viewModel::onContadorSalidasChange,
                 label = stringResource(R.string.cambio_placa_label_salidas_nueva),
-                keyboardType = KeyboardType.Number,
+                isDecimal = false,
                 enabled = !state.guardando,
             )
             Spacer(Modifier.height(8.dp))
