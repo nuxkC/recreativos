@@ -687,6 +687,9 @@
     <string name="deudas_saldo_tolva">Tolva: %1$s</string>
     <string name="deudas_saldo_prestamo">Préstamos: %1$s</string>
     <string name="deudas_num_deudas">%1$d deuda(s) abierta(s)</string>
+    <!-- N8: sub del héroe (desglose en una línea) y retención inline bajo la cifra -->
+    <string name="deudas_hero_sub">Tolva: %1$s · Préstamos: %2$s · %3$d deudas abiertas</string>
+    <string name="deudas_retencion_inline">Retiene el %1$d %%</string>
     <string name="deudas_seccion_deudas">Deudas abiertas</string>
     <string name="deudas_sin_deudas">El local no tiene deudas abiertas.</string>
     <string name="deudas_tipo_tolva">Tolva</string>
@@ -723,6 +726,8 @@
     <string name="deudas_condonar_confirmar">Condonar</string>
     <string name="deudas_condonar_ok">Deuda condonada.</string>
     <!-- Libro mayor de abonos -->
+    <!-- N8: eyebrow de la sección de movimientos del ledger -->
+    <string name="deudas_ledger_seccion">Movimientos</string>
     <string name="deudas_ledger_titulo">Histórico de abonos</string>
     <string name="deudas_ledger_vacio">Aún no hay abonos registrados.</string>
     <string name="deudas_ledger_origen_efectivo">Pago en efectivo</string>

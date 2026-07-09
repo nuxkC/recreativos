@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,14 +27,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.FieldText
+import com.recre.app.ui.components.FilaHairline
 import com.recre.app.ui.components.HeroSection
 import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTextButton
-import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.StatusChip
+import com.recre.app.ui.components.StatusChipSize
+import com.recre.app.ui.components.StatusRole
+import com.recre.app.ui.components.formatFechaHumana
+import com.recre.app.ui.theme.GeistMono
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,6 +64,7 @@ import com.recre.app.core.data.local.entity.CreditoLocalEntity
 import com.recre.app.core.data.repository.RecuperacionLedger
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
 
 /**
  * Ficha de deudas (tolva + préstamos) de un local (T-215).
@@ -117,27 +130,15 @@ fun DeudasLocalScreen(
                     )
                 }
             }
-            item("saldo") { SaldoCard(state) }
-            item("porcentaje") {
-                PorcentajeCard(state, onEditar = viewModel::abrirPorcentaje)
-            }
-            if (state.esGestor) {
-                item("nuevo-prestamo") {
-                    RecreTonalButton(
-                        text = stringResource(R.string.deudas_nuevo_prestamo),
-                        onClick = viewModel::abrirNuevoPrestamo,
-                        enabled = state.online && !state.operando,
-                        fullWidth = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+            item("saldo") {
+                // N8: héroe desnudo con la retención («Retiene el X %» + Editar
+                // inline para gestor) fundida bajo la cifra; el PorcentajeCard aparte
+                // desaparece pero la operación (abrirPorcentaje) se conserva.
+                SaldoCard(state, onEditarPorcentaje = viewModel::abrirPorcentaje)
             }
 
             item("deudas-titulo") {
-                Text(
-                    text = stringResource(R.string.deudas_seccion_deudas),
-                    style = MaterialTheme.typography.titleSmall,
-                )
+                Eyebrow(text = stringResource(R.string.deudas_seccion_deudas))
             }
             if (state.creditos.isEmpty()) {
                 item("sin-deudas") {
@@ -161,9 +162,8 @@ fun DeudasLocalScreen(
             }
 
             item("ledger-titulo") {
-                Text(
-                    text = stringResource(R.string.deudas_ledger_titulo),
-                    style = MaterialTheme.typography.titleSmall,
+                Eyebrow(
+                    text = stringResource(R.string.deudas_ledger_seccion),
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
@@ -177,6 +177,19 @@ fun DeudasLocalScreen(
                 }
             } else {
                 items(state.ledger, key = { it.id }) { entrada -> LedgerRow(entrada) }
+            }
+
+            // N8: «Nuevo préstamo» pasa de tonal arriba a ghost al pie de la pantalla.
+            if (state.esGestor) {
+                item("nuevo-prestamo") {
+                    RecreGhostButton(
+                        text = stringResource(R.string.deudas_nuevo_prestamo),
+                        onClick = viewModel::abrirNuevoPrestamo,
+                        enabled = state.online && !state.operando,
+                        fullWidth = true,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    )
+                }
             }
         }
     }
@@ -212,71 +225,52 @@ fun DeudasLocalScreen(
 }
 
 @Composable
-private fun SaldoCard(state: DeudasLocalUiState) {
+private fun SaldoCard(state: DeudasLocalUiState, onEditarPorcentaje: () -> Unit) {
     // S11: saldo desnudo sobre el fondo (sin Surface acentuado). El desglose
-    // Tolva/Préstamos/N deudas va en una sola Text bajo la cifra protagonista.
-    val desglose =
-        stringResource(R.string.deudas_saldo_tolva, eur(state.saldoTolva)) +
-            "\n" +
-            stringResource(R.string.deudas_saldo_prestamo, eur(state.saldoPrestamo)) +
-            "\n" +
-            stringResource(R.string.deudas_num_deudas, state.creditos.size)
+    // Tolva/Préstamos/N deudas va en una sola Text bajo la cifra protagonista y,
+    // debajo, la retención con «Editar» inline (N8) solo para gestor.
     HeroSection(
         eyebrow = stringResource(R.string.deudas_saldo_total),
         modifier = Modifier.fillMaxWidth(),
         sub = {
             Text(
-                text = desglose,
+                text = stringResource(
+                    R.string.deudas_hero_sub,
+                    eur(state.saldoTolva),
+                    eur(state.saldoPrestamo),
+                    state.creditos.size,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
+            Row(
+                modifier = Modifier.padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.deudas_retencion_inline,
+                        state.porcentajeEfectivo,
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (state.esGestor) {
+                    RecreTextButton(
+                        text = stringResource(R.string.deudas_porcentaje_editar),
+                        onClick = onEditarPorcentaje,
+                        enabled = state.online && !state.operando,
+                    )
+                }
+            }
         },
     ) {
         OdometroText(
             texto = eur(state.saldoTotal),
             style = RecreType.importe,
         )
-    }
-}
-
-@Composable
-private fun PorcentajeCard(state: DeudasLocalUiState, onEditar: () -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.deudas_porcentaje_titulo),
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Text(
-                    text = stringResource(
-                        R.string.deudas_porcentaje_efectivo,
-                        state.porcentajeEfectivo,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = if (state.porcentajeLocal == null) {
-                        stringResource(R.string.deudas_porcentaje_heredado, state.porcentajeEmpresa)
-                    } else {
-                        stringResource(R.string.deudas_porcentaje_override)
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (state.esGestor) {
-                RecreTextButton(
-                    text = stringResource(R.string.deudas_porcentaje_editar),
-                    onClick = onEditar,
-                    enabled = state.online && !state.operando,
-                )
-            }
-        }
     }
 }
 
@@ -289,39 +283,74 @@ private fun DeudaCard(
     onPago: () -> Unit,
     onCondonar: () -> Unit,
 ) {
+    val esTolva = credito.tipo == "tolva"
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            Text(
-                text = if (credito.tipo == "tolva") {
-                    stringResource(R.string.deudas_tipo_tolva)
-                } else {
-                    stringResource(R.string.deudas_tipo_prestamo)
-                },
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Text(
-                text = stringResource(R.string.deudas_deuda_saldo, eur(BigDecimal(credito.saldo))),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = stringResource(R.string.deudas_deuda_fecha, credito.fecha),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    // Pill de tipo tintado: Tolva → warning (ámbar); Préstamo → info (cian).
+                    if (esTolva) {
+                        StatusChip(
+                            role = StatusRole.WARNING,
+                            label = stringResource(R.string.deudas_tipo_tolva),
+                            icon = Icons.Filled.AccountBalanceWallet,
+                            size = StatusChipSize.SM,
+                        )
+                    } else {
+                        StatusChip(
+                            role = StatusRole.INFO,
+                            label = stringResource(R.string.deudas_tipo_prestamo),
+                            icon = Icons.Filled.Payments,
+                            size = StatusChipSize.SM,
+                        )
+                    }
+                    // Concepto del crédito (notas): visible bajo el tipo cuando existe.
+                    credito.notas?.takeIf { it.isNotBlank() }?.let { concepto ->
+                        Text(
+                            text = concepto,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.deudas_deuda_fecha, credito.fecha),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                // Saldo money-safe en Geist Mono bold a la derecha.
+                Text(
+                    text = eur(BigDecimal(credito.saldo)),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = GeistMono,
+                        fontFeatureSettings = "tnum",
+                        fontWeight = FontWeight.W600,
+                    ),
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
             if (esGestor) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     RecrePrimaryButton(
                         text = stringResource(R.string.deudas_pago_accion),
                         onClick = onPago,
                         enabled = online,
                         fullWidth = false,
+                        // Sin glow dentro de la card: la jerarquía la da el saldo, no el halo.
+                        glow = false,
                     )
                     if (esAdmin) {
-                        RecreTonalButton(
+                        RecreGhostButton(
                             text = stringResource(R.string.deudas_condonar_accion),
                             onClick = onCondonar,
                             enabled = online,
+                            mini = true,
                         )
                     }
                 }
@@ -332,27 +361,22 @@ private fun DeudaCard(
 
 @Composable
 private fun LedgerRow(entrada: RecuperacionLedger) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = if (entrada.origen == "efectivo") {
-                    stringResource(R.string.deudas_ledger_origen_efectivo)
-                } else {
-                    stringResource(R.string.deudas_ledger_origen_recaudacion)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = entrada.fecha.take(10),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Text(text = "− " + eur(entrada.importe), style = MaterialTheme.typography.bodyMedium)
+    // N8: fila hairline `.f`. La fecha ISO cruda se humaniza (sin hora); si el
+    // string no es un Instant parseable, cae al take(10) de la fecha original.
+    val fecha = remember(entrada.fecha) {
+        runCatching { formatFechaHumana(Instant.parse(entrada.fecha), incluirHora = false) }
+            .getOrElse { entrada.fecha.take(10) }
     }
+    val origen = if (entrada.origen == "efectivo") {
+        stringResource(R.string.deudas_ledger_origen_efectivo)
+    } else {
+        stringResource(R.string.deudas_ledger_origen_recaudacion)
+    }
+    FilaHairline(
+        label = "$origen · $fecha",
+        value = "− " + eur(entrada.importe),
+        valueColor = RecreColors.current.muted,
+    )
 }
 
 // -- Diálogos ---------------------------------------------------------------
