@@ -4,10 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,8 +23,10 @@ import com.recre.app.ui.components.RecreSnackbarHost
 
 /**
  * Andamiaje común de los formularios del CRUD gestor (T-66..T-69) —
- * rediseño F3·P5: chrome propio (`RecreDetailTopBar`), columna con scroll,
- * banner offline y botón "Guardar" (`RecrePrimaryButton`, único primario).
+ * rediseño F3·P5 / neón N9: chrome propio (`RecreDetailTopBar`), columna con
+ * scroll para los campos y "Guardar" (`RecrePrimaryButton`, único primario) en
+ * un PIE FIJO fuera del scroll (mockup de sala: la acción principal siempre
+ * visible al fondo). El banner offline queda en cabecera del contenido.
  * Cada formulario solo aporta sus campos (`Field*`/`GestionTextField`).
  */
 @Composable
@@ -44,6 +45,28 @@ fun GestionFormScaffold(
     Scaffold(
         topBar = { RecreDetailTopBar(titulo = titulo, onBack = onBack) },
         snackbarHost = { RecreSnackbarHost(snackbarHost) },
+        bottomBar = {
+            // Pie fijo: "Guardar" nunca entra en el scroll, siempre visible al
+            // fondo. navigationBarsPadding lo separa de la barra de sistema.
+            // Se oculta mientras carga (aún no hay formulario que guardar).
+            if (!cargando) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    RecrePrimaryButton(
+                        text = guardarLabel,
+                        onClick = onGuardar,
+                        enabled = guardarEnabled && online && !guardando,
+                        loading = guardando,
+                        fullWidth = true,
+                        glow = true,
+                    )
+                }
+            }
+        },
     ) { padding ->
         if (cargando) {
             Box(
@@ -66,13 +89,6 @@ fun GestionFormScaffold(
                 OfflineBanner(modifier = Modifier.fillMaxWidth())
             }
             content()
-            Spacer(Modifier.height(8.dp))
-            RecrePrimaryButton(
-                text = guardarLabel,
-                onClick = onGuardar,
-                enabled = guardarEnabled && online && !guardando,
-                loading = guardando,
-            )
         }
     }
 }
