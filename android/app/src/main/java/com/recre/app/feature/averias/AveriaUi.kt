@@ -11,15 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.recre.app.R
-import com.recre.app.ui.components.StatusChip
-import com.recre.app.ui.components.StatusChipSize
 import com.recre.app.ui.components.StatusRole
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * Categoría de avería: lista FIJA, espejo del CHECK de la tabla `averia`
@@ -53,35 +47,12 @@ fun estadoAveriaLabelRes(estado: String): Int = when (estado) {
     else -> R.string.averia_estado_abierta
 }
 
-/**
- * Chip de estado de la avería (abierta / en reparación / resuelta). N9: usa el
- * átomo StatusChip (rol + icono, nunca solo color): resuelta → SUCCESS,
- * en reparación → WARNING, abierta → DANGER.
- */
-@Composable
-fun EstadoAveriaBadge(estado: String) {
-    val (role, icon) = estadoChipRolIcono(estado)
-    StatusChip(
-        role = role,
-        label = stringResource(estadoAveriaLabelRes(estado)),
-        icon = icon,
-        size = StatusChipSize.SM,
-    )
-}
-
 /** Rol + icono del StatusChip de estado (compartido con la fecha protagonista de la card). */
 fun estadoChipRolIcono(estado: String): Pair<StatusRole, ImageVector> = when (estado) {
     "resuelta" -> StatusRole.SUCCESS to Icons.Filled.Check
     "en_reparacion" -> StatusRole.WARNING to Icons.Filled.Warning
     else -> StatusRole.DANGER to Icons.Outlined.ErrorOutline
 }
-
-private val FECHA_FORMAT: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", Locale("es", "ES"))
-
-/** Fecha absoluta legible en la zona del dispositivo (historial de averías). */
-fun formatFechaAveria(instant: Instant): String =
-    FECHA_FORMAT.format(instant.atZone(ZoneId.systemDefault()))
 
 /** Formatea un coste (String con precisión decimal) como "12,50 €". `null` → "". */
 fun formatCoste(value: String?): String {
