@@ -254,6 +254,12 @@
     <string name="incidencias_rehacer">Rehacer</string>
     <string name="incidencias_terminal_recaudacion">Reintentar no la arreglará: vuelve a contarla.</string>
     <string name="incidencias_terminal_averia">Reintentar no la arreglará: vuelve a reportarla.</string>
+    <!-- N8: cabeceras de sección en eyebrow con conteo + banda offline + estado por ítem -->
+    <string name="incidencias_seccion_sinresolver_conteo">Sin resolver · %1$d</string>
+    <string name="incidencias_seccion_encola_conteo">En cola · %1$d</string>
+    <string name="incidencias_banda_offline">Sin conexión · se subirá al recuperar la red</string>
+    <string name="incidencias_estado_rechazada">Rechazada</string>
+    <string name="incidencias_estado_esperando">Esperando red</string>
     <plurals name="incidencias_intentos">
         <item quantity="one">%1$d intento</item>
         <item quantity="other">%1$d intentos</item>
