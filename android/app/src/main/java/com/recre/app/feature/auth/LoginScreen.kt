@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,16 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Toll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,11 +50,10 @@ import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.theme.BricolageDisplay
 import com.recre.app.ui.theme.RecreColors
-import com.recre.app.ui.theme.RecreShapes
 
 /**
  * Pantalla de acceso (HU-1). Diseño "Confianza Industrial": marca centrada
- * (tile petróleo + nombre + claim), campos limpios y un CTA **anclado al
+ * (wordmark «recre·» + claim), campos limpios y un CTA **anclado al
  * fondo** que permanece visible por encima del teclado.
  *
  * El contenido superior es desplazable y el contenedor aplica `imePadding()`,
@@ -170,25 +163,10 @@ fun LoginScreen(
     }
 }
 
-/** Identidad de marca: tile petróleo con glifo de fichas + nombre + claim. */
+/** Identidad de marca: wordmark tipográfico «recre·» + claim (el punto es el neón). */
 @Composable
 private fun MarcaRecre() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(
-            modifier = Modifier.size(72.dp),
-            shape = RecreShapes.large,
-            color = MaterialTheme.colorScheme.primary,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Filled.Toll,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(38.dp),
-                )
-            }
-        }
-        Spacer(Modifier.height(20.dp))
         // Wordmark «Neón de sala»: "recre·" es un logotipo tipográfico (marca), no
         // una cadena traducible → literal en el código, sin pasar por strings.xml.
         // El punto medio lleva el cian neón (accentBright) que da nombre al re-skin;
@@ -207,7 +185,7 @@ private fun MarcaRecre() {
             text = wordmark,
             fontFamily = BricolageDisplay,
             fontWeight = FontWeight.W700,
-            fontSize = 44.sp,
+            fontSize = 52.sp,
             modifier = Modifier.clearAndSetSemantics { contentDescription = "Recre" },
         )
         Spacer(Modifier.height(6.dp))
