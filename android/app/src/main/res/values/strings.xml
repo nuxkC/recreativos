@@ -447,6 +447,11 @@
     <string name="alertas_error_network">No hay conexión. Inténtalo de nuevo cuando vuelva la red.</string>
     <string name="alertas_error_auth">No tienes acceso a las alertas. Vuelve a iniciar sesión.</string>
     <string name="alertas_error_generic">No se pudieron actualizar las alertas. Inténtalo de nuevo.</string>
+    <!-- Subtítulo de cabecera (N8): recuento de no-leídas en eyebrow mono. -->
+    <plurals name="alertas_sin_leer">
+        <item quantity="one">%1$d sin leer</item>
+        <item quantity="other">%1$d sin leer</item>
+    </plurals>
 
     <!-- Ajustes (T-65) -->
     <string name="ajustes_titulo">Ajustes</string>

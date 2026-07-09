@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,9 +27,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Eyebrow
+import com.recre.app.ui.components.Pip
+import com.recre.app.ui.components.PipRole
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -34,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -78,8 +88,17 @@ fun AlertasScreen(
             RecreDetailTopBar(
                 titulo = stringResource(R.string.alertas_titulo),
                 onBack = onBack,
+                // Subtítulo mono «N SIN LEER» (N8): el top bar lo pinta en eyebrow
+                // uppercase. Solo si hay no-leídas; si todo está leído, sin subtítulo.
+                subtitulo =
+                    if (state.sinLeer > 0) {
+                        pluralStringResource(R.plurals.alertas_sin_leer, state.sinLeer, state.sinLeer)
+                    } else {
+                        null
+                    },
                 actions = {
-                    if (state.alertas.isNotEmpty()) {
+                    // «Marcar todas» solo tiene sentido si queda algo por leer (N8).
+                    if (state.sinLeer > 0) {
                         RecreTextButton(
                             text = stringResource(R.string.alertas_marcar_todas),
                             onClick = viewModel::marcarTodasLeidas,
@@ -198,48 +217,52 @@ private fun AlertaCard(
     onClick: () -> Unit,
     onMarcarLeida: () -> Unit,
 ) {
-    val (icon, container) = iconYColor(alerta.tipo)
-    Surface(
+    // N8: la card vive sobre superficie + borde (AppCard), NO con el container
+    // entero tintado. La severidad la comunica el Pip a la izquierda (color +
+    // forma del icono), no el fondo. Las leídas se atenúan al 55 %.
+    val (icon, role) = pipDeAlerta(alerta.tipo)
+    AppCard(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        color = container,
-        shape = RecreShapes.large,
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (alerta.leida) Modifier.alpha(0.55f) else Modifier),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.Top) {
+                Pip(icon = icon, role = role)
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = stringResource(tipoTextoRes(alerta.tipo)),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(tipoTextoRes(alerta.tipo)),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        text = formatRelativo(alerta.creadaEn),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                // Hora relativa arriba-derecha, muted (labelSmall).
+                Text(
+                    text = formatRelativo(alerta.creadaEn),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = RecreColors.current.muted,
+                )
             }
             Spacer(Modifier.height(8.dp))
             Text(
                 text = alerta.mensaje,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                RecreTonalButton(
-                    text = stringResource(R.string.alertas_marcar_leida),
-                    onClick = onMarcarLeida,
-                    leadingIcon = Icons.Default.Check,
-                )
+            // «Marcar como leída» como enlace (ghost mini), NO botón tonal. Las
+            // ya leídas no lo muestran: no hay nada que marcar.
+            if (!alerta.leida) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    RecreGhostButton(
+                        text = stringResource(R.string.alertas_marcar_leida),
+                        onClick = onMarcarLeida,
+                        mini = true,
+                    )
+                }
             }
         }
     }
@@ -289,21 +312,20 @@ private fun EmptyState(cargando: Boolean, modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun iconYColor(tipo: TipoAlerta): Pair<ImageVector, androidx.compose.ui.graphics.Color> {
-    val container = when (tipo) {
-        TipoAlerta.RecaudacionConflicto -> MaterialTheme.colorScheme.errorContainer
-        TipoAlerta.RecaudacionAnulada -> MaterialTheme.colorScheme.surfaceVariant
-        TipoAlerta.LicenciaCaducidad -> MaterialTheme.colorScheme.tertiaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-    val icon = when (tipo) {
-        TipoAlerta.RecaudacionConflicto -> Icons.Default.Warning
-        TipoAlerta.RecaudacionAnulada -> Icons.Default.NotificationsActive
-        TipoAlerta.LicenciaCaducidad -> Icons.Default.NotificationsActive
-        else -> Icons.Default.NotificationsActive
-    }
-    return icon to container
+/**
+ * Icono + rol de severidad del Pip por tipo de alerta (mockup «Neón de sala», N8):
+ * - conflicto/descuadre → cian (ACCENT), triángulo: dato a revisar, no fallo.
+ * - licencia próxima a caducar → ámbar (WARNING), calendario.
+ * - recaudación anulada → rojo (DANGER), info: acción destructiva ya aplicada.
+ * - local sin recaudar → ámbar (WARNING), tienda.
+ * - otro → neutro (NEUTRAL), campana.
+ */
+private fun pipDeAlerta(tipo: TipoAlerta): Pair<ImageVector, PipRole> = when (tipo) {
+    TipoAlerta.RecaudacionConflicto -> Icons.Filled.Warning to PipRole.ACCENT
+    TipoAlerta.LicenciaCaducidad -> Icons.Filled.DateRange to PipRole.WARNING
+    TipoAlerta.RecaudacionAnulada -> Icons.Filled.Info to PipRole.DANGER
+    TipoAlerta.LocalSinRecaudar -> Icons.Filled.Storefront to PipRole.WARNING
+    TipoAlerta.Otro -> Icons.Filled.Notifications to PipRole.NEUTRAL
 }
 
 @Composable
