@@ -384,6 +384,8 @@
     <string name="historico_label_bruto">Bruto</string>
     <string name="historico_label_neto">Neto</string>
     <string name="historico_label_parte_local">Parte local</string>
+    <!-- N8: parte del local bajo el bruto en la tarjeta de histórico. %1$s = importe. -->
+    <string name="historico_local_importe">Local %1$s</string>
     <string name="historico_label_parte_empresa">Parte empresa</string>
     <string name="historico_badge_firme">Firme</string>
     <string name="historico_badge_anulada">Anulada</string>
