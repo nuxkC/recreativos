@@ -1,5 +1,7 @@
 package com.recre.app.feature.historico.components
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,21 +9,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.recre.app.R
 import com.recre.app.core.data.repository.EstadoHistorico
 import com.recre.app.core.data.repository.RecaudacionHistorica
@@ -29,9 +29,10 @@ import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.MoneyText
 import com.recre.app.ui.components.MoneyTextSize
 import com.recre.app.ui.components.RecreDottedDivider
+import com.recre.app.ui.theme.GeistMono
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecrePapelTicket
 import com.recre.app.ui.theme.RecrePapelTinta
-import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreTheme
 import com.recre.app.ui.theme.RecreType
 import java.math.BigDecimal
@@ -53,12 +54,15 @@ import java.time.Instant
  * @param recaudacion datos del histórico a pintar como recibo.
  * @param fechaTexto fecha ya formateada por el llamador (reusa el formateador del
  *   detalle para no duplicar la TZ de la empresa).
+ * @param empresaNombre nombre de la empresa activa para la cabecera del papel
+ *   (viene de la sesión offline, no del modelo del histórico). `null` lo omite.
  */
 @Composable
 fun TicketRecibo(
     recaudacion: RecaudacionHistorica,
     fechaTexto: String,
     modifier: Modifier = Modifier,
+    empresaNombre: String? = null,
 ) {
     PapelDelTicket(modifier = modifier) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -67,6 +71,19 @@ fun TicketRecibo(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                // Nombre de la empresa en mono grande, sobre «RECIBO DE RECAUDACIÓN».
+                if (!empresaNombre.isNullOrBlank()) {
+                    Text(
+                        text = empresaNombre,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = GeistMono,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
                 Text(
                     text = stringResource(R.string.historico_ticket_titulo).uppercase(),
                     style = MaterialTheme.typography.titleSmall,
@@ -95,27 +112,11 @@ fun TicketRecibo(
                 FilaDato(stringResource(R.string.historico_detalle_licencia), it)
             }
 
-            if (recaudacion.estado == EstadoHistorico.Anulada) {
-                Spacer(Modifier.height(12.dp))
-                EstadoBanner(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    titulo = stringResource(R.string.historico_detalle_anulada_titulo),
-                    detalle = recaudacion.motivoAnulacion?.ifBlank { null }
-                        ?: stringResource(R.string.historico_detalle_anulada_sin_motivo),
-                    conIcono = false,
-                )
-            }
-            if (recaudacion.conflictoPendiente) {
-                Spacer(Modifier.height(12.dp))
-                EstadoBanner(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    titulo = stringResource(R.string.historico_detalle_conflicto_titulo),
-                    detalle = stringResource(R.string.historico_detalle_conflicto_descripcion),
-                    conIcono = true,
-                )
-            }
+            // Sello rotado con el estado del recibo (P8: color+texto, nunca solo
+            // color). Se dibuja para TODOS los estados. Prioridad: conflicto >
+            // anulada > firme. El motivo/descripción se cuelga debajo si aplica.
+            Spacer(Modifier.height(14.dp))
+            SelloEstado(recaudacion = recaudacion)
 
             Spacer(Modifier.height(12.dp))
             RecreDottedDivider()
@@ -195,37 +196,63 @@ private fun FilaCifra(label: String, value: BigDecimal, destacado: Boolean = fal
     }
 }
 
+/**
+ * Sello del estado del recibo, estilo estampilla de goma: texto mono en el color
+ * del rol, borde 2dp del mismo color y ligera rotación. Sobre el papel (cream) del
+ * ticket, así que usa los tokens de rol del tema CLARO anidado (leen bien sobre
+ * cream). El motivo de anulación / descripción del conflicto va debajo, sin rotar.
+ */
 @Composable
-private fun EstadoBanner(
-    color: Color,
-    contentColor: Color,
-    titulo: String,
-    detalle: String,
-    conIcono: Boolean,
-) {
-    Surface(
+private fun SelloEstado(recaudacion: RecaudacionHistorica) {
+    val recreColors = RecreColors.current
+    // Prioridad conflicto > anulada > firme (un recibo anulado puede además estar
+    // en conflicto; el conflicto es la señal más urgente para el técnico).
+    val (etiquetaRes, color, detalle) = when {
+        recaudacion.conflictoPendiente -> Triple(
+            R.string.historico_ticket_sello_conflicto,
+            recreColors.warning,
+            stringResource(R.string.historico_detalle_conflicto_descripcion),
+        )
+        recaudacion.estado == EstadoHistorico.Anulada -> Triple(
+            R.string.historico_ticket_sello_anulada,
+            recreColors.danger,
+            recaudacion.motivoAnulacion?.ifBlank { null }
+                ?: stringResource(R.string.historico_detalle_anulada_sin_motivo),
+        )
+        else -> Triple(
+            R.string.historico_ticket_sello_firme,
+            recreColors.success,
+            null,
+        )
+    }
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        color = color,
-        contentColor = contentColor,
-        shape = RecreShapes.medium,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.Top,
+        Box(
+            modifier = Modifier
+                .rotate(-8f)
+                .border(2.dp, color, RoundedCornerShape(6.dp))
+                .padding(horizontal = 14.dp, vertical = 6.dp),
         ) {
-            if (conIcono) {
-                Icon(Icons.Filled.Warning, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-            }
-            Column {
-                Text(
-                    text = titulo,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(text = detalle, style = MaterialTheme.typography.bodySmall)
-            }
+            Text(
+                text = stringResource(etiquetaRes),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = GeistMono,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp,
+                ),
+                color = color,
+            )
+        }
+        if (detalle != null) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = detalle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -258,7 +285,12 @@ private val MUESTRA =
 @Composable
 private fun TicketReciboLightPreview() {
     RecreTheme(darkTheme = false) {
-        TicketRecibo(recaudacion = MUESTRA, fechaTexto = "17 jun 2026, 10:30", modifier = Modifier.padding(16.dp))
+        TicketRecibo(
+            recaudacion = MUESTRA,
+            fechaTexto = "17 jun 2026, 10:30",
+            empresaNombre = "Recreativos Levante",
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }
 
@@ -266,6 +298,11 @@ private fun TicketReciboLightPreview() {
 @Composable
 private fun TicketReciboDarkPreview() {
     RecreTheme(darkTheme = true) {
-        TicketRecibo(recaudacion = MUESTRA, fechaTexto = "17 jun 2026, 10:30", modifier = Modifier.padding(16.dp))
+        TicketRecibo(
+            recaudacion = MUESTRA,
+            fechaTexto = "17 jun 2026, 10:30",
+            empresaNombre = "Recreativos Levante",
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }

@@ -42,6 +42,7 @@ import com.recre.app.core.printer.PrintResult
 import com.recre.app.core.printer.PrinterError
 import com.recre.app.feature.historico.components.TicketRecibo
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTonalButton
 import com.recre.app.ui.theme.RecreShapes
@@ -157,6 +158,7 @@ private fun Contenido(
         TicketRecibo(
             recaudacion = recaudacion,
             fechaTexto = formatFecha(recaudacion.fecha),
+            empresaNombre = state.empresaNombre,
         )
         Spacer(Modifier.height(16.dp))
 
@@ -174,11 +176,14 @@ private fun Contenido(
         )
         Spacer(Modifier.height(8.dp))
 
+        // Pie compacto (N8): «Descargar PDF» fantasma mini + «Reimprimir» CTA con
+        // glow. Conserva el gating (no dos jobs a la vez) y los estados de carga.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            RecreTonalButton(
+            RecreGhostButton(
                 text = if (state.descargandoPdf) {
                     stringResource(R.string.historico_detalle_pdf_descargando)
                 } else {
@@ -190,6 +195,7 @@ private fun Contenido(
                     !state.imprimiendoBluetooth,
                 loading = state.descargandoPdf,
                 leadingIcon = Icons.Default.PictureAsPdf,
+                mini = true,
                 fullWidth = true,
                 modifier = Modifier.weight(1f),
             )
