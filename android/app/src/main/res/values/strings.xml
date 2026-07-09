@@ -102,9 +102,6 @@
     <string name="local_detalle_cargando">Cargando…</string>
     <string name="local_detalle_no_encontrado">Local no encontrado</string>
     <string name="local_detalle_no_encontrado_descripcion">Es posible que se haya cerrado o que no pertenezca a la empresa activa.</string>
-    <string name="local_detalle_titular">Titular: %1$s</string>
-    <string name="local_detalle_telefono">Teléfono: %1$s</string>
-    <string name="local_detalle_seccion_maquinas">Máquinas activas</string>
     <string name="local_detalle_ver_deudas">Ver saldo y deudas del local</string>
     <string name="local_detalle_ver_historico">Ver histórico de recaudaciones</string>
     <string name="local_detalle_sin_maquinas">No hay máquinas activas en este local.</string>
@@ -127,14 +124,6 @@
     <string name="maquina_label_licencia">Licencia</string>
     <string name="maquina_label_tasa_semanal">Tasa semanal</string>
     <string name="maquina_label_porcentaje_local">% local</string>
-    <string name="maquina_baseline_titulo">Baseline</string>
-    <string name="maquina_baseline_entradas">Contador entradas</string>
-    <string name="maquina_baseline_salidas">Contador salidas</string>
-    <string name="maquina_baseline_fecha">Última recogida</string>
-    <string name="maquina_baseline_origen">Origen</string>
-    <string name="maquina_baseline_origen_instalacion">Alta de la instalación</string>
-    <string name="maquina_baseline_origen_recaudacion">Recaudación previa</string>
-    <string name="maquina_baseline_origen_cambio_placa">Cambio de placa</string>
     <string name="maquina_baseline_compacto">E %1$d · S %2$d · últ. %3$s</string>
     <string name="maquina_accion_recaudar">Recaudar</string>
     <string name="maquina_accion_cambio_placa">Cambio de placa</string>
@@ -257,7 +246,7 @@
     <!-- N8: cabeceras de sección en eyebrow con conteo + banda offline + estado por ítem -->
     <string name="incidencias_seccion_sinresolver_conteo">Sin resolver · %1$d</string>
     <string name="incidencias_seccion_encola_conteo">En cola · %1$d</string>
-    <string name="incidencias_banda_offline">Sin conexión · se subirá al recuperar la red</string>
+    <string name="incidencias_banda_offline">Pendiente de subir · se enviará automáticamente</string>
     <string name="incidencias_estado_rechazada">Rechazada</string>
     <string name="incidencias_estado_esperando">Esperando red</string>
     <plurals name="incidencias_intentos">
@@ -427,9 +416,7 @@
     <string name="historico_ticket_sello_firme">FIRME</string>
     <string name="historico_ticket_sello_anulada">ANULADA</string>
     <string name="historico_ticket_sello_conflicto">CONFLICTO</string>
-    <string name="historico_detalle_anulada_titulo">Recaudación anulada</string>
     <string name="historico_detalle_anulada_sin_motivo">No se registró motivo.</string>
-    <string name="historico_detalle_conflicto_titulo">Conflicto sin resolver</string>
     <string name="historico_detalle_conflicto_descripcion">Un administrador revisará las cifras desde el back-office y te llegará una alerta cuando se resuelva.</string>
     <string name="historico_detalle_reimprimir_titulo">Reimprimir ticket</string>
     <string name="historico_detalle_pdf">Descargar PDF</string>

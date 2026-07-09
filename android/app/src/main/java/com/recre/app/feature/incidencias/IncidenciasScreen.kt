@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,14 +81,15 @@ fun IncidenciasScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Banda offline (N8): mientras hay elementos en cola de red, avisamos
-            // de que se subirán solos al recuperar la conexión. No hay señal de
-            // conectividad en este VM; el proxy honesto es «queda algo en cola».
+            // Banda de cola pendiente (N8): mientras hay elementos en cola de red,
+            // avisamos de que se subirán solos. No hay señal de conectividad en este
+            // VM y la cola puede vaciarse estando online, así que el copy/icono no
+            // afirman falta de red; el gate honesto es «queda algo en cola».
             if (state.enColaCount > 0) {
                 item {
                     Banda(
                         texto = AnnotatedString(stringResource(R.string.incidencias_banda_offline)),
-                        icon = Icons.Filled.CloudOff,
+                        icon = Icons.Filled.CloudQueue,
                         tono = BandaTono.INFO,
                     )
                 }
