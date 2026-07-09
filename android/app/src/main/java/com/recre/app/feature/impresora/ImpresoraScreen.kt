@@ -29,14 +29,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTextButton
-import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.theme.GeistMono
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
@@ -262,6 +266,12 @@ private fun ListaEmparejados(
             .fillMaxSize()
             .padding(padding),
     ) {
+        // N9: subtítulo mono de cabecera; solo se llega aquí con el BT activo.
+        Eyebrow(
+            text = stringResource(R.string.impresora_bluetooth_activado),
+            color = RecreColors.current.accentBright,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
         ModeloCard(
             perfilSeleccionado = perfilSeleccionado,
             perfilesDisponibles = perfilesDisponibles,
@@ -314,6 +324,10 @@ private fun ListaEmparejados(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // N9: eyebrow de sección para la lista del sistema.
+            item {
+                Eyebrow(text = stringResource(R.string.impresora_emparejadas_titulo))
+            }
             items(emparejados, key = PrinterDevice::mac) { device ->
                 EmparejadoCard(
                     device = device,
@@ -326,10 +340,12 @@ private fun ListaEmparejados(
             }
             item {
                 Spacer(Modifier.height(8.dp))
-                RecreTextButton(
+                // N9: pie de pantalla como acción ghost (antes RecreTextButton).
+                RecreGhostButton(
                     text = stringResource(R.string.impresora_abrir_ajustes_sistema),
                     onClick = onAbrirAjustes,
-                    modifier = Modifier.fillMaxWidth(),
+                    fullWidth = true,
+                    mini = true,
                 )
             }
         }
@@ -419,9 +435,9 @@ private fun SeleccionadaActualCard(
             )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                // N9: eyebrow «Impresora vinculada».
+                Eyebrow(
                     text = stringResource(R.string.impresora_actual_titulo),
-                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
@@ -429,15 +445,18 @@ private fun SeleccionadaActualCard(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
+                // N9: MAC en Geist Mono.
                 Text(
                     text = seleccionada.mac,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = GeistMono),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
-            RecreTextButton(
+            // N9: «Quitar» como enlace ghost mini en acento inline.
+            RecreGhostButton(
                 text = stringResource(R.string.impresora_quitar),
                 onClick = onLimpiar,
+                mini = true,
             )
         }
     }
@@ -463,26 +482,37 @@ private fun EmparejadoCard(
         tonalElevation = 2.dp,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Bluetooth,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+            // N9 radio-fila: radio en acento cian + MAC en Geist Mono. La fila entera
+            // es seleccionable (Role.RadioButton); «Usar» está deshabilitada si ya
+            // es la activa, conservando el gating (bloqueada/probando).
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = activa,
+                        enabled = !bloqueada && !probando,
+                        role = Role.RadioButton,
+                        onClick = onSeleccionar,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(
+                    selected = activa,
+                    onClick = null,
+                    enabled = !bloqueada && !probando,
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = RecreColors.current.accentBright,
+                        unselectedColor = RecreColors.current.accentBright,
+                    ),
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = device.name, style = MaterialTheme.typography.titleMedium)
+                    // N9: MAC en Geist Mono.
                     Text(
                         text = device.mac,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = GeistMono),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (activa) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -490,6 +520,7 @@ private fun EmparejadoCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     if (probando) {
@@ -500,17 +531,19 @@ private fun EmparejadoCard(
                         }
                     }
                 }
-                RecreTonalButton(
-                    text = stringResource(R.string.impresora_probar),
-                    onClick = onProbar,
-                    enabled = !bloqueada && !probando,
-                )
-                Spacer(Modifier.width(8.dp))
-                RecrePrimaryButton(
-                    text = stringResource(R.string.impresora_seleccionar),
+                // N9: «Usar»/«Probar» como enlaces ghost mini en acento inline.
+                RecreGhostButton(
+                    text = stringResource(R.string.impresora_usar),
                     onClick = onSeleccionar,
                     enabled = !bloqueada && !probando && !activa,
-                    fullWidth = false,
+                    mini = true,
+                )
+                Spacer(Modifier.width(8.dp))
+                RecreGhostButton(
+                    text = stringResource(R.string.impresora_probar_corto),
+                    onClick = onProbar,
+                    enabled = !bloqueada && !probando,
+                    mini = true,
                 )
             }
         }

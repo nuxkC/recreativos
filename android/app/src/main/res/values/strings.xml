@@ -351,6 +351,11 @@
     <string name="impresora_quitar">Quitar</string>
     <string name="impresora_seleccionar">Usar como impresora</string>
     <string name="impresora_probar">Probar impresión</string>
+    <!-- N9: subtítulo mono de cabecera + eyebrow de sección + enlaces cortos de la radio-fila -->
+    <string name="impresora_bluetooth_activado">Bluetooth activado</string>
+    <string name="impresora_emparejadas_titulo">Emparejadas en el sistema</string>
+    <string name="impresora_usar">Usar</string>
+    <string name="impresora_probar_corto">Probar</string>
     <string name="impresora_probando">Imprimiendo prueba…</string>
     <string name="impresora_msg_prueba_ok">Prueba enviada a la impresora.</string>
     <string name="impresora_msg_guardada">Impresora vinculada correctamente.</string>
