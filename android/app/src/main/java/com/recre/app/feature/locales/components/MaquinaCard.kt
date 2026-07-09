@@ -22,11 +22,11 @@ import com.recre.app.core.data.repository.MaquinaConInstalacion
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.OverflowAccion
 import com.recre.app.ui.components.RecreDivider
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreOverflowMenu
-import com.recre.app.ui.components.RecrePrimaryButton
+import com.recre.app.ui.components.formatFechaHumana
+import com.recre.app.ui.theme.GeistMono
 import java.math.BigDecimal
-import java.time.Duration
-import java.time.Instant
 
 /**
  * Tarjeta de una máquina dentro del detalle del local.
@@ -65,17 +65,21 @@ fun MaquinaCard(
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
+                    // N8: el modelo es protagonista — «{modelo} · {serie}». Si no
+                    // hay modelo, la serie queda como nombre principal.
                     Text(
-                        text = maquina.numeroSerie,
+                        text = listOfNotNull(
+                            maquina.modelo?.takeIf { it.isNotBlank() },
+                            maquina.numeroSerie,
+                        ).joinToString(" · "),
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    if (!maquina.modelo.isNullOrBlank()) {
+                    if (!maquina.fabricante.isNullOrBlank()) {
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            text = listOfNotNull(maquina.fabricante, maquina.modelo)
-                                .joinToString(" · "),
+                            text = maquina.fabricante,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -108,34 +112,33 @@ fun MaquinaCard(
                 value = formatPct(maquina.porcentajeLocal),
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
+            // Baseline compacto en una línea mono: contadores + «últ. {fecha}».
+            // Reemplaza el bloque verboso; el origen se cuelga del overflow.
             Text(
-                text = stringResource(R.string.maquina_baseline_titulo),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(Modifier.height(4.dp))
-            DatoLinea(
-                label = stringResource(R.string.maquina_baseline_entradas),
-                value = maquina.baselineEntradas.toString(),
-            )
-            DatoLinea(
-                label = stringResource(R.string.maquina_baseline_salidas),
-                value = maquina.baselineSalidas.toString(),
-            )
-            DatoLinea(
-                label = stringResource(R.string.maquina_baseline_fecha),
-                value = formatRelative(maquina.baselineFecha),
-            )
-            DatoLinea(
-                label = stringResource(R.string.maquina_baseline_origen),
-                value = labelOrigen(maquina.baselineOrigen),
+                text = stringResource(
+                    R.string.maquina_baseline_compacto,
+                    maquina.baselineEntradas,
+                    maquina.baselineSalidas,
+                    formatFechaHumana(maquina.baselineFecha, incluirHora = false),
+                ),
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = GeistMono,
+                    fontFeatureSettings = "tnum",
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
 
             Spacer(Modifier.height(12.dp))
-            RecrePrimaryButton(
+            // «Recaudar» por máquina como acción fantasma (la CTA con glow es el
+            // «Recaudar todas» del pie). Mismo gating: instalada && !stale.
+            RecreGhostButton(
                 text = stringResource(R.string.maquina_accion_recaudar),
                 onClick = onRecaudarClick,
                 enabled = maquina.estado == "instalada" && !syncStale,
+                fullWidth = true,
             )
         }
     }
@@ -161,15 +164,6 @@ private fun DatoLinea(label: String, value: String) {
     }
 }
 
-@Composable
-private fun labelOrigen(origen: String): String = when (origen) {
-    // Valores reales de la columna `baseline_origen` (T-12 / T-13).
-    "instalacion_base" -> stringResource(R.string.maquina_baseline_origen_instalacion)
-    "recaudacion_anterior" -> stringResource(R.string.maquina_baseline_origen_recaudacion)
-    "cambio_placa" -> stringResource(R.string.maquina_baseline_origen_cambio_placa)
-    else -> origen
-}
-
 // formatEur migrado al canónico de ui.components (money-safe, agrupación es-ES).
 
 private fun formatPct(value: String): String {
@@ -178,17 +172,4 @@ private fun formatPct(value: String): String {
     val plain = decimal.toPlainString()
     val sinCeros = plain.trimEnd('0').trimEnd('.', ',')
     return "${sinCeros.ifEmpty { "0" }} %"
-}
-
-@Composable
-private fun formatRelative(instant: Instant): String {
-    val now = Instant.now()
-    val minutes = Duration.between(instant, now).toMinutes()
-    return when {
-        minutes < 1 -> stringResource(R.string.relativo_ahora)
-        minutes < 60 -> stringResource(R.string.relativo_minutos, minutes)
-        minutes < 60 * 24 -> stringResource(R.string.relativo_horas, minutes / 60)
-        minutes < 60 * 24 * 30 -> stringResource(R.string.relativo_dias, minutes / (60 * 24))
-        else -> stringResource(R.string.relativo_meses, minutes / (60 * 24 * 30))
-    }
 }

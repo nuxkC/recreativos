@@ -27,6 +27,15 @@ interface CreditoLocalDao {
     )
     fun observarPorLocal(localId: String): Flow<List<CreditoLocalEntity>>
 
+    /**
+     * Solo las deudas ABIERTAS del local. La tabla cache ya se hidrata filtrando
+     * `estado = 'abierto'` desde `v_credito_local_saldo`, pero se explicita el
+     * filtro para que la deuda viva del detalle (N8) sea correcta aunque en el
+     * futuro la cache llegue a guardar otros estados.
+     */
+    @Query("SELECT * FROM `credito_local` WHERE local_id = :localId AND estado = 'abierto'")
+    fun observarAbiertosPorLocal(localId: String): Flow<List<CreditoLocalEntity>>
+
     /** Todas las deudas abiertas cacheadas de la empresa (para el índice de Deudas). */
     @Query("SELECT * FROM `credito_local` WHERE empresa_id = :empresaId")
     fun observarPorEmpresa(empresaId: String): Flow<List<CreditoLocalEntity>>

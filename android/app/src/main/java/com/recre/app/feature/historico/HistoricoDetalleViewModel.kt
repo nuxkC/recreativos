@@ -7,6 +7,8 @@ import com.recre.app.core.data.repository.RecaudacionHistorica
 import com.recre.app.core.data.repository.RecaudacionHistoricaRepository
 import com.recre.app.core.printer.PrintResult
 import com.recre.app.core.printer.PrinterError
+import com.recre.app.core.session.SessionRepository
+import com.recre.app.core.session.SessionState
 import com.recre.app.core.sync.RealtimeManager
 import com.recre.app.core.util.DomainError
 import com.recre.app.core.util.DomainResult
@@ -31,6 +33,13 @@ data class HistoricoDetalleUiState(
     val recaudacion: RecaudacionHistorica? = null,
     val errorCarga: HistoricoErrorCode? = null,
 
+    /**
+     * Nombre de la empresa activa para la cabecera del ticket (N8). No viene en
+     * el modelo del histórico; se toma de la sesión offline. `null` si aún no
+     * hay empresa activa resuelta (el ticket omite la línea sin romper).
+     */
+    val empresaNombre: String? = null,
+
     /** Pdf URL que la UI abre en navegador. La consume y reset. */
     val pdfSignedUrl: String? = null,
     val descargandoPdf: Boolean = false,
@@ -45,11 +54,16 @@ class HistoricoDetalleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: RecaudacionHistoricaRepository,
     private val realtimeManager: RealtimeManager,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val recaudacionId: String = checkNotNull(savedStateHandle[ARG_RECAUDACION_ID]) {
         "Falta argumento '$ARG_RECAUDACION_ID' en HistoricoDetalleViewModel"
     }
+
+    // Nombre de la empresa activa (offline) para la cabecera del ticket.
+    private val empresaNombre: String?
+        get() = (sessionRepository.state.value as? SessionState.Active)?.empresa?.nombre
 
     private val _state = MutableStateFlow(HistoricoDetalleUiState())
     val state: StateFlow<HistoricoDetalleUiState> = _state.asStateFlow()
@@ -68,7 +82,11 @@ class HistoricoDetalleViewModel @Inject constructor(
             when (val result = repository.obtenerDetalle(recaudacionId)) {
                 is DomainResult.Success ->
                     _state.update {
-                        it.copy(cargando = false, recaudacion = result.value)
+                        it.copy(
+                            cargando = false,
+                            recaudacion = result.value,
+                            empresaNombre = empresaNombre,
+                        )
                     }
 
                 is DomainResult.Failure ->

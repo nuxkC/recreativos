@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +53,6 @@ import com.recre.app.ui.components.ListSkeleton
 import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreBottomBar
 import com.recre.app.ui.components.RecreTonalButton
-import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.SearchField
 import com.recre.app.ui.components.TopLevelDestination
@@ -59,8 +60,6 @@ import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreMotion
 import com.recre.app.ui.theme.RecreShapes
 import com.recre.app.ui.theme.RecreType
-import java.time.Duration
-import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,14 +84,12 @@ fun LocalesScreen(
 
     Scaffold(
         topBar = {
-            RecreTopBar(
-                titulo = state.empresaNombre.ifEmpty { stringResource(R.string.locales_titulo) },
-                subtitulo = formatSubtitulo(
-                    cargando = state.cargandoSync,
-                    ultima = state.ultimaSync,
-                    pendientes = state.pendientes,
-                ),
-                actions = { RecreTopBarActions(onAlertasClick = onAlertasClick, onIncidenciasClick = onIncidenciasClick) },
+            // N8 (D.3-6): app-cab propia con el título «Locales» en display, SIN nombre
+            // de empresa ni subtítulo de sync (el estado de sync se comunica por el
+            // spinner de RecreTopBarActions y por el SyncStaleBanner de abajo).
+            LocalesTopBar(
+                onAlertasClick = onAlertasClick,
+                onIncidenciasClick = onIncidenciasClick,
             )
         },
         bottomBar = {
@@ -121,6 +118,7 @@ fun LocalesScreen(
                 if (state.agendaDisponible) {
                     AgendaHero(
                         pendientes = state.localesPendientes,
+                        alDia = state.localesAlDia,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -212,34 +210,101 @@ fun LocalesScreen(
     }
 }
 
-/** Héroe de la agenda: cuántos locales del operario están por recaudar (P3c). Es
- *  un conteo de locales (entero), no dinero → no usa MoneyText. */
+/**
+ * App-cab del home (N8, D.3-6): título «Locales» en display (headlineMedium /
+ * Bricolage) a la izquierda + las acciones globales del shell a la derecha
+ * (sync/incidencias/alertas con sus badges, vía RecreTopBarActions). Sin nombre
+ * de empresa ni subtítulo de sync: la elevación es por borde inferior (regla del
+ * sistema), no por sombra. No usa TopAppBar (guardarraíl SinMaterialPelado).
+ */
 @Composable
-private fun AgendaHero(pendientes: Int, modifier: Modifier = Modifier) {
-    HeroSection(
-        eyebrow = stringResource(R.string.agenda_hero_eyebrow),
-        modifier = modifier,
-        sub = {
-            Text(
-                text = pluralStringResource(R.plurals.agenda_hero_sub, pendientes, pendientes),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        },
+private fun LocalesTopBar(
+    onAlertasClick: () -> Unit,
+    onIncidenciasClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
-        if (pendientes == 0) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = stringResource(R.string.agenda_hero_todo_al_dia),
-                style = RecreType.displayHero,
-                color = RecreColors.current.success,
+                text = stringResource(R.string.locales_titulo),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
             )
-        } else {
-            // Display Bricolage con el conteo en warning (neón N3): el héroe del
-            // home es agenda, no dinero — el importe grande vive en Mi caja.
+            RecreTopBarActions(
+                onAlertasClick = onAlertasClick,
+                onIncidenciasClick = onIncidenciasClick,
+            )
+        }
+    }
+}
+
+/** Héroe de la agenda: cuántos locales del operario están por recaudar (P3c). Es
+ *  un conteo de locales (entero), no dinero → no usa MoneyText. N8: bajo el conteo,
+ *  una barra de progreso «X/Y al día» (solo si hay locales de agenda). */
+@Composable
+private fun AgendaHero(pendientes: Int, alDia: Int, modifier: Modifier = Modifier) {
+    val total = pendientes + alDia
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        HeroSection(
+            eyebrow = stringResource(R.string.agenda_hero_eyebrow),
+            modifier = Modifier.fillMaxWidth(),
+            sub = {
+                Text(
+                    text = pluralStringResource(R.plurals.agenda_hero_sub, pendientes, pendientes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        ) {
+            if (pendientes == 0) {
+                Text(
+                    text = stringResource(R.string.agenda_hero_todo_al_dia),
+                    style = RecreType.displayHero,
+                    color = RecreColors.current.success,
+                )
+            } else {
+                // Display Bricolage con el conteo en warning (neón N3): el héroe del
+                // home es agenda, no dinero — el importe grande vive en Mi caja.
+                Text(
+                    text = pendientes.toString(),
+                    style = RecreType.displayHero,
+                    color = RecreColors.current.warning,
+                )
+            }
+        }
+        // N8: barra de progreso fina «X/Y al día» — success sobre track border.
+        // Solo tiene sentido con locales de agenda (total > 0).
+        if (total > 0) {
+            Spacer(Modifier.height(10.dp))
+            LinearProgressIndicator(
+                progress = { alDia.toFloat() / total.toFloat() },
+                color = RecreColors.current.success,
+                trackColor = RecreColors.current.border,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RecreShapes.small),
+            )
+            Spacer(Modifier.height(4.dp))
             Text(
-                text = pendientes.toString(),
-                style = RecreType.displayHero,
-                color = RecreColors.current.warning,
+                text = stringResource(R.string.agenda_progreso_al_dia, alDia, total),
+                style = MaterialTheme.typography.labelSmall,
+                color = RecreColors.current.muted,
             )
         }
     }
@@ -311,32 +376,3 @@ private fun SyncStaleBanner(onSincronizar: () -> Unit, modifier: Modifier = Modi
 
 
 
-@Composable
-private fun formatSubtitulo(cargando: Boolean, ultima: Instant?, pendientes: Int): String {
-    val sync = formatUltimaSync(cargando, ultima)
-    if (pendientes <= 0) return sync
-    val pendientesText = pluralStringResource(
-        id = R.plurals.locales_pendientes_count,
-        count = pendientes,
-        pendientes,
-    )
-    return "$sync · $pendientesText"
-}
-
-@Composable
-private fun formatUltimaSync(sincronizando: Boolean, ultima: Instant?): String {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    return when {
-        sincronizando -> stringResource(R.string.sync_in_progress)
-        ultima == null -> stringResource(R.string.sync_never)
-        else -> {
-            val minutes = Duration.between(ultima, Instant.now()).toMinutes()
-            when {
-                minutes < 1 -> context.getString(R.string.sync_just_now)
-                minutes < 60 -> context.getString(R.string.sync_minutes_ago, minutes)
-                minutes < 60 * 24 -> context.getString(R.string.sync_hours_ago, minutes / 60)
-                else -> context.getString(R.string.sync_days_ago, minutes / (60 * 24))
-            }
-        }
-    }
-}

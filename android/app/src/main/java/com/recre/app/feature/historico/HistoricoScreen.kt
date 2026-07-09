@@ -18,13 +18,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -39,7 +37,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,11 +59,11 @@ import com.recre.app.ui.components.StatusChip
 import com.recre.app.ui.components.StatusChipSize
 import com.recre.app.ui.components.StatusRole
 import com.recre.app.ui.components.TopLevelDestination
+import com.recre.app.ui.components.formatFechaHumana
 import com.recre.app.core.data.repository.RecaudacionHistorica
+import com.recre.app.ui.theme.GeistMono
 import com.recre.app.ui.theme.RecreMotion
 import com.recre.app.ui.theme.RecreShapes
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 /**
  * Pantalla "Mis recaudaciones" (T-63).
@@ -200,83 +202,92 @@ private fun HistoricoCard(
         onClick = onClick,
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
+            // Columna izquierda: el LOCAL es el protagonista; debajo, meta de una
+            // línea «{modelo} · {serie} — {fecha}» con serie y fecha en Geist Mono.
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = formatFecha(recaudacion.fecha),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.weight(1f),
-                    )
-                    val (rol, icono, textoRes) = when {
-                        recaudacion.conflictoPendiente ->
-                            Triple(StatusRole.WARNING, Icons.Filled.Warning, R.string.historico_badge_conflicto)
-                        recaudacion.estado == EstadoHistorico.Anulada ->
-                            Triple(StatusRole.DANGER, Icons.Filled.Block, R.string.historico_badge_anulada)
-                        else ->
-                            Triple(StatusRole.SUCCESS, Icons.Filled.CheckCircle, R.string.historico_badge_firme)
-                    }
-                    StatusChip(
-                        role = rol,
-                        label = stringResource(textoRes),
-                        icon = icono,
-                        size = StatusChipSize.SM,
-                    )
-                }
-                Spacer(Modifier.height(4.dp))
                 Text(
                     text = recaudacion.localNombre,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                Spacer(Modifier.height(2.dp))
                 Text(
-                    text = listOfNotNull(
-                        recaudacion.maquinaSerie,
-                        recaudacion.maquinaModelo,
-                    ).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
+                    text = metaMaquinaFecha(
+                        modelo = recaudacion.maquinaModelo,
+                        serie = recaudacion.maquinaSerie,
+                        fecha = recaudacion.fecha,
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(R.string.historico_label_bruto),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = formatEur(recaudacion.bruto),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.Monospace,
-                        ),
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        text = stringResource(R.string.historico_label_parte_local),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = formatEur(recaudacion.parteLocal),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.Monospace,
-                        ),
-                    )
-                }
             }
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Spacer(Modifier.width(12.dp))
+            // Columna derecha: importe bruto protagonista (Geist Mono bold), la
+            // parte del local y el chip de estado, alineados al fin.
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = formatEur(recaudacion.bruto),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontFamily = GeistMono,
+                        fontWeight = FontWeight.W700,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = stringResource(
+                        R.string.historico_local_importe,
+                        formatEur(recaudacion.parteLocal),
+                    ),
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = GeistMono),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(6.dp))
+                val (rol, icono, textoRes) = when {
+                    recaudacion.conflictoPendiente ->
+                        Triple(StatusRole.WARNING, Icons.Filled.Warning, R.string.historico_badge_conflicto)
+                    recaudacion.estado == EstadoHistorico.Anulada ->
+                        Triple(StatusRole.DANGER, Icons.Filled.Block, R.string.historico_badge_anulada)
+                    else ->
+                        Triple(StatusRole.SUCCESS, Icons.Filled.CheckCircle, R.string.historico_badge_firme)
+                }
+                StatusChip(
+                    role = rol,
+                    label = stringResource(textoRes),
+                    icon = icono,
+                    size = StatusChipSize.SM,
+                )
+            }
         }
     }
+}
+
+/**
+ * Meta de una línea «{modelo} · {serie} — {fecha humanizada}». La serie y la
+ * fecha van en Geist Mono (cifras/códigos); el modelo, en la sans de interfaz.
+ * modelo/serie pueden faltar → se omiten sin dejar separadores colgando.
+ */
+@Composable
+private fun metaMaquinaFecha(
+    modelo: String?,
+    serie: String?,
+    fecha: java.time.Instant,
+): AnnotatedString = buildAnnotatedString {
+    if (!modelo.isNullOrBlank()) {
+        append(modelo)
+    }
+    if (!serie.isNullOrBlank()) {
+        if (length > 0) append(" · ")
+        withStyle(SpanStyle(fontFamily = GeistMono)) { append(serie) }
+    }
+    if (length > 0) append(" — ")
+    withStyle(SpanStyle(fontFamily = GeistMono)) { append(formatFechaHumana(fecha)) }
 }
 
 @Composable
@@ -351,11 +362,6 @@ private fun errorTextoRes(code: HistoricoErrorCode): Int = when (code) {
     HistoricoErrorCode.Network -> R.string.historico_error_network
     HistoricoErrorCode.Auth -> R.string.historico_error_auth
     HistoricoErrorCode.Unknown -> R.string.historico_error_generic
-}
-
-private fun formatFecha(instant: java.time.Instant): String {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-    return formatter.format(instant.atZone(ZoneId.systemDefault()))
 }
 
 // formatEur migrado al canónico de ui.components (money-safe, agrupación es-ES).

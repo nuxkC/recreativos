@@ -7,6 +7,8 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Count
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.rpc
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.SerialName
@@ -42,22 +44,38 @@ class AlertasRemoteDataSource @Inject constructor(
     )
 
     /**
-     * Lista alertas pendientes de la empresa activa. Limita a 50; lo
-     * habitual es que el técnico tenga 0 o 1-2 a la vez. Si crece,
-     * paginamos con cursor.
+     * Lista las alertas VISIBLES de la empresa activa: todas las no-leídas
+     * (sin importar su antigüedad) más las ya leídas de los últimos 7 días,
+     * para que el técnico conserve un rastro reciente de lo atendido (N8 D.3-5).
+     *
+     * El filtro efectivo es
+     * `empresa_id = X AND (leida = false OR (leida = true AND creada_en >= cutoff))`:
+     * las cláusulas de primer nivel de `filter {}` se combinan con AND, así que
+     * el `eq("empresa_id", …)` sigue acotando por empresa (RLS/multi-tenant) y el
+     * `or { … }` solo abre la ventana temporal para las leídas. El `cutoff` se
+     * calcula en cliente en ISO-8601 UTC (7 días atrás). Limita a 50; lo habitual
+     * es que el técnico tenga 0 o 1-2 a la vez. Si crece, paginamos con cursor.
      */
-    suspend fun listarPendientes(empresaId: String): List<AlertaDto> =
-        supabase
+    suspend fun listarPendientes(empresaId: String): List<AlertaDto> {
+        val cutoffIso = Instant.now().minus(7, ChronoUnit.DAYS).toString()
+        return supabase
             .from("alerta")
             .select {
                 filter {
                     eq("empresa_id", empresaId)
-                    eq("leida", false)
+                    or {
+                        eq("leida", false)
+                        and {
+                            eq("leida", true)
+                            gte("creada_en", cutoffIso)
+                        }
+                    }
                 }
                 order("creada_en", Order.DESCENDING)
                 limit(count = 50L)
             }
             .decodeList()
+    }
 
     /**
      * Cuenta alertas pendientes para mostrar el badge en el menú de

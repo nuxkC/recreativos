@@ -77,6 +77,10 @@
     <!-- Agenda de recaudación (Planificación P3c) -->
     <string name="agenda_hero_todo_al_dia">Todo al día</string>
     <string name="agenda_hero_eyebrow">Tu ruta</string>
+    <!-- N8: barra de progreso del héroe. %1$d = al día, %2$d = total. -->
+    <string name="agenda_progreso_al_dia">%1$d/%2$d al día</string>
+    <!-- N8: meta de una línea de la tarjeta de local «dirección · N máquinas». -->
+    <string name="locales_meta_separador">%1$s · %2$s</string>
     <plurals name="agenda_hero_sub">
         <item quantity="one">%d local por recaudar</item>
         <item quantity="other">%d locales por recaudar</item>
@@ -98,13 +102,14 @@
     <string name="local_detalle_cargando">Cargando…</string>
     <string name="local_detalle_no_encontrado">Local no encontrado</string>
     <string name="local_detalle_no_encontrado_descripcion">Es posible que se haya cerrado o que no pertenezca a la empresa activa.</string>
-    <string name="local_detalle_titular">Titular: %1$s</string>
-    <string name="local_detalle_telefono">Teléfono: %1$s</string>
-    <string name="local_detalle_seccion_maquinas">Máquinas activas</string>
     <string name="local_detalle_ver_deudas">Ver saldo y deudas del local</string>
     <string name="local_detalle_ver_historico">Ver histórico de recaudaciones</string>
     <string name="local_detalle_sin_maquinas">No hay máquinas activas en este local.</string>
-    <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d máquinas)</string>
+    <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d)</string>
+    <string name="local_detalle_maquinas_eyebrow">Máquinas activas · %1$d</string>
+    <string name="local_detalle_deuda_viva_prefijo">Deuda viva:</string>
+    <string name="local_detalle_deuda_retencion_prefijo"> · retiene el </string>
+    <string name="local_detalle_deuda_retencion_valor">%1$d %%</string>
     <string name="action_back">Volver</string>
     <string name="action_cerrar">Cerrar</string>
     <string name="snackbar_sincronizando">Sincronizando</string>
@@ -119,14 +124,7 @@
     <string name="maquina_label_licencia">Licencia</string>
     <string name="maquina_label_tasa_semanal">Tasa semanal</string>
     <string name="maquina_label_porcentaje_local">% local</string>
-    <string name="maquina_baseline_titulo">Baseline</string>
-    <string name="maquina_baseline_entradas">Contador entradas</string>
-    <string name="maquina_baseline_salidas">Contador salidas</string>
-    <string name="maquina_baseline_fecha">Última recogida</string>
-    <string name="maquina_baseline_origen">Origen</string>
-    <string name="maquina_baseline_origen_instalacion">Alta de la instalación</string>
-    <string name="maquina_baseline_origen_recaudacion">Recaudación previa</string>
-    <string name="maquina_baseline_origen_cambio_placa">Cambio de placa</string>
+    <string name="maquina_baseline_compacto">E %1$d · S %2$d · últ. %3$s</string>
     <string name="maquina_accion_recaudar">Recaudar</string>
     <string name="maquina_accion_cambio_placa">Cambio de placa</string>
     <string name="maquina_mas_acciones">Más acciones de %1$s</string>
@@ -245,6 +243,12 @@
     <string name="incidencias_rehacer">Rehacer</string>
     <string name="incidencias_terminal_recaudacion">Reintentar no la arreglará: vuelve a contarla.</string>
     <string name="incidencias_terminal_averia">Reintentar no la arreglará: vuelve a reportarla.</string>
+    <!-- N8: cabeceras de sección en eyebrow con conteo + banda offline + estado por ítem -->
+    <string name="incidencias_seccion_sinresolver_conteo">Sin resolver · %1$d</string>
+    <string name="incidencias_seccion_encola_conteo">En cola · %1$d</string>
+    <string name="incidencias_banda_offline">Pendiente de subir · se enviará automáticamente</string>
+    <string name="incidencias_estado_rechazada">Rechazada</string>
+    <string name="incidencias_estado_esperando">Esperando red</string>
     <plurals name="incidencias_intentos">
         <item quantity="one">%1$d intento</item>
         <item quantity="other">%1$d intentos</item>
@@ -380,6 +384,17 @@
     <string name="historico_label_bruto">Bruto</string>
     <string name="historico_label_neto">Neto</string>
     <string name="historico_label_parte_local">Parte local</string>
+    <!-- N8: parte del local bajo el bruto en la tarjeta de histórico. %1$s = importe. -->
+    <string name="historico_local_importe">Local %1$s</string>
+    <!-- N8: subtítulo mono de la cabecera del histórico de contexto (se pone en
+         mayúsculas en la cabecera). %1$s = nombre del local de la máquina. -->
+    <string name="historico_contexto_subtitulo_maquina">Histórico de la máquina — %1$s</string>
+    <string name="historico_contexto_subtitulo_local">Histórico del local</string>
+    <!-- N8: banda resumen sobre la lista. %1$d = nº recaudaciones, %2$s = bruto acumulado. -->
+    <plurals name="historico_contexto_resumen">
+        <item quantity="one">%1$d recaudación · bruto acumulado %2$s</item>
+        <item quantity="other">%1$d recaudaciones · bruto acumulado %2$s</item>
+    </plurals>
     <string name="historico_label_parte_empresa">Parte empresa</string>
     <string name="historico_badge_firme">Firme</string>
     <string name="historico_badge_anulada">Anulada</string>
@@ -398,9 +413,10 @@
     <string name="historico_detalle_licencia">Licencia</string>
     <string name="historico_detalle_cifras_titulo">Cifras de la recaudación</string>
     <string name="historico_ticket_titulo">Recibo de recaudación</string>
-    <string name="historico_detalle_anulada_titulo">Recaudación anulada</string>
+    <string name="historico_ticket_sello_firme">FIRME</string>
+    <string name="historico_ticket_sello_anulada">ANULADA</string>
+    <string name="historico_ticket_sello_conflicto">CONFLICTO</string>
     <string name="historico_detalle_anulada_sin_motivo">No se registró motivo.</string>
-    <string name="historico_detalle_conflicto_titulo">Conflicto sin resolver</string>
     <string name="historico_detalle_conflicto_descripcion">Un administrador revisará las cifras desde el back-office y te llegará una alerta cuando se resuelva.</string>
     <string name="historico_detalle_reimprimir_titulo">Reimprimir ticket</string>
     <string name="historico_detalle_pdf">Descargar PDF</string>
@@ -424,6 +440,11 @@
     <string name="alertas_error_network">No hay conexión. Inténtalo de nuevo cuando vuelva la red.</string>
     <string name="alertas_error_auth">No tienes acceso a las alertas. Vuelve a iniciar sesión.</string>
     <string name="alertas_error_generic">No se pudieron actualizar las alertas. Inténtalo de nuevo.</string>
+    <!-- Subtítulo de cabecera (N8): recuento de no-leídas en eyebrow mono. -->
+    <plurals name="alertas_sin_leer">
+        <item quantity="one">%1$d sin leer</item>
+        <item quantity="other">%1$d sin leer</item>
+    </plurals>
 
     <!-- Ajustes (T-65) -->
     <string name="ajustes_titulo">Ajustes</string>
@@ -653,6 +674,9 @@
     <string name="deudas_saldo_tolva">Tolva: %1$s</string>
     <string name="deudas_saldo_prestamo">Préstamos: %1$s</string>
     <string name="deudas_num_deudas">%1$d deuda(s) abierta(s)</string>
+    <!-- N8: sub del héroe (desglose en una línea) y retención inline bajo la cifra -->
+    <string name="deudas_hero_sub">Tolva: %1$s · Préstamos: %2$s · %3$d deudas abiertas</string>
+    <string name="deudas_retencion_inline">Retiene el %1$d %%</string>
     <string name="deudas_seccion_deudas">Deudas abiertas</string>
     <string name="deudas_sin_deudas">El local no tiene deudas abiertas.</string>
     <string name="deudas_tipo_tolva">Tolva</string>
@@ -689,6 +713,8 @@
     <string name="deudas_condonar_confirmar">Condonar</string>
     <string name="deudas_condonar_ok">Deuda condonada.</string>
     <!-- Libro mayor de abonos -->
+    <!-- N8: eyebrow de la sección de movimientos del ledger -->
+    <string name="deudas_ledger_seccion">Movimientos</string>
     <string name="deudas_ledger_titulo">Histórico de abonos</string>
     <string name="deudas_ledger_vacio">Aún no hay abonos registrados.</string>
     <string name="deudas_ledger_origen_efectivo">Pago en efectivo</string>

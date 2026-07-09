@@ -3,6 +3,7 @@ package com.recre.app.feature.deudas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -31,6 +33,7 @@ import com.recre.app.ui.components.OdometroText
 import com.recre.app.ui.components.RecreDetailTopBar
 import com.recre.app.ui.components.formatEur
 import com.recre.app.ui.components.recreSharedBounds
+import com.recre.app.ui.theme.GeistMono
 import com.recre.app.ui.theme.RecreType
 import java.math.BigDecimal
 
@@ -111,28 +114,40 @@ fun DeudasGestorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onLocalClick(local.localId) },
                     ) {
-                        Column {
-                            Text(
-                                text = local.nombre,
-                                style = MaterialTheme.typography.titleSmall,
-                                // T-244: comparte el nombre con la cabecera del detalle de deudas.
-                                modifier = Modifier.recreSharedBounds("deuda-nombre-${local.localId}"),
-                            )
+                        // N8: nombre + desglose a la izquierda, saldo money-safe en Geist
+                        // Mono bold a la derecha (antes apilado en titleMedium Sans).
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = local.nombre,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    // T-244: comparte el nombre con la cabecera del detalle de deudas.
+                                    modifier = Modifier.recreSharedBounds("deuda-nombre-${local.localId}"),
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.deudas_gestor_desglose,
+                                        eur(local.saldoTolva),
+                                        eur(local.saldoPrestamo),
+                                        local.numDeudas,
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
                             Text(
                                 text = eur(local.saldoTotal),
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = GeistMono,
+                                    fontFeatureSettings = "tnum",
+                                    fontWeight = FontWeight.W600,
                                 ),
-                            )
-                            Text(
-                                text = stringResource(
-                                    R.string.deudas_gestor_desglose,
-                                    eur(local.saldoTolva),
-                                    eur(local.saldoPrestamo),
-                                    local.numDeudas,
-                                ),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 8.dp),
                             )
                         }
                     }
