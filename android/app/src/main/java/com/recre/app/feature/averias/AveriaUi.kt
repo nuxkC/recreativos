@@ -3,20 +3,17 @@ package com.recre.app.feature.averias
 import com.recre.app.ui.components.formatEur
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.recre.app.R
+import com.recre.app.ui.components.StatusRole
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * Categoría de avería: lista FIJA, espejo del CHECK de la tabla `averia`
@@ -43,40 +40,19 @@ fun categoriaLabel(valor: String): String =
     CategoriaAveria.fromValor(valor)?.let { stringResource(it.labelRes) } ?: valor
 
 @StringRes
-private fun estadoLabelRes(estado: String): Int = when (estado) {
+fun estadoAveriaLabelRes(estado: String): Int = when (estado) {
     "abierta" -> R.string.averia_estado_abierta
     "en_reparacion" -> R.string.averia_estado_en_reparacion
     "resuelta" -> R.string.averia_estado_resuelta
     else -> R.string.averia_estado_abierta
 }
 
-/** Chip de estado de la avería (abierta / en reparación / resuelta). */
-@Composable
-fun EstadoAveriaBadge(estado: String) {
-    val (bg, fg) = when (estado) {
-        "resuelta" -> MaterialTheme.colorScheme.secondaryContainer to
-            MaterialTheme.colorScheme.onSecondaryContainer
-        "en_reparacion" -> MaterialTheme.colorScheme.tertiaryContainer to
-            MaterialTheme.colorScheme.onTertiaryContainer
-        else -> MaterialTheme.colorScheme.errorContainer to
-            MaterialTheme.colorScheme.onErrorContainer
-    }
-    Surface(color = bg, shape = MaterialTheme.shapes.small) {
-        Text(
-            text = stringResource(estadoLabelRes(estado)),
-            color = fg,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = androidx.compose.ui.Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-        )
-    }
+/** Rol + icono del StatusChip de estado (compartido con la fecha protagonista de la card). */
+fun estadoChipRolIcono(estado: String): Pair<StatusRole, ImageVector> = when (estado) {
+    "resuelta" -> StatusRole.SUCCESS to Icons.Filled.Check
+    "en_reparacion" -> StatusRole.WARNING to Icons.Filled.Warning
+    else -> StatusRole.DANGER to Icons.Outlined.ErrorOutline
 }
-
-private val FECHA_FORMAT: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", Locale("es", "ES"))
-
-/** Fecha absoluta legible en la zona del dispositivo (historial de averías). */
-fun formatFechaAveria(instant: Instant): String =
-    FECHA_FORMAT.format(instant.atZone(ZoneId.systemDefault()))
 
 /** Formatea un coste (String con precisión decimal) como "12,50 €". `null` → "". */
 fun formatCoste(value: String?): String {

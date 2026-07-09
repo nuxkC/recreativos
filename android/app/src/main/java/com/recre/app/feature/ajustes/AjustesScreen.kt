@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwitchAccount
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,14 +32,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.recre.app.ui.components.AppCard
+import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.Pip
+import com.recre.app.ui.components.PipRole
 import com.recre.app.ui.components.RecreBottomBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreTextButton
 import com.recre.app.ui.components.RecreTopBar
 import com.recre.app.ui.components.RecreTopBarActions
 import com.recre.app.ui.components.SegmentOption
 import com.recre.app.ui.components.SegmentedControl
 import com.recre.app.ui.components.TopLevelDestination
+import com.recre.app.ui.theme.RecreColors
 import com.recre.app.ui.theme.RecreShapes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -239,9 +241,9 @@ private fun SyncCard(
         shape = RecreShapes.large,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
+            // N9: título de sección como eyebrow (hereda el contentColor de la Surface).
+            Eyebrow(
                 text = stringResource(R.string.ajustes_seccion_sync),
-                style = MaterialTheme.typography.titleSmall,
                 color = if (stale) {
                     MaterialTheme.colorScheme.onErrorContainer
                 } else {
@@ -285,11 +287,13 @@ private fun SyncCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                RecreTextButton(
+                // N9: enlace ghost mini en acento; gating por `sincronizando` intacto.
+                RecreGhostButton(
                     text = stringResource(R.string.sync_force),
                     onClick = onSincronizar,
                     enabled = !sincronizando,
                     leadingIcon = Icons.Default.Refresh,
+                    mini = true,
                 )
             }
         }
@@ -304,11 +308,8 @@ private fun ImpresoraCard(
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            Text(
-                text = stringResource(R.string.ajustes_seccion_impresora),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // N9: título de sección como eyebrow (antes titleSmall).
+            Eyebrow(text = stringResource(R.string.ajustes_seccion_impresora))
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -351,13 +352,15 @@ private fun ImpresoraCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                RecreTextButton(
+                // N9: enlace ghost mini en acento (antes RecreTextButton).
+                RecreGhostButton(
                     text = if (impresora == null) {
                         stringResource(R.string.ajustes_impresora_vincular)
                     } else {
                         stringResource(R.string.ajustes_impresora_cambiar)
                     },
                     onClick = onAccion,
+                    mini = true,
                 )
             }
         }
@@ -395,11 +398,14 @@ private fun TamanoCard(
 @Composable
 private fun SesionCard(onLogoutClick: () -> Unit) {
     SeccionCard(titulo = stringResource(R.string.ajustes_seccion_sesion)) {
+        // N9: cierre de sesión en tratamiento danger (pip + texto). El diálogo de
+        // confirmación (onLogoutClick) se conserva: no hay logout sin confirmar.
         ItemRow(
             icon = Icons.AutoMirrored.Filled.Logout,
             primary = stringResource(R.string.auth_signout),
             secondary = stringResource(R.string.ajustes_sesion_descripcion),
             onClick = onLogoutClick,
+            role = PipRole.DANGER,
         )
     }
 }
@@ -414,11 +420,8 @@ private fun SeccionCard(
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // N9: título de sección como eyebrow mono uppercase (antes titleSmall).
+            Eyebrow(text = titulo)
             Spacer(Modifier.height(8.dp))
             content()
             if (actions.isNotEmpty()) {
@@ -427,8 +430,9 @@ private fun SeccionCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
+                    // N9: acciones como enlaces ghost mini en acento inline (antes RecreTextButton).
                     actions.forEach { (label, onClick) ->
-                        RecreTextButton(text = label, onClick = onClick)
+                        RecreGhostButton(text = label, onClick = onClick, mini = true)
                     }
                 }
             }
@@ -442,19 +446,26 @@ private fun ItemRow(
     primary: String,
     secondary: String? = null,
     onClick: (() -> Unit)? = null,
+    role: PipRole = PipRole.ACCENT,
 ) {
     val baseModifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 4.dp)
     val rowModifier = if (onClick != null) baseModifier.clickable(onClick = onClick) else baseModifier
+    // N9: en rol danger (cerrar sesión) el texto primario se tiñe de danger.
+    val primaryColor = if (role == PipRole.DANGER) {
+        RecreColors.current.danger
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
     Row(
         modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Pip(icon)
+        Pip(icon, role = role)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = primary, style = MaterialTheme.typography.bodyLarge)
+            Text(text = primary, style = MaterialTheme.typography.bodyLarge, color = primaryColor)
             secondary?.let {
                 Text(
                     text = it,

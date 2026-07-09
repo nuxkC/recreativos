@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -26,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
@@ -35,7 +39,7 @@ import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.Pip
 import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreSnackbarHost
-import com.recre.app.ui.components.RecreTopBar
+import com.recre.app.ui.theme.RecreColors
 
 @Composable
 fun SeleccionarEmpresaScreen(
@@ -63,9 +67,6 @@ fun SeleccionarEmpresaScreen(
     }
 
     Scaffold(
-        topBar = {
-            RecreTopBar(titulo = stringResource(R.string.empresa_seleccion_titulo))
-        },
         snackbarHost = { RecreSnackbarHost(snackbarHostState) },
     ) { padding ->
         when {
@@ -107,12 +108,24 @@ private fun ContenidoSeleccion(
             .fillMaxSize()
             .padding(padding)
             .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // Composición centrada (mockup «Neón de sala»): título display + descripción
+        // presiden la lista de empresas, sin top bar estándar.
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = stringResource(R.string.empresa_seleccion_titulo),
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.empresa_seleccion_descripcion),
             style = MaterialTheme.typography.bodyMedium,
+            color = RecreColors.current.muted,
+            textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -167,11 +180,19 @@ private fun MembresiaCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            Spacer(Modifier.width(8.dp))
             if (cargando) {
-                Spacer(Modifier.width(8.dp))
                 CircularProgressIndicator(
                     modifier = Modifier.height(20.dp),
                     strokeWidth = 2.dp,
+                )
+            } else {
+                // Fila-nav: el chevron señala que la tarjeta entra a la empresa.
+                Icon(
+                    imageVector = Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    tint = RecreColors.current.muted,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

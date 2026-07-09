@@ -296,6 +296,8 @@
     <!-- Cambio de placa (T-61) -->
     <string name="cambio_placa_titulo">Cambio de placa</string>
     <string name="cambio_placa_descripcion">Registra la sustitución de la placa de esta máquina. Los nuevos contadores serán la baseline de la siguiente recaudación. Esta operación requiere conexión.</string>
+    <!-- N9: banda informativa de cabecera. Reinicia el contador base; la serie histórica continúa. -->
+    <string name="cambio_placa_banda_info">El cambio de placa reinicia el contador base de la máquina. La serie histórica de recaudaciones se conserva.</string>
     <string name="cambio_placa_label_num_serie_nueva">Nuevo número de serie</string>
     <string name="cambio_placa_placeholder_num_serie">Opcional — déjalo vacío si la placa nueva no lo trae</string>
     <string name="cambio_placa_label_entradas_nueva">Contador de entradas (placa nueva)</string>
@@ -349,6 +351,11 @@
     <string name="impresora_quitar">Quitar</string>
     <string name="impresora_seleccionar">Usar como impresora</string>
     <string name="impresora_probar">Probar impresión</string>
+    <!-- N9: subtítulo mono de cabecera + eyebrow de sección + enlaces cortos de la radio-fila -->
+    <string name="impresora_bluetooth_activado">Bluetooth activado</string>
+    <string name="impresora_emparejadas_titulo">Emparejadas en el sistema</string>
+    <string name="impresora_usar">Usar</string>
+    <string name="impresora_probar_corto">Probar</string>
     <string name="impresora_probando">Imprimiendo prueba…</string>
     <string name="impresora_msg_prueba_ok">Prueba enviada a la impresora.</string>
     <string name="impresora_msg_guardada">Impresora vinculada correctamente.</string>

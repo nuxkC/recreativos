@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -21,10 +20,15 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import com.recre.app.ui.components.AppCard
 import com.recre.app.ui.components.EmptyState
+import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.FieldText
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecreSnackbarHost
 import com.recre.app.ui.components.RecreTextButton
+import com.recre.app.ui.components.StatusChip
+import com.recre.app.ui.components.StatusChipSize
+import com.recre.app.ui.components.formatFechaHumana
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +46,8 @@ import com.recre.app.R
 import com.recre.app.core.data.repository.AveriaHistorial
 import com.recre.app.feature.gestion.components.OfflineBanner
 import com.recre.app.ui.components.ListSkeleton
+import com.recre.app.ui.theme.GeistMono
+import com.recre.app.ui.theme.RecreColors
 
 /**
  * Historial de averías de una máquina (T-222), en gestión. Lectura en línea de
@@ -135,20 +142,41 @@ private fun AveriaCard(
     puedeResolver: Boolean,
     onResolver: () -> Unit,
 ) {
+    // N9 `deuda-card`: la FECHA es la protagonista (mono, coloreada por estado),
+    // el StatusChip vive a su derecha; categoría/local/descripción debajo.
+    val (rol, icono) = estadoChipRolIcono(averia.estado)
+    val fechaColor = when (averia.estado) {
+        "resuelta" -> RecreColors.current.successText
+        "en_reparacion" -> RecreColors.current.warningText
+        else -> RecreColors.current.dangerText
+    }
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Text(
-                    text = categoriaLabel(averia.categoria),
-                    style = MaterialTheme.typography.titleSmall,
+                    text = formatFechaHumana(averia.fechaReporte),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = GeistMono,
+                        fontWeight = FontWeight.W600,
+                    ),
+                    color = fechaColor,
                     modifier = Modifier.weight(1f),
                 )
-                EstadoAveriaBadge(estado = averia.estado)
+                StatusChip(
+                    role = rol,
+                    label = stringResource(estadoAveriaLabelRes(averia.estado)),
+                    icon = icono,
+                    size = StatusChipSize.SM,
+                )
             }
+            Spacer(Modifier.height(2.dp))
             Text(
-                text = formatFechaAveria(averia.fechaReporte),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = categoriaLabel(averia.categoria),
+                style = MaterialTheme.typography.titleSmall,
             )
             averia.localNombre?.let { nombre ->
                 Text(
@@ -170,23 +198,35 @@ private fun AveriaCard(
             }
 
             if (averia.recambios.isNotEmpty()) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    stringResource(R.string.averia_recambios_titulo),
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                Spacer(Modifier.height(8.dp))
+                Eyebrow(text = stringResource(R.string.averia_recambios_titulo))
+                Spacer(Modifier.height(4.dp))
                 averia.recambios.forEach { r ->
-                    Text(
-                        text = buildString {
-                            append("• ")
-                            append(r.pieza)
-                            append("  ×")
-                            append(r.cantidad)
-                            val coste = formatCoste(r.coste)
-                            if (coste.isNotEmpty()) append("  ·  $coste")
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = "• ${r.pieza}  ×${r.cantidad}",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.weight(1f),
+                        )
+                        // Coste money-safe en Geist Mono tabular (dinero, nunca Double).
+                        val coste = formatCoste(r.coste)
+                        if (coste.isNotEmpty()) {
+                            Text(
+                                text = coste,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = GeistMono,
+                                    fontFeatureSettings = "tnum",
+                                    fontWeight = FontWeight.W600,
+                                ),
+                                color = RecreColors.current.mutedStrong,
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
+                    }
                 }
             }
 
@@ -202,15 +242,14 @@ private fun AveriaCard(
             if (averia.estado != "resuelta") {
                 Spacer(Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    if (resolviendo) {
-                        CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.height(24.dp))
-                    } else {
-                        RecreTextButton(
-                            text = stringResource(R.string.averia_accion_resolver),
-                            onClick = onResolver,
-                            enabled = puedeResolver,
-                        )
-                    }
+                    // N9: acción a píldora ghost mini (con spinner integrado en loading).
+                    RecreGhostButton(
+                        text = stringResource(R.string.averia_accion_resolver),
+                        onClick = onResolver,
+                        enabled = puedeResolver,
+                        loading = resolviendo,
+                        mini = true,
+                    )
                 }
             }
         }

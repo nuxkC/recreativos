@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
+import com.recre.app.ui.components.Pictograma
+import com.recre.app.ui.components.PictogramaTono
 import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 
@@ -42,9 +46,11 @@ fun ErrorSesionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            Pictograma(Icons.Filled.WarningAmber, tono = PictogramaTono.ALERTA)
+            Spacer(Modifier.height(20.dp))
             Text(
                 text = stringResource(R.string.sesion_error_titulo),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(12.dp))
