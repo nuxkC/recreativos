@@ -108,7 +108,11 @@
     <string name="local_detalle_ver_deudas">Ver saldo y deudas del local</string>
     <string name="local_detalle_ver_historico">Ver histórico de recaudaciones</string>
     <string name="local_detalle_sin_maquinas">No hay máquinas activas en este local.</string>
-    <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d máquinas)</string>
+    <string name="local_detalle_recaudar_todas">Recaudar todas (%1$d)</string>
+    <string name="local_detalle_maquinas_eyebrow">Máquinas activas · %1$d</string>
+    <string name="local_detalle_deuda_viva_prefijo">Deuda viva:</string>
+    <string name="local_detalle_deuda_retencion_prefijo"> · retiene el </string>
+    <string name="local_detalle_deuda_retencion_valor">%1$d %%</string>
     <string name="action_back">Volver</string>
     <string name="action_cerrar">Cerrar</string>
     <string name="snackbar_sincronizando">Sincronizando</string>
@@ -131,6 +135,7 @@
     <string name="maquina_baseline_origen_instalacion">Alta de la instalación</string>
     <string name="maquina_baseline_origen_recaudacion">Recaudación previa</string>
     <string name="maquina_baseline_origen_cambio_placa">Cambio de placa</string>
+    <string name="maquina_baseline_compacto">E %1$d · S %2$d · últ. %3$s</string>
     <string name="maquina_accion_recaudar">Recaudar</string>
     <string name="maquina_accion_cambio_placa">Cambio de placa</string>
     <string name="maquina_mas_acciones">Más acciones de %1$s</string>

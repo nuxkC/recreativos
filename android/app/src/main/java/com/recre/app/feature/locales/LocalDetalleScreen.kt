@@ -18,22 +18,35 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.recre.app.ui.components.recreSharedBounds
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.recre.app.R
 import com.recre.app.core.data.repository.LocalDetalle
 import com.recre.app.feature.locales.components.MaquinaCard
+import com.recre.app.ui.components.Banda
+import com.recre.app.ui.components.BandaTono
+import com.recre.app.ui.components.Eyebrow
 import com.recre.app.ui.components.RecreDetailTopBar
+import com.recre.app.ui.components.RecreGhostButton
 import com.recre.app.ui.components.RecrePrimaryButton
 import com.recre.app.ui.components.RecreTonalButton
+import com.recre.app.ui.components.formatEur
 import com.recre.app.ui.theme.RecreShapes
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +69,9 @@ fun LocalDetalleScreen(
             RecreDetailTopBar(
                 titulo = state.detalle?.local?.nombre ?: stringResource(R.string.local_detalle_titulo),
                 onBack = onBack,
+                // N8: contexto del local (dirección · titular · tel) como subtítulo
+                // mono uppercase de la cabecera; ya no se duplica en el cuerpo.
+                subtitulo = state.detalle?.let { subtituloLocal(it) },
                 // T-244: par compartido con el nombre de la card de la lista.
                 tituloModifier = Modifier.recreSharedBounds("local-nombre-$localId"),
             )
@@ -145,35 +161,25 @@ private fun Contenido(
                 SyncStaleBanner(onSincronizar = onSincronizar)
             }
         }
-        item("cabecera") {
-            CabeceraLocal(detalle = detalle)
-        }
-        item("deudas") {
-            RecreTonalButton(
-                text = stringResource(R.string.local_detalle_ver_deudas),
-                onClick = onVerDeudas,
-                fullWidth = true,
-            )
-        }
-        item("historico") {
-            RecreTonalButton(
-                text = stringResource(R.string.local_detalle_ver_historico),
-                onClick = onVerHistorico,
-                fullWidth = true,
-            )
-        }
-        if (detalle.maquinas.isNotEmpty() && !syncStale) {
-            // Botón "Recaudar todas" disponible cuando hay máquinas activas y
-            // el sync no está stale. Saltamos a la primera por orden.
-            item("recaudar-todas") {
-                val instaladas = detalle.maquinas.filter { it.estado == "instalada" }
-                if (mostrarRecaudarTodas(instaladas.size)) {
-                    RecrePrimaryButton(
-                        text = stringResource(R.string.local_detalle_recaudar_todas, instaladas.size),
-                        onClick = { onRecaudarTodas(instaladas.first().instalacionId) },
-                    )
-                }
+        // Banda de deuda viva: sustituye al botón tonal «Ver saldo y deudas»
+        // de arriba; texto rico con las cifras en negrita, tappable → deudas.
+        if (detalle.deudaViva > BigDecimal.ZERO) {
+            item("banda-deuda") {
+                Banda(
+                    texto = textoDeuda(detalle.deudaViva, detalle.porcentajeRetencion),
+                    icon = Icons.Filled.Warning,
+                    tono = BandaTono.DEUDA,
+                    modifier = Modifier.clickable(onClick = onVerDeudas),
+                )
             }
+        }
+        item("cabecera-maquinas") {
+            Eyebrow(
+                text = stringResource(
+                    R.string.local_detalle_maquinas_eyebrow,
+                    detalle.maquinas.size,
+                ),
+            )
         }
         if (detalle.maquinas.isEmpty()) {
             item("sin-maquinas") {
@@ -190,6 +196,87 @@ private fun Contenido(
                 )
             }
         }
+        // Pie-acciones AL FINAL: CTA «Recaudar todas» (glow) + accesos secundarios
+        // como botones fantasma. Antes vivían sueltos entre cabecera y máquinas.
+        item("pie-acciones") {
+            PieAcciones(
+                detalle = detalle,
+                syncStale = syncStale,
+                onRecaudarTodas = onRecaudarTodas,
+                onVerDeudas = onVerDeudas,
+                onVerHistorico = onVerHistorico,
+            )
+        }
+    }
+}
+
+/** Subtítulo mono de la cabecera: «dirección · titular · tel» (lo que exista). */
+private fun subtituloLocal(detalle: LocalDetalle): String? {
+    val partes = buildList {
+        formatearDireccionLocal(
+            detalle.local.calle,
+            detalle.local.codigoPostal,
+            detalle.local.comunidadAutonoma,
+        )?.let { add(it) }
+        detalle.local.titularNombre?.takeIf { it.isNotBlank() }?.let { add(it) }
+        detalle.local.telefono?.takeIf { it.isNotBlank() }?.let { add(it) }
+    }
+    return partes.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+}
+
+/**
+ * Texto rico de la banda de deuda: «Deuda viva: {importe}» con la cifra en
+ * negrita, y « · retiene el {n} %» si hay porcentaje de retención (también en
+ * negrita). El importe va por [formatEur] (money-safe), nunca Double.
+ */
+@Composable
+private fun textoDeuda(deudaViva: BigDecimal, porcentajeRetencion: Int?) = buildAnnotatedString {
+    append(stringResource(R.string.local_detalle_deuda_viva_prefijo))
+    append(" ")
+    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+        append(formatEur(deudaViva.toPlainString()))
+    }
+    if (porcentajeRetencion != null) {
+        append(stringResource(R.string.local_detalle_deuda_retencion_prefijo))
+        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+            append(stringResource(R.string.local_detalle_deuda_retencion_valor, porcentajeRetencion))
+        }
+    }
+}
+
+@Composable
+private fun PieAcciones(
+    detalle: LocalDetalle,
+    syncStale: Boolean,
+    onRecaudarTodas: (String) -> Unit,
+    onVerDeudas: () -> Unit,
+    onVerHistorico: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        // «Recaudar todas» solo cuando hay 2+ instaladas y el sync no está stale.
+        if (!syncStale) {
+            val instaladas = detalle.maquinas.filter { it.estado == "instalada" }
+            if (mostrarRecaudarTodas(instaladas.size)) {
+                RecrePrimaryButton(
+                    text = stringResource(R.string.local_detalle_recaudar_todas, instaladas.size),
+                    onClick = { onRecaudarTodas(instaladas.first().instalacionId) },
+                    fullWidth = true,
+                )
+            }
+        }
+        RecreGhostButton(
+            text = stringResource(R.string.local_detalle_ver_deudas),
+            onClick = onVerDeudas,
+            fullWidth = true,
+        )
+        RecreGhostButton(
+            text = stringResource(R.string.local_detalle_ver_historico),
+            onClick = onVerHistorico,
+            fullWidth = true,
+        )
     }
 }
 
@@ -217,50 +304,6 @@ private fun SyncStaleBanner(onSincronizar: () -> Unit) {
                 onClick = onSincronizar,
             )
         }
-    }
-}
-
-@Composable
-private fun CabeceraLocal(detalle: LocalDetalle) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        val direccion = formatearDireccionLocal(
-            detalle.local.calle,
-            detalle.local.codigoPostal,
-            detalle.local.comunidadAutonoma,
-        )
-        if (!direccion.isNullOrBlank()) {
-            Text(
-                text = direccion,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(4.dp))
-        }
-        if (!detalle.local.titularNombre.isNullOrBlank()) {
-            Text(
-                text = stringResource(
-                    R.string.local_detalle_titular,
-                    detalle.local.titularNombre,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (!detalle.local.telefono.isNullOrBlank()) {
-            Text(
-                text = stringResource(
-                    R.string.local_detalle_telefono,
-                    detalle.local.telefono,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.local_detalle_seccion_maquinas),
-            style = MaterialTheme.typography.titleSmall,
-        )
     }
 }
 
