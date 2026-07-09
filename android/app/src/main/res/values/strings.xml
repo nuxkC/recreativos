@@ -386,6 +386,15 @@
     <string name="historico_label_parte_local">Parte local</string>
     <!-- N8: parte del local bajo el bruto en la tarjeta de histórico. %1$s = importe. -->
     <string name="historico_local_importe">Local %1$s</string>
+    <!-- N8: subtítulo mono de la cabecera del histórico de contexto (se pone en
+         mayúsculas en la cabecera). %1$s = nombre del local de la máquina. -->
+    <string name="historico_contexto_subtitulo_maquina">Histórico de la máquina — %1$s</string>
+    <string name="historico_contexto_subtitulo_local">Histórico del local</string>
+    <!-- N8: banda resumen sobre la lista. %1$d = nº recaudaciones, %2$s = bruto acumulado. -->
+    <plurals name="historico_contexto_resumen">
+        <item quantity="one">%1$d recaudación · bruto acumulado %2$s</item>
+        <item quantity="other">%1$d recaudaciones · bruto acumulado %2$s</item>
+    </plurals>
     <string name="historico_label_parte_empresa">Parte empresa</string>
     <string name="historico_badge_firme">Firme</string>
     <string name="historico_badge_anulada">Anulada</string>
