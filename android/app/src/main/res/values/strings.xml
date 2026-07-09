@@ -77,6 +77,10 @@
     <!-- Agenda de recaudación (Planificación P3c) -->
     <string name="agenda_hero_todo_al_dia">Todo al día</string>
     <string name="agenda_hero_eyebrow">Tu ruta</string>
+    <!-- N8: barra de progreso del héroe. %1$d = al día, %2$d = total. -->
+    <string name="agenda_progreso_al_dia">%1$d/%2$d al día</string>
+    <!-- N8: meta de una línea de la tarjeta de local «dirección · N máquinas». -->
+    <string name="locales_meta_separador">%1$s · %2$s</string>
     <plurals name="agenda_hero_sub">
         <item quantity="one">%d local por recaudar</item>
         <item quantity="other">%d locales por recaudar</item>

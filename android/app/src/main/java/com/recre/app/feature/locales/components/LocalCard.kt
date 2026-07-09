@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,10 +35,9 @@ import com.recre.app.feature.locales.formatearDireccionLocal
 /**
  * Tarjeta de un local en la lista principal.
  *
- * Tap navega al detalle (`/local/{localId}`). Muestra:
- * - Nombre (titular)
- * - Dirección (subtítulo, single line elipsado)
- * - Recuento de máquinas activas con plural ICU.
+ * Tap navega al detalle (`/local/{localId}`). N8: Row [nombre + meta de una
+ * línea «dirección · N máquinas»] con el `StatusChip` de estado a la DERECHA;
+ * sin chevron (la card ya es táctil).
  */
 @Composable
 fun LocalCard(
@@ -67,46 +64,37 @@ fun LocalCard(
                     // T-244: comparte el nombre con el título del detalle (no-op si no hay scopes).
                     modifier = Modifier.recreSharedBounds("local-nombre-${local.id}"),
                 )
+                // N8: meta en una sola línea «dirección · N máquinas». El conteo de
+                // máquinas SÍ lo expone LocalResumen (maquinasActivas), así que se une
+                // a la dirección con el separador; si no hay dirección, solo el conteo.
                 val direccion = formatearDireccionLocal(
                     local.calle,
                     local.codigoPostal,
                     local.comunidadAutonoma,
                 )
-                if (!direccion.isNullOrBlank()) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = direccion,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = pluralStringResource(
-                        id = R.plurals.locales_maquinas_count,
-                        count = local.maquinasActivas,
-                        local.maquinasActivas,
-                    ),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (local.maquinasActivas == 0) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
+                val maquinasText = pluralStringResource(
+                    id = R.plurals.locales_maquinas_count,
+                    count = local.maquinasActivas,
+                    local.maquinasActivas,
                 )
-                if (estado != null) {
-                    Spacer(Modifier.height(6.dp))
-                    EstadoAgendaChip(estado)
+                val meta = if (!direccion.isNullOrBlank()) {
+                    stringResource(R.string.locales_meta_separador, direccion, maquinasText)
+                } else {
+                    maquinasText
                 }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = meta,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-            Spacer(Modifier.width(8.dp))
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (estado != null) {
+                Spacer(Modifier.width(8.dp))
+                EstadoAgendaChip(estado)
+            }
         }
     }
 }
